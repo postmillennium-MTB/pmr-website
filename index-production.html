@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="day">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Post Millennium Renaissance — MTB Tools & Trail Advocacy</title>
+  <meta name="description" content="Interactive mountain bike tools built on real physics, and trail advocacy grounded in economic data. Castle Rock, CO.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;1,400&family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500&family=Space+Mono&display=swap" rel="stylesheet">
+
+  <style>
+  /* ═══════════════════════════════════════════════════════════════
+     TOKENS  —  Day (clear Colorado afternoon)
+  ═══════════════════════════════════════════════════════════════ */
+  :root {
+    /* Page */
+    --bg:          #ECEAE4;
+    --bg-card:     #F4F1EC;
+    --bg-rule:     #CECCCA; /* was #D0CDC8 */
+    --text:        #1A1814;
+    --text-muted:  #5C574E;
+    --accent:      #7A3828;   /* muted dark brick — Colville's cadmium red */
+    --blue:        #3A5C6E;
+    --gold:        #786030;
+
+    /* Painting layers */
+    --sky-hi:      #8FAEBB;   /* upper sky */
+    --sky-lo:      #BACED6;   /* horizon sky */
+    --distant:     #9AABAF;   /* far-off terrain band */
+    --rock:        #7C7062;   /* butte main face */
+    --rock-sh:     #584E44;   /* butte shadow face (east) */
+    --rock-st:     #665C52;   /* strata lines */
+    --ground:      #B6AA92;   /* plain foreground */
+    --ground-sh:   #A09278;   /* cast shadow on plain */
+    --trail:       #8A7C68;   /* singletrack */
+    --canvas-bg:   #C8C0B0;   /* canvas texture tone */
+    --frame-b:     #2E2416;   /* frame border */
+
+    /* Type */
+    --ff-serif:    'EB Garamond', Georgia, serif;
+    --ff-sans:     'Space Grotesk', sans-serif;
+    --ff-body:     'Inter', sans-serif;
+    --ff-mono:     'Space Mono', monospace;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     TOKENS  —  Dusk (last light, mountains going dark)
+  ═══════════════════════════════════════════════════════════════ */
+  [data-theme="dusk"] {
+    --bg:          #181A1E;
+    --bg-card:     #1E2028;
+    --bg-rule:     #2C2E38;
+    --text:        #CCC8C0;
+    --text-muted:  #706A62;
+    --accent:      #8A3E2C;
+    --blue:        #3E6070;
+    --gold:        #806838;
+
+    --sky-hi:      #080E18;
+    --sky-lo:      #162030;
+    --distant:     #1C2830;
+    --rock:        #282422;
+    --rock-sh:     #181614;
+    --rock-st:     #302C28;
+    --ground:      #1A1A16;
+    --ground-sh:   #101010;
+    --trail:       #252220;
+    --canvas-bg:   #141412;
+    --frame-b:     #080806;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     SVG PAINTING  —  all fills/strokes via CSS so theme toggle works
+  ═══════════════════════════════════════════════════════════════ */
+  .p-sky-hi    { fill: var(--sky-hi); }
+  .p-sky-lo    { fill: var(--sky-lo); }
+  .p-distant   { fill: var(--distant); }
+  .p-rock      { fill: var(--rock); }
+  .p-rock-sh   { fill: var(--rock-sh); }
+  .p-ground    { fill: var(--ground); }
+  .p-ground-sh { fill: var(--ground-sh); }
+  .p-strata    { fill: none; stroke: var(--rock-st); stroke-width: 0.7; }
+  .p-trail     { fill: none; stroke: var(--trail); stroke-width: 1.8;
+                 stroke-linecap: round; stroke-linejoin: round; }
+  .p-canvas    { fill: var(--canvas-bg); }
+
+  /* Transitions on paint elements */
+  .p-sky-hi, .p-sky-lo, .p-distant, .p-rock, .p-rock-sh,
+  .p-ground, .p-ground-sh, .p-strata, .p-trail, .p-canvas {
+    transition: fill 0.5s ease, stroke 0.5s ease;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     BASE
+  ═══════════════════════════════════════════════════════════════ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--ff-body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.5s ease, color 0.5s ease;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     NAV
+  ═══════════════════════════════════════════════════════════════ */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2.5rem;
+    border-bottom: 1px solid var(--bg-rule);
+    transition: background-color 0.5s ease, border-color 0.5s ease;
+  }
+  [data-theme="day"]  nav { background: rgba(236,234,228,0.93); }
+  [data-theme="dusk"] nav { background: rgba(24,26,30,0.93); }
+  nav::after {
+    content: ''; position: absolute; inset: 0;
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: -1;
+  }
+
+  .nav-logo {
+    display: flex; align-items: center; gap: 0.625rem;
+    text-decoration: none; color: var(--text);
+  }
+  .nav-mark { height: 28px; width: auto; display: block; }
+  .nav-mark .castle-fill {
+    fill: var(--frame-b);
+    transition: fill 0.5s ease;
+  }
+  [data-theme="dusk"] .nav-mark .castle-fill { fill: var(--text-muted); }
+
+  .nav-wordmark {
+    font-family: var(--ff-sans);
+    font-weight: 700;
+    font-size: 0.875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text);
+    transition: color 0.5s ease;
+  }
+  .nav-wordmark em { color: var(--accent); font-style: normal; }
+
+  .nav-right { display: flex; align-items: center; gap: 2rem; }
+
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a {
+    font-size: 0.8rem; font-weight: 500; letter-spacing: 0.06em;
+    color: var(--text-muted); text-decoration: none; text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+
+  .theme-btn {
+    display: flex; align-items: center; gap: 0.4rem;
+    background: none; border: 1px solid var(--bg-rule);
+    color: var(--text-muted); cursor: pointer;
+    font-family: var(--ff-mono); font-size: 0.65rem;
+    letter-spacing: 0.14em; padding: 0.375rem 0.625rem;
+    border-radius: 2px;
+    transition: color 0.2s, border-color 0.2s, background-color 0.2s;
+  }
+  .theme-btn:hover { color: var(--text); border-color: var(--text-muted); }
+  .theme-btn svg { width: 13px; height: 13px; }
+
+  /* ═══════════════════════════════════════════════════════════════
+     HERO
+  ═══════════════════════════════════════════════════════════════ */
+  .hero-wrap { position: relative; overflow: hidden; }
+
+  .hero {
+    position: relative;
+    max-width: 1200px; margin: 0 auto;
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 9rem 2.5rem 5rem;
+  }
+
+  /* ── The painting ────────────────────────────────────────────── */
+  .painting-outer {
+    position: absolute;
+    right: -8px; top: 50%; transform: translateY(-50%);
+    width: 54%; max-width: 620px;
+    /* Image has its own wooden frame — no CSS border needed */
+    box-shadow: 0 8px 40px rgba(0,0,0,0.22);
+    animation: paintFadeIn 1.2s ease forwards;
+    transition: box-shadow 0.5s ease;
+  }
+  [data-theme="dusk"] .painting-outer {
+    box-shadow: 0 8px 50px rgba(0,0,0,0.55);
+  }
+  @keyframes paintFadeIn {
+    from { opacity: 0; transform: translateY(-50%) translateX(12px); }
+    to   { opacity: 1; transform: translateY(-50%) translateX(0); }
+  }
+
+  /* The actual painting image */
+  .painting-img {
+    display: block; width: 100%; height: auto;
+    transition: filter 0.5s ease;
+  }
+  /* Dusk: darken the painting like last light fading */
+  [data-theme="dusk"] .painting-img {
+    filter: brightness(0.38) saturate(0.75);
+  }
+
+  /* Subtle right-edge fade so painting doesn't hard-clip on small screens */
+  .hero-edge {
+    position: absolute; right: 0; top: 0; bottom: 0; width: 80px;
+    pointer-events: none;
+    background: linear-gradient(to left, var(--bg), transparent);
+    transition: background 0.5s ease;
+  }
+
+  /* ── Hero copy ───────────────────────────────────────────────── */
+  .eyebrow {
+    font-family: var(--ff-mono);
+    font-size: 0.7rem; letter-spacing: 0.22em;
+    color: var(--accent); text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    opacity: 0; animation: slideUp 0.6s ease forwards 0.25s;
+    transition: color 0.5s ease;
+  }
+
+  .hero-title {
+    margin-bottom: 2rem;
+    opacity: 0; animation: slideUp 0.7s ease forwards 0.38s;
+  }
+  .hero-title .line1 {
+    display: block;
+    font-family: var(--ff-sans);
+    font-weight: 700;
+    font-size: clamp(1.4rem, 3.5vw, 2.4rem);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 0.3rem;
+    transition: color 0.5s ease;
+  }
+  .hero-title .line2 {
+    display: block;
+    font-family: var(--ff-serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(3.2rem, 7.5vw, 6.5rem);
+    line-height: 0.9;
+    color: var(--text);
+    letter-spacing: -0.01em;
+    transition: color 0.5s ease;
+  }
+
+  .hero-desc {
+    font-size: 1rem; color: var(--text-muted); max-width: 40ch;
+    line-height: 1.8; margin-bottom: 2.5rem;
+    opacity: 0; animation: slideUp 0.7s ease forwards 0.5s;
+    transition: color 0.5s ease;
+  }
+
+  .hero-cta {
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    background: var(--accent); color: #fff;
+    font-family: var(--ff-mono); font-size: 0.72rem; letter-spacing: 0.16em;
+    text-transform: uppercase; padding: 0.875rem 1.75rem; text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+    opacity: 0; animation: slideUp 0.7s ease forwards 0.62s;
+  }
+  .hero-cta:hover { background: var(--blue); transform: translateY(-1px); }
+  .hero-cta svg { transition: transform 0.2s; }
+  .hero-cta:hover svg { transform: translateX(4px); }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     SECTIONS  —  shared
+  ═══════════════════════════════════════════════════════════════ */
+  section { max-width: 1200px; margin: 0 auto; padding: 5rem 2.5rem; }
+
+  .section-header {
+    display: flex; align-items: baseline; gap: 1.5rem;
+    border-top: 1px solid var(--bg-rule); padding-top: 1.875rem;
+    margin-bottom: 2.75rem;
+    transition: border-color 0.5s ease;
+  }
+  .section-label {
+    font-family: var(--ff-mono); font-size: 0.66rem; letter-spacing: 0.22em;
+    color: var(--accent); text-transform: uppercase; white-space: nowrap;
+    flex-shrink: 0; transition: color 0.5s ease;
+  }
+  .section-title {
+    font-family: var(--ff-serif); font-style: italic;
+    font-size: 1.875rem; font-weight: 400;
+    letter-spacing: -0.01em; line-height: 1.15; color: var(--text);
+    transition: color 0.5s ease;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     TOOLS GRID
+  ═══════════════════════════════════════════════════════════════ */
+  /* !! Replace each href="#" with your GitHub Pages tool URL !! */
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    border: 1px solid var(--bg-rule); gap: 1px; background: var(--bg-rule);
+    transition: border-color 0.5s ease, background-color 0.5s ease;
+  }
+
+  .tool-card {
+    background: var(--bg-card); padding: 1.75rem;
+    text-decoration: none; color: inherit; display: block; position: relative;
+    transition: background-color 0.2s;
+  }
+  .tool-card:hover { background: var(--bg-rule); }
+  .tool-card::after {
+    content: ''; position: absolute; bottom: 0; left: 0;
+    width: 0; height: 2px; background: var(--accent);
+    transition: width 0.35s ease;
+  }
+  .tool-card:hover::after { width: 100%; }
+
+  .tool-tag {
+    font-family: var(--ff-mono); font-size: 0.62rem; letter-spacing: 0.16em;
+    color: var(--blue); text-transform: uppercase; margin-bottom: 0.75rem;
+    transition: color 0.5s ease;
+  }
+  .tool-name {
+    font-family: var(--ff-serif); font-style: italic;
+    font-size: 1.1rem; font-weight: 400; margin-bottom: 0.5rem; line-height: 1.3;
+    color: var(--text); transition: color 0.5s ease;
+  }
+  .tool-desc {
+    font-size: 0.84rem; color: var(--text-muted); line-height: 1.65;
+    transition: color 0.5s ease;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     ABOUT
+  ═══════════════════════════════════════════════════════════════ */
+  .about-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 5rem; align-items: start; }
+
+  .about-bio { font-size: 1rem; color: var(--text-muted); line-height: 1.9; transition: color 0.5s ease; }
+  .about-bio strong { color: var(--text); font-weight: 500; }
+
+  .about-links { display: flex; flex-direction: column; gap: 0.875rem; }
+
+  .link-item {
+    display: flex; align-items: center; gap: 1.125rem;
+    padding: 1.25rem 1.375rem;
+    background: var(--bg-card); border: 1px solid var(--bg-rule);
+    text-decoration: none; color: inherit;
+    transition: border-color 0.2s, background-color 0.5s ease;
+  }
+  .link-item:hover { border-color: var(--accent); }
+
+  .link-icon { width: 1.6rem; height: 1.6rem; color: var(--accent); flex-shrink: 0; }
+  .link-meta { display: flex; flex-direction: column; gap: 0.2rem; }
+  .link-label {
+    font-family: var(--ff-mono); font-size: 0.6rem; letter-spacing: 0.16em;
+    color: var(--text-muted); text-transform: uppercase; transition: color 0.5s ease;
+  }
+  .link-name { font-family: var(--ff-sans); font-weight: 600; font-size: 0.9rem; }
+
+  /* ═══════════════════════════════════════════════════════════════
+     ADVOCACY
+  ═══════════════════════════════════════════════════════════════ */
+  .advocacy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+  .advocacy-card {
+    background: var(--bg-card); border: 1px solid var(--bg-rule);
+    padding: 2rem 2rem 1.75rem;
+    transition: background-color 0.5s ease, border-color 0.5s ease;
+  }
+  .advocacy-card h3 {
+    font-family: var(--ff-serif); font-style: italic; font-weight: 400;
+    font-size: 1.2rem; margin-bottom: 0.75rem; color: var(--text); transition: color 0.5s ease;
+  }
+  .advocacy-card p {
+    font-size: 0.85rem; color: var(--text-muted); line-height: 1.75; transition: color 0.5s ease;
+  }
+  .stat-row {
+    display: flex; gap: 2.25rem; margin-top: 1.5rem;
+    border-top: 1px solid var(--bg-rule); padding-top: 1.25rem;
+    transition: border-color 0.5s ease;
+  }
+  .stat-value {
+    display: block; font-family: var(--ff-mono); font-size: 1.4rem;
+    color: var(--gold); line-height: 1; margin-bottom: 0.35rem; transition: color 0.5s ease;
+  }
+  .stat-label {
+    font-family: var(--ff-mono); font-size: 0.6rem; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.12em; transition: color 0.5s ease;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     FOOTER
+  ═══════════════════════════════════════════════════════════════ */
+  .footer-rule { border-top: 1px solid var(--bg-rule); transition: border-color 0.5s ease; }
+  footer {
+    max-width: 1200px; margin: 0 auto; padding: 2rem 2.5rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .footer-brand { font-family: var(--ff-serif); font-style: italic; font-size: 1rem; }
+  .footer-meta {
+    font-family: var(--ff-mono); font-size: 0.66rem; color: var(--text-muted);
+    letter-spacing: 0.1em; transition: color 0.5s ease;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     RESPONSIVE
+  ═══════════════════════════════════════════════════════════════ */
+  @media (max-width: 960px) {
+    .about-grid    { grid-template-columns: 1fr; gap: 2.5rem; }
+    .advocacy-grid { grid-template-columns: 1fr; }
+    .painting-outer { width: 62%; }
+  }
+
+  @media (max-width: 640px) {
+    nav { padding: 0.875rem 1.25rem; }
+    .nav-links { gap: 1.25rem; }
+    .nav-links li:nth-child(n+3) { display: none; }
+    .nav-wordmark { display: none; }
+    .hero { padding: 7.5rem 1.25rem 4rem; min-height: auto; padding-bottom: 0; }
+    .hero-copy { position: relative; z-index: 2; }
+    .painting-outer {
+      position: relative; right: auto; top: auto; transform: none;
+      width: calc(100% + 2.5rem); margin: 2.5rem -1.25rem 0;
+      max-width: none;
+    }
+    section { padding: 3.5rem 1.25rem; }
+    .section-header { flex-direction: column; gap: 0.4rem; }
+    footer { flex-direction: column; gap: 0.625rem; text-align: center; }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     ACCESSIBILITY
+  ═══════════════════════════════════════════════════════════════ */
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .eyebrow, .hero-title, .hero-desc, .hero-cta { animation: none !important; opacity: 1 !important; transform: none !important; }
+    .painting-outer { animation: none !important; }
+  }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     NAV
+═══════════════════════════════════════════════════════════════ -->
+<nav>
+  <a href="#" class="nav-logo" aria-label="Post Millennium Renaissance MTB — home">
+    <!-- Castle Rock mark — small nav version -->
+    <svg class="nav-mark" viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path class="castle-fill" d="M 10 230 A 190 190 0 0 1 390 230
+        L 382 222 L 372 215 L 358 219 L 344 210 L 330 203 L 318 208
+        L 304 199 L 290 192 L 276 187 L 262 183 L 247 180 L 232 176
+        L 218 172 L 206 168 L 196 161 L 186 154 L 177 149 L 168 145
+        L 158 143 L 148 143 L 138 146 L 128 155 L 119 164 L 110 173
+        L 100 179 L 89 184 L 78 189 L 67 195 L 56 202 L 45 210
+        L 33 218 L 20 225 L 10 230 Z"/>
+    </svg>
+    <span class="nav-wordmark">PMR<em>.</em></span>
+  </a>
+
+  <div class="nav-right">
+    <ul class="nav-links">
+      <li><a href="#tools">Tools</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#advocacy">Advocacy</a></li>
+      <li><a href="https://www.pinkbike.com/u/redfoxrun/" target="_blank" rel="noopener">Pinkbike ↗</a></li>
+    </ul>
+
+    <button class="theme-btn" id="theme-btn" aria-label="Switch to dusk mode">
+      <!-- Moon shown in Day mode (click to go Dusk) -->
+      <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+      <!-- Sun shown in Dusk mode (click to go Day) -->
+      <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="display:none">
+        <circle cx="12" cy="12" r="5"/>
+        <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <span id="theme-label">Dusk</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════════════════════════ -->
+<div class="hero-wrap">
+  <div class="hero">
+
+    <!-- ── Colville-style landscape painting ── -->
+    <div class="painting-outer" aria-hidden="true">
+      <img class="painting-img" src="FullSizeRender.jpeg"
+           alt="Colville-style painting: mountain biker on a singletrack trail with the Colorado Rockies behind"
+           width="1408" height="768">
+    </div>
+    <div class="hero-edge"></div>
+
+    <!-- ── Copy ── -->
+    <div class="hero-copy">
+      <div class="eyebrow">Castle Rock, Colorado</div>
+      <h1 class="hero-title">
+        <span class="line1">Post Millennium</span>
+        <span class="line2">Renaissance</span>
+      </h1>
+      <p class="hero-desc">
+        MTB tools built on real physics.<br>
+        Trail advocacy grounded in economic data.<br>
+        For riders who want to understand<br>
+        the machine beneath them —<br>
+        and the land beneath the machine.
+      </p>
+      <a href="#tools" class="hero-cta">
+        View the tools
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TOOLS
+═══════════════════════════════════════════════════════════════ -->
+<section id="tools">
+  <div class="section-header">
+    <span class="section-label">Interactive tools</span>
+    <h2 class="section-title">Built to understand MTB, not just ride it.</h2>
+  </div>
+  <div class="tools-grid">
+
+    <a href="#" class="tool-card">
+      <div class="tool-tag">Wheel mechanics</div>
+      <div class="tool-name">Wheel Strength Lab</div>
+      <p class="tool-desc">148mm Boost vs. 157mm Super Boost hub comparison using Ford's Mode Matrix — across Compare, Simulation, and Deep Dive tabs.</p>
+    </a>
+
+    <a href="#" class="tool-card">
+      <div class="tool-tag">IP research</div>
+      <div class="tool-name">MTB Patent Atlas</div>
+      <p class="tool-desc">Mountain bike intellectual property from 1890 to 2026, across eight categories with 200+ entries and confidence-tier labeling.</p>
+    </a>
+
+    <a href="#" class="tool-card">
+      <div class="tool-tag">Trail economics</div>
+      <div class="tool-name">Trail Investment ROI Calculator</div>
+      <p class="tool-desc">Economic impact modeling for trail projects, synthesized from 13 U.S. investment studies with international currency toggle.</p>
+    </a>
+
+    <a href="#" class="tool-card">
+      <div class="tool-tag">Suspension physics</div>
+      <div class="tool-name">Front Suspension Simulator</div>
+      <p class="tool-desc">HSC/LSC damping controls, terrain-specific inputs, and an anatomically correct fork schematic for visualizing compression behavior.</p>
+    </a>
+
+    <a href="#" class="tool-card">
+      <div class="tool-tag">Destinations</div>
+      <div class="tool-name">US Lift-Served Bike Parks</div>
+      <p class="tool-desc">85+ parks across 29 states, with Loam Pass badge system and mobile-first accordion design for trail-side reference.</p>
+    </a>
+
+    <a href="#" class="tool-card">
+      <div class="tool-tag">Destinations</div>
+      <div class="tool-name">Canadian Bike Parks</div>
+      <p class="tool-desc">27 parks, bilingual EN/FR, Leaflet map, Gravity Logic and Kodiak Trail Works badge system. Fully self-contained at ~268 KB.</p>
+    </a>
+
+    <a href="#" class="tool-card">
+      <div class="tool-tag">IP research</div>
+      <div class="tool-name">Dave Weagle Patent Widget</div>
+      <p class="tool-desc">35 suspension patents with live expiration countdowns, three brand-themed color schemes, and Pinkbike iframe deployment.</p>
+    </a>
+
+    <a href="#" class="tool-card">
+      <div class="tool-tag">Geometry</div>
+      <div class="tool-name">MTB Steering Geometry</div>
+      <p class="tool-desc">Six-axis radar chart with Devinci Troy 2025 presets, corrected Whipple reference wheelbase, and bar sweep RAD correction.</p>
+    </a>
+
+    <a href="#" class="tool-card">
+      <div class="tool-tag">Trail economics</div>
+      <div class="tool-name">Pump Track &amp; Skatepark Calculator</div>
+      <p class="tool-desc">Two-pillar economic model anchored to Kemp 2025, built for civic advocacy presentations to parks departments and councils.</p>
+    </a>
+
+    <a href="#" class="tool-card">
+      <div class="tool-tag">Tire mechanics</div>
+      <div class="tool-name">MTB Tire Tread Simulator</div>
+      <p class="tool-desc">Pacejka/FastBike tire model for comparing tread patterns across terrain types and load conditions.</p>
+    </a>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     ABOUT
+═══════════════════════════════════════════════════════════════ -->
+<section id="about">
+  <div class="section-header">
+    <span class="section-label">About</span>
+    <h2 class="section-title">Rider, advocate, builder.</h2>
+  </div>
+  <div class="about-grid">
+    <p class="about-bio">
+      <strong>Post Millennium Renaissance MTB</strong> is the work of Jon — a trail advocate,
+      content creator, and tool builder based in Castle Rock, Colorado. The tools here are
+      built without a formal coding background, out of a conviction that mountain bike
+      mechanics and trail economics deserve the same rigor we bring to the trail itself.<br><br>
+      The work spans two audiences: technically sophisticated riders who want to understand
+      what's actually happening inside their wheel builds and suspension, and civic
+      stakeholders who need clear, defensible data to invest in trails and open space.<br><br>
+      No solutions — only tradeoffs, understood.
+    </p>
+    <div class="about-links">
+      <a href="https://www.pinkbike.com/u/redfoxrun/" target="_blank" rel="noopener" class="link-item">
+        <svg class="link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8l4 4-4 4"/>
+        </svg>
+        <div class="link-meta">
+          <span class="link-label">Writing</span>
+          <span class="link-name">Pinkbike — redfoxrun</span>
+        </div>
+      </a>
+      <!-- Replace # with your YouTube channel URL -->
+      <a href="#" target="_blank" rel="noopener" class="link-item">
+        <svg class="link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+        <div class="link-meta">
+          <span class="link-label">Video</span>
+          <span class="link-name">YouTube Channel</span>
+        </div>
+      </a>
+      <a href="https://github.com/postmillennium-MTB" target="_blank" rel="noopener" class="link-item">
+        <svg class="link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+          <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+        </svg>
+        <div class="link-meta">
+          <span class="link-label">Source code</span>
+          <span class="link-name">GitHub — postmillennium-MTB</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     ADVOCACY
+═══════════════════════════════════════════════════════════════ -->
+<section id="advocacy">
+  <div class="section-header">
+    <span class="section-label">Trail advocacy</span>
+    <h2 class="section-title">Castle Rock's trails deserve serious investment.</h2>
+  </div>
+  <div class="advocacy-grid">
+    <div class="advocacy-card">
+      <h3>Philip S. Miller Park</h3>
+      <p>Economic impact research and civic presentation materials supporting trail expansion at Castle Rock's flagship mountain bike destination — delivered to Town Council with defensible ROI framing.</p>
+      <div class="stat-row">
+        <div><span class="stat-value">~2M</span><span class="stat-label">Annual visitors</span></div>
+        <div><span class="stat-value">3–5yr</span><span class="stat-label">Est. ROI payback</span></div>
+      </div>
+    </div>
+    <div class="advocacy-card">
+      <h3>Ridgeline Open Space</h3>
+      <p>Trail advocacy resources and community engagement materials for Castle Rock's Ridgeline Open Space, grounded in 13 U.S. trail investment studies and built to hold up in front of municipal stakeholders.</p>
+      <div class="stat-row">
+        <div><span class="stat-value">13</span><span class="stat-label">Studies synthesized</span></div>
+        <div><span class="stat-value">80109</span><span class="stat-label">Castle Rock, CO</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════════════════════ -->
+<div class="footer-rule"></div>
+<footer>
+  <div class="footer-brand">Post Millennium Renaissance</div>
+  <div class="footer-meta">postmillenniumrenaissance.com &nbsp;·&nbsp; Castle Rock, CO &nbsp;·&nbsp; © 2026</div>
+</footer>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THEME TOGGLE SCRIPT
+═══════════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  var btn   = document.getElementById('theme-btn');
+  var sun   = document.getElementById('icon-sun');
+  var moon  = document.getElementById('icon-moon');
+  var label = document.getElementById('theme-label');
+  var html  = document.documentElement;
+
+  btn.addEventListener('click', function () {
+    var goingDusk = html.getAttribute('data-theme') === 'day';
+    html.setAttribute('data-theme', goingDusk ? 'dusk' : 'day');
+    moon.style.display  = goingDusk ? 'none' : '';
+    sun.style.display   = goingDusk ? ''     : 'none';
+    label.textContent   = goingDusk ? 'Day'  : 'Dusk';
+    btn.setAttribute('aria-label', goingDusk ? 'Switch to day mode' : 'Switch to dusk mode');
+  });
+}());
+</script>
+
+</body>
+</html>
