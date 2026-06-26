@@ -21,5 +21,56 @@
     title="MTB Patent Atlas"
     allowfullscreen>
   </iframe>
+  <!--
+  ═══════════════════════════════════════════════════════════════
+  PMR BACK LINK  —  paste this just before </body> in each tool
+  ═══════════════════════════════════════════════════════════════
+  Shows a small fixed "PMR ↗" badge in the top-right corner of
+  every tool page, linking back to postmillenniumrenaissance.com.
+  It sits on top of existing UI without disrupting the layout.
+-->
+<style>
+  .pmr-back {
+    position: fixed;
+    top: 12px;
+    right: 14px;
+    z-index: 99999;
+  }
+  .pmr-back a {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(28, 26, 20, 0.90);
+    color: #EBE3D5;
+    text-decoration: none;
+    padding: 6px 11px 6px 8px;
+    border: 1px solid #302D24;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    transition: background 0.2s;
+  }
+  .pmr-back a:hover { background: rgba(200, 75, 47, 0.88); }
+  .pmr-back svg { display: block; flex-shrink: 0; }
+</style>
+
+<div class="pmr-back">
+  <a href="https://postmillenniumrenaissance.com" target="_top" title="Post Millennium Renaissance MTB">
+    <!-- Castle Rock mark — 22px tall -->
+    <svg width="36" height="22" viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#EBE3D5" d="M 10 230 A 190 190 0 0 1 390 230
+        L 382 222 L 372 215 L 358 219 L 344 210 L 330 203 L 318 208
+        L 304 199 L 290 192 L 276 187 L 262 183 L 247 180 L 232 176
+        L 218 172 L 206 168 L 196 161 L 186 154 L 177 149 L 168 145
+        L 158 143 L 148 143 L 138 146 L 128 155 L 119 164 L 110 173
+        L 100 179 L 89 184 L 78 189 L 67 195 L 56 202 L 45 210
+        L 33 218 L 20 225 L 10 230 Z"/>
+    </svg>
+    PMR
+  </a>
+</div>
 </body>
 </html>
