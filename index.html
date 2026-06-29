@@ -5,6 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Post Millennium Renaissance — MTB Tools & Trail Advocacy</title>
   <meta name="description" content="Interactive mountain bike tools built on real physics, and trail advocacy grounded in economic data. Castle Rock, CO.">
+
+  <!-- Open Graph / link preview -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://postmillenniumrenaissance.com/">
+  <meta property="og:title" content="Post Millennium Renaissance — MTB Tools & Trail Advocacy">
+  <meta property="og:description" content="Interactive mountain bike tools built on real physics, and trail advocacy grounded in economic data. Castle Rock, CO.">
+  <meta property="og:image" content="https://postmillenniumrenaissance.com/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Post Millennium Renaissance — MTB Tools & Trail Advocacy">
+  <meta name="twitter:description" content="Interactive mountain bike tools built on real physics, and trail advocacy grounded in economic data. Castle Rock, CO.">
+  <meta name="twitter:image" content="https://postmillenniumrenaissance.com/og-image.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;1,400&family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500&family=Space+Mono&display=swap" rel="stylesheet">
@@ -468,6 +481,43 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════
+     SHARE BUTTON  (cards restructured: div + full-card link + button)
+  ═══════════════════════════════════════════════════════════════ */
+  /* Full-card click target sits above the text, below the share button */
+  .card-hit {
+    position: absolute; inset: 0; z-index: 1;
+    text-indent: -9999px; overflow: hidden;
+  }
+  /* Keep the hover underline working on the new div card */
+  .tool-card { position: relative; }
+
+  .share-btn {
+    position: absolute; top: 1.125rem; right: 1.125rem; z-index: 3;
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg-card); border: 1px solid var(--bg-rule);
+    border-radius: 3px; color: var(--text-muted); cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, background 0.2s, opacity 0.2s;
+  }
+  .share-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .tool-card:hover .share-btn { border-color: var(--text-muted); }
+  .share-btn .ico { display: flex; }
+  .share-btn svg { width: 14px; height: 14px; }
+  .share-btn[hidden], .ico[hidden] { display: none; }
+
+  /* "Link copied" pill — appears to the left of the button */
+  .copied-label {
+    position: absolute; top: 50%; right: calc(100% + 8px);
+    transform: translateY(-50%);
+    background: var(--accent); color: #fff;
+    font-family: var(--ff-mono); font-size: 0.58rem; letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 4px 8px; border-radius: 2px;
+    white-space: nowrap; opacity: 0; pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .share-btn.copied .copied-label { opacity: 1; }
+
+  /* ═══════════════════════════════════════════════════════════════
      RESPONSIVE
   ═══════════════════════════════════════════════════════════════ */
   @media (max-width: 960px) {
@@ -592,71 +642,137 @@
   </div>
   <div class="tools-grid">
 
-    <a href="/wheel-lab/" class="tool-card">
+    <div class="tool-card">
+      <a href="/wheel-lab/" class="card-hit" aria-label="Open Wheel Strength Lab"></a>
       <div class="tool-tag">Wheel mechanics</div>
       <div class="tool-name">Wheel Strength Lab</div>
       <p class="tool-desc">148mm Boost vs. 157mm Super Boost hub comparison using Ford's Mode Matrix — across Compare, Simulation, and Deep Dive tabs.</p>
-    </a>
+      <button class="share-btn" type="button" data-path="/wheel-lab/" data-title="Wheel Strength Lab" aria-label="Share Wheel Strength Lab">
+        <span class="copied-label">Link copied</span>
+        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
+        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
+      </button>
+    </div>
 
-    <a href="/atlas/" class="tool-card">
+    <div class="tool-card">
+      <a href="/atlas/" class="card-hit" aria-label="Open MTB Patent Atlas"></a>
       <div class="tool-tag">IP research</div>
       <div class="tool-name">MTB Patent Atlas</div>
       <p class="tool-desc">Mountain bike intellectual property from 1890 to 2026, across eight categories with 200+ entries and confidence-tier labeling.</p>
-    </a>
+      <button class="share-btn" type="button" data-path="/atlas/" data-title="MTB Patent Atlas" aria-label="Share MTB Patent Atlas">
+        <span class="copied-label">Link copied</span>
+        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
+        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
+      </button>
+    </div>
 
-    <a href="/roi/" class="tool-card">
+    <div class="tool-card">
+      <a href="/roi/" class="card-hit" aria-label="Open Trail Investment ROI Calculator"></a>
       <div class="tool-tag">Trail economics</div>
       <div class="tool-name">Trail Investment ROI Calculator</div>
       <p class="tool-desc">Economic impact modeling for trail projects, synthesized from 13 U.S. investment studies with international currency toggle.</p>
-    </a>
+      <button class="share-btn" type="button" data-path="/roi/" data-title="Trail Investment ROI Calculator" aria-label="Share Trail Investment ROI Calculator">
+        <span class="copied-label">Link copied</span>
+        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
+        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
+      </button>
+    </div>
 
-    <a href="/suspension-lab/" class="tool-card">
+    <div class="tool-card">
+      <a href="/suspension-lab/" class="card-hit" aria-label="Open Interactive Suspension Dynamics Laboratory"></a>
       <div class="tool-tag">Suspension physics</div>
       <div class="tool-name">Interactive Suspension Dynamics Laboratory</div>
       <p class="tool-desc">HSC/LSC damping controls, terrain-specific inputs, and an anatomically correct fork schematic for visualizing compression behavior.</p>
-    </a>
+      <button class="share-btn" type="button" data-path="/suspension-lab/" data-title="Interactive Suspension Dynamics Laboratory" aria-label="Share Interactive Suspension Dynamics Laboratory">
+        <span class="copied-label">Link copied</span>
+        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
+        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
+      </button>
+    </div>
 
-    <a href="/parks-us/" class="tool-card">
+    <div class="tool-card">
+      <a href="/parks-us/" class="card-hit" aria-label="Open US Lift-Served Bike Parks"></a>
       <div class="tool-tag">Destinations</div>
       <div class="tool-name">US Lift-Served Bike Parks</div>
       <p class="tool-desc">85+ parks across 29 states, with Loam Pass badge system and mobile-first accordion design for trail-side reference.</p>
-    </a>
+      <button class="share-btn" type="button" data-path="/parks-us/" data-title="US Lift-Served Bike Parks" aria-label="Share US Lift-Served Bike Parks">
+        <span class="copied-label">Link copied</span>
+        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
+        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
+      </button>
+    </div>
 
-    <a href="/parks-ca/" class="tool-card">
+    <div class="tool-card">
+      <a href="/parks-ca/" class="card-hit" aria-label="Open Canadian Bike Parks"></a>
       <div class="tool-tag">Destinations</div>
       <div class="tool-name">Canadian Bike Parks</div>
       <p class="tool-desc">27 parks, bilingual EN/FR, Leaflet map, Gravity Logic and Kodiak Trail Works badge system. Fully self-contained at ~268 KB.</p>
-    </a>
+      <button class="share-btn" type="button" data-path="/parks-ca/" data-title="Canadian Bike Parks" aria-label="Share Canadian Bike Parks">
+        <span class="copied-label">Link copied</span>
+        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
+        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
+      </button>
+    </div>
 
-    <a href="/weagle/" class="tool-card">
+    <div class="tool-card">
+      <a href="/weagle/" class="card-hit" aria-label="Open Dave Weagle Patent Widget"></a>
       <div class="tool-tag">IP research</div>
       <div class="tool-name">Dave Weagle Patent Widget</div>
       <p class="tool-desc">35 suspension patents with live expiration countdowns, three brand-themed color schemes, and Pinkbike iframe deployment.</p>
-    </a>
+      <button class="share-btn" type="button" data-path="/weagle/" data-title="Dave Weagle Patent Widget" aria-label="Share Dave Weagle Patent Widget">
+        <span class="copied-label">Link copied</span>
+        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
+        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
+      </button>
+    </div>
 
-    <a href="/geometry/" class="tool-card">
+    <div class="tool-card">
+      <a href="/geometry/" class="card-hit" aria-label="Open MTB Steering Geometry"></a>
       <div class="tool-tag">Geometry</div>
       <div class="tool-name">MTB Steering Geometry</div>
       <p class="tool-desc">Six-axis radar chart with Devinci Troy 2025 presets, corrected Whipple reference wheelbase, and bar sweep RAD correction.</p>
-    </a>
+      <button class="share-btn" type="button" data-path="/geometry/" data-title="MTB Steering Geometry" aria-label="Share MTB Steering Geometry">
+        <span class="copied-label">Link copied</span>
+        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
+        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
+      </button>
+    </div>
 
-    <a href="/pump-track/" class="tool-card">
+    <div class="tool-card">
+      <a href="/pump-track/" class="card-hit" aria-label="Open Pump Track &amp; Skatepark Calculator"></a>
       <div class="tool-tag">Trail economics</div>
       <div class="tool-name">Pump Track &amp; Skatepark Calculator</div>
       <p class="tool-desc">Two-pillar economic model anchored to Kemp 2025, built for civic advocacy presentations to parks departments and councils.</p>
-    </a>
+      <button class="share-btn" type="button" data-path="/pump-track/" data-title="Pump Track &amp; Skatepark Calculator" aria-label="Share Pump Track &amp; Skatepark Calculator">
+        <span class="copied-label">Link copied</span>
+        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
+        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
+      </button>
+    </div>
 
-    <a href="/tire-sim/" class="tool-card">
+    <div class="tool-card">
+      <a href="/tire-sim/" class="card-hit" aria-label="Open MTB Tire Tread Simulator"></a>
       <div class="tool-tag">Tire mechanics</div>
       <div class="tool-name">MTB Tire Tread Simulator</div>
       <p class="tool-desc">Pacejka/FastBike tire model for comparing tread patterns across terrain types and load conditions.</p>
-    </a>
+      <button class="share-btn" type="button" data-path="/tire-sim/" data-title="MTB Tire Tread Simulator" aria-label="Share MTB Tire Tread Simulator">
+        <span class="copied-label">Link copied</span>
+        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
+        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
+      </button>
+    </div>
 
-    <a href="/sports-popularity/" class="tool-card">
+    <div class="tool-card">
+      <a href="/sports-popularity/" class="card-hit" aria-label="Open Sports Popularity Over Time"></a>
       <div class="tool-tag">Data visualization</div>
       <div class="tool-name">Sports Popularity Over Time</div>
       <p class="tool-desc">Google Trends-style and estimated participant data across action sports, cycling, and racquet sports — charting how participation has shifted over time.</p>
-    </a>
+      <button class="share-btn" type="button" data-path="/sports-popularity/" data-title="Sports Popularity Over Time" aria-label="Share Sports Popularity Over Time">
+        <span class="copied-label">Link copied</span>
+        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
+        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
+      </button>
+    </div>
 
   </div>
 </section>
@@ -779,6 +895,57 @@
     var cur = root.getAttribute('data-theme');
     var idx = THEMES.indexOf(cur);
     setTheme(THEMES[(idx + 1) % THEMES.length]);
+  });
+}());
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SHARE BUTTON  —  native share sheet, copy-link fallback
+═══════════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  var DOMAIN = 'https://postmillenniumrenaissance.com';
+
+  function flashCopied(btn) {
+    var share = btn.querySelector('.ico-share');
+    var check = btn.querySelector('.ico-check');
+    btn.classList.add('copied');
+    share.hidden = true; check.hidden = false;
+    setTimeout(function () {
+      btn.classList.remove('copied');
+      share.hidden = false; check.hidden = true;
+    }, 1600);
+  }
+
+  function copyFallback(url, btn) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () { flashCopied(btn); })
+        .catch(function () { legacyCopy(url, btn); });
+    } else {
+      legacyCopy(url, btn);
+    }
+  }
+
+  function legacyCopy(url, btn) {
+    var ta = document.createElement('textarea');
+    ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    try { document.execCommand('copy'); flashCopied(btn); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  document.querySelectorAll('.share-btn').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var url   = DOMAIN + btn.getAttribute('data-path');
+      var title = btn.getAttribute('data-title');
+      if (navigator.share) {
+        navigator.share({ title: title, url: url }).catch(function () {});
+      } else {
+        copyFallback(url, btn);
+      }
+    });
   });
 }());
 </script>
