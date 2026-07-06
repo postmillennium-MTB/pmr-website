@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sticker Catalogue — Post Millennium Renaissance MTB</title>
+<meta name="description" content="A catalogue of fine vinyl MTB stickers, printed in small batches and shipped from Castle Rock, Colorado. Secure checkout by Stripe.">
+<link rel="canonical" href="https://www.postmillenniumrenaissance.com/stickers/">
+
+<!-- Open Graph (link previews on Pinkbike, Facebook, etc.) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Post Millennium Renaissance MTB">
+<meta property="og:title" content="A Catalogue of Fine Vinyl Stickers — PMR">
+<meta property="og:description" content="Weatherproof die-cut MTB stickers, printed in small batches. Shipped from Castle Rock, Colorado.">
+<meta property="og:url" content="https://www.postmillenniumrenaissance.com/stickers/">
+<!-- TODO: create a 1200x630 preview image, upload it to this folder as og-stickers.png -->
+<meta property="og:image" content="https://www.postmillenniumrenaissance.com/stickers/og-stickers.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Cardo:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* ═══ PMR Sticker Catalogue — "printer's catalogue" design, Prussian ink scheme ═══
+     Two-ink letterpress: Prussian blue text ink + ochre rubric on cool stone paper.
+     Static page, no dependencies. Buy buttons link to Stripe Payment Links.        */
+  :root {
+    --paper:      #EDEEE6;
+    --paper-deep: #E2E5DA;
+    --ink:        #1B2A44;
+    --ink-soft:   #48566C;
+    --rubric:     #A0761F;
+    --rule:       #C2C7BC;
+    --gilt:       #9C3B2E;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background:
+      repeating-linear-gradient(0deg, transparent 0 3px, rgba(27,42,68,0.02) 3px 4px),
+      var(--paper);
+    color: var(--ink);
+    font-family: 'Cardo', Georgia, serif;
+    font-size: 17px; line-height: 1.65;
+  }
+
+  /* ═══ Return link ═══ */
+  .return-bar { max-width: 1080px; margin: 0 auto; padding: 1.1rem 1.25rem 0; }
+  .return-bar a {
+    font-family: 'IM Fell English SC', serif; font-size: 0.78rem;
+    letter-spacing: 0.2em; text-decoration: none; color: var(--ink-soft);
+  }
+  .return-bar a:hover { color: var(--rubric); }
+
+  main { max-width: 1080px; margin: 0 auto; padding: 2.2rem 1.25rem 2rem; }
+
+  /* ═══ Masthead: a title page ═══ */
+  .masthead { text-align: center; margin-bottom: 3rem; }
+  .rule-double {
+    border: 0; border-top: 3px solid var(--ink); position: relative; margin: 0 auto;
+  }
+  .rule-double::after {
+    content: ''; display: block; border-top: 1px solid var(--ink); margin-top: 2px;
+  }
+  .masthead .rule-double { max-width: 720px; }
+  .mast-society {
+    font-family: 'IM Fell English SC', serif; font-size: 0.82rem;
+    letter-spacing: 0.34em; margin: 1.4rem 0 0.9rem; color: var(--ink-soft);
+  }
+  .mast-title {
+    font-family: 'IM Fell English', serif; font-weight: 400;
+    font-size: clamp(2.3rem, 6vw, 3.6rem); line-height: 1.05; letter-spacing: 0.01em;
+  }
+  .mast-title em { font-style: italic; color: var(--rubric); }
+  .mast-sub {
+    font-family: 'IM Fell English', serif; font-style: italic;
+    font-size: 1.15rem; color: var(--ink-soft); margin: 0.9rem auto 1.2rem; max-width: 560px;
+  }
+  .ornament { color: var(--rubric); font-size: 1.3rem; letter-spacing: 0.8em; padding-left: 0.8em; margin: 0.4rem 0 1.3rem; }
+  .mast-imprint {
+    font-family: 'IM Fell English SC', serif; font-size: 0.78rem;
+    letter-spacing: 0.24em; color: var(--ink-soft);
+  }
+  .mast-imprint span { color: var(--rubric); }
+
+  /* Drop-cap foreword */
+  .foreword { max-width: 640px; margin: 0 auto 3.2rem; }
+  .foreword p { font-size: 1.02rem; color: var(--ink-soft); text-align: left; }
+  .foreword p::first-letter {
+    font-family: 'IM Fell English', serif; float: left; font-size: 3.1em;
+    line-height: 0.82; padding: 0.06em 0.12em 0 0; color: var(--rubric);
+  }
+
+  /* ═══ The plates ═══ */
+  .plates {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2.2rem 2rem; margin-bottom: 3.2rem;
+  }
+  .plate {
+    background: var(--paper-deep);
+    border: 1px solid var(--ink); position: relative;
+    padding: 1.5rem 1.5rem 1.35rem; text-align: center;
+    box-shadow: inset 0 0 0 4px var(--paper-deep), inset 0 0 0 5px var(--ink-soft);
+  }
+  .plate::before, .plate::after {
+    content: '✦'; position: absolute; color: var(--gilt); font-size: 0.7rem;
+  }
+  .plate::before { top: 8px; left: 10px; }
+  .plate::after  { bottom: 6px; right: 10px; }
+
+  .plate-no {
+    font-family: 'IM Fell English SC', serif; font-size: 0.8rem;
+    letter-spacing: 0.3em; color: var(--rubric); margin-bottom: 0.9rem;
+  }
+  .plate-art {
+    aspect-ratio: 5 / 4; display: flex; align-items: center; justify-content: center;
+    background: var(--paper); border: 1px solid var(--ink-soft); margin-bottom: 1rem;
+    overflow: hidden;
+  }
+  .plate-art svg { width: 66%; height: auto; }
+  .plate-art img {
+    max-width: 80%; max-height: 84%; height: auto;
+    filter: drop-shadow(0 3px 5px rgba(27,42,68,0.22));
+  }
+  .plate-name {
+    font-family: 'IM Fell English', serif; font-size: 1.45rem; font-weight: 400;
+    line-height: 1.15; margin-bottom: 0.35rem;
+  }
+  .plate-desc {
+    font-style: italic; font-size: 0.94rem; color: var(--ink-soft);
+    max-width: 300px; margin: 0 auto 1.1rem; min-height: 2.6em;
+  }
+  .ledger {
+    display: flex; align-items: baseline; gap: 0.5rem;
+    font-family: 'IM Fell English SC', serif; font-size: 0.88rem;
+    letter-spacing: 0.14em; margin-bottom: 1.1rem; padding: 0 0.4rem;
+  }
+  .ledger .leader {
+    flex: 1; border-bottom: 2px dotted var(--ink-soft); transform: translateY(-4px);
+  }
+  .ledger .amt { color: var(--rubric); font-size: 1rem; }
+  .buy-btn {
+    display: inline-block; font-family: 'IM Fell English SC', serif;
+    font-size: 0.86rem; letter-spacing: 0.26em; text-decoration: none;
+    color: var(--paper); background: var(--ink);
+    border: 1px solid var(--ink); padding: 0.55rem 1.6rem 0.5rem;
+    transition: background 0.2s, color 0.2s; cursor: pointer;
+  }
+  .buy-btn:hover { background: var(--rubric); border-color: var(--rubric); }
+
+  .plate.folio { border-color: var(--rubric); box-shadow: inset 0 0 0 4px var(--paper-deep), inset 0 0 0 5px var(--rubric); }
+  .plate.folio .plate-no { color: var(--gilt); }
+
+  /* Ornamental divider */
+  .divider {
+    display: flex; align-items: center; gap: 1rem; margin: 0 auto 3rem; max-width: 720px;
+  }
+  .divider hr { flex: 1; border: 0; border-top: 1px solid var(--ink-soft); }
+  .divider span { color: var(--rubric); font-size: 1.2rem; }
+
+  /* ═══ Colophon (shipping / trust) ═══ */
+  .colophon { text-align: center; max-width: 620px; margin: 0 auto 2rem; }
+  .colophon h3 {
+    font-family: 'IM Fell English SC', serif; font-weight: 400; font-size: 0.9rem;
+    letter-spacing: 0.32em; color: var(--rubric); margin-bottom: 0.9rem;
+  }
+  .colophon p { font-style: italic; font-size: 0.96rem; color: var(--ink-soft); margin-bottom: 0.5rem; }
+  .colophon a { color: var(--ink); }
+  .colophon .plain { font-style: normal; font-family: 'IM Fell English SC', serif; font-size: 0.78rem; letter-spacing: 0.2em; margin-top: 1rem; }
+
+  footer { text-align: center; padding: 1.2rem 1rem 2.4rem; }
+  footer .rule-double { max-width: 720px; margin-bottom: 1rem; }
+  footer p {
+    font-family: 'IM Fell English SC', serif; font-size: 0.72rem;
+    letter-spacing: 0.26em; color: var(--ink-soft);
+  }
+  footer a { color: var(--ink-soft); }
+
+  @media (max-width: 640px) {
+    .plates { gap: 1.6rem; }
+    body { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="return-bar"><a href="https://www.postmillenniumrenaissance.com/">← Post Millennium Renaissance</a></div>
+
+<main>
+
+  <!-- ═══ Masthead ═══ -->
+  <header class="masthead">
+    <hr class="rule-double">
+    <div class="mast-society">Post Millennium Renaissance · MTB</div>
+    <h1 class="mast-title">A Catalogue of <em>Fine Vinyl Stickers</em></h1>
+    <p class="mast-sub">Being a modest collection of weatherproof die-cut emblems, fit for top tubes, helmets, water bottles &amp; workshop toolboxes.</p>
+    <div class="ornament">❦</div>
+    <div class="mast-imprint">Printed in small batches · <span>Castle Rock, Colorado</span> · Anno MMXXVI</div>
+  </header>
+
+  <!-- ═══ Foreword — TODO: replace with your own 2-3 sentences ═══ -->
+  <section class="foreword">
+    <p>Placeholder foreword — two or three sentences in your voice about why these designs exist, printed here like the preface of an old folio. Payment is taken securely by Stripe; no account is required, and every order ships in a stiffened envelope from Castle Rock.</p>
+  </section>
+
+  <!-- ═══ The plates ═══
+       For each plate:
+       1. IMAGE: delete the placeholder <svg>...</svg> block and uncomment the <img> line,
+          pointing at your sticker photo/PNG uploaded to this same /stickers/ folder.
+       2. STRIPE: replace href="#" on the buy button with that product's
+          Payment Link URL from your Stripe dashboard (looks like https://buy.stripe.com/xxxx).
+       3. Update the name, description, and prices to match Stripe exactly.        ═══ -->
+  <section class="plates">
+
+    <article class="plate">
+      <div class="plate-no">Plate I</div>
+      <div class="plate-art">
+        <!-- <img src="sticker-1.png" alt="The Ridgeline sticker"> -->
+        <svg viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg">
+          <g stroke="#1B2A44" fill="none" stroke-width="2">
+            <path d="M12 74 L44 30 L62 54 L80 22 L110 74 Z"/>
+            <path d="M20 74 L44 42 M28 74 L46 52 M96 74 L82 46 M104 74 L88 40" stroke-width="1"/>
+          </g>
+          <text x="60" y="90" text-anchor="middle" font-family="serif" font-style="italic" font-size="9" fill="#48566C">your design 1</text>
+        </svg>
+      </div>
+      <h2 class="plate-name">The Ridgeline</h2>
+      <p class="plate-desc">Placeholder description, set in italic like an engraver's caption.</p>
+      <div class="ledger"><span>Price</span><span class="leader"></span><span class="amt">$4</span></div>
+      <div class="ledger" style="margin-top:-0.6rem"><span>Carriage</span><span class="leader"></span><span class="amt">Free</span></div>
+      <!-- STRIPE: paste the Payment Link for this sticker below -->
+      <a href="#" class="buy-btn">Purchase</a>
+    </article>
+
+    <article class="plate">
+      <div class="plate-no">Plate II</div>
+      <div class="plate-art">
+        <!-- <img src="sticker-2.png" alt="The Laced Wheel sticker"> -->
+        <svg viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg">
+          <g stroke="#1B2A44" fill="none">
+            <circle cx="60" cy="48" r="30" stroke-width="2.5"/>
+            <circle cx="60" cy="48" r="5" stroke-width="2"/>
+            <g stroke-width="1.2">
+              <line x1="60" y1="18" x2="60" y2="78"/><line x1="30" y1="48" x2="90" y2="48"/>
+              <line x1="39" y1="27" x2="81" y2="69"/><line x1="81" y1="27" x2="39" y2="69"/>
+              <line x1="34" y1="60" x2="86" y2="36"/><line x1="34" y1="36" x2="86" y2="60"/>
+            </g>
+          </g>
+          <text x="60" y="92" text-anchor="middle" font-family="serif" font-style="italic" font-size="9" fill="#48566C">your design 2</text>
+        </svg>
+      </div>
+      <h2 class="plate-name">The Laced Wheel</h2>
+      <p class="plate-desc">Placeholder — a natural companion to the Wheel Lab.</p>
+      <div class="ledger"><span>Price</span><span class="leader"></span><span class="amt">$4</span></div>
+      <div class="ledger" style="margin-top:-0.6rem"><span>Carriage</span><span class="leader"></span><span class="amt">Free</span></div>
+      <!-- STRIPE: paste the Payment Link for this sticker below -->
+      <a href="#" class="buy-btn">Purchase</a>
+    </article>
+
+    <article class="plate">
+      <div class="plate-no">Plate III</div>
+      <div class="plate-art">
+        <!-- <img src="sticker-3.png" alt="The Castle Keep sticker"> -->
+        <svg viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg">
+          <g stroke="#1B2A44" fill="none" stroke-width="2">
+            <path d="M28 72 L28 42 L38 42 L38 32 L48 32 L48 42 L56 42 L56 28 L64 28 L64 42 L72 42 L72 32 L82 32 L82 42 L92 42 L92 72 Z"/>
+            <path d="M34 72 L34 50 M42 72 L42 50 M50 72 L50 50" stroke-width="1"/>
+          </g>
+          <text x="60" y="90" text-anchor="middle" font-family="serif" font-style="italic" font-size="9" fill="#48566C">your design 3</text>
+        </svg>
+      </div>
+      <h2 class="plate-name">The Castle Keep</h2>
+      <p class="plate-desc">Placeholder — the Castle Rock advocacy emblem.</p>
+      <div class="ledger"><span>Price</span><span class="leader"></span><span class="amt">$4</span></div>
+      <div class="ledger" style="margin-top:-0.6rem"><span>Carriage</span><span class="leader"></span><span class="amt">Free</span></div>
+      <!-- STRIPE: paste the Payment Link for this sticker below -->
+      <a href="#" class="buy-btn">Purchase</a>
+    </article>
+
+    <article class="plate">
+      <div class="plate-no">Plate IV</div>
+      <div class="plate-art">
+        <!-- <img src="sticker-4.png" alt="The Singletrack sticker"> -->
+        <svg viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg">
+          <g stroke="#1B2A44" fill="none" stroke-width="2">
+            <path d="M14 62 Q38 22 60 46 T106 36" stroke-linecap="round"/>
+            <path d="M14 70 Q38 30 60 54 T106 44" stroke-width="1" stroke-dasharray="2 5"/>
+          </g>
+          <text x="60" y="90" text-anchor="middle" font-family="serif" font-style="italic" font-size="9" fill="#48566C">your design 4</text>
+        </svg>
+      </div>
+      <h2 class="plate-name">The Singletrack</h2>
+      <p class="plate-desc">Placeholder — the contour of a favourite descent.</p>
+      <div class="ledger"><span>Price</span><span class="leader"></span><span class="amt">$4</span></div>
+      <div class="ledger" style="margin-top:-0.6rem"><span>Carriage</span><span class="leader"></span><span class="amt">Free</span></div>
+      <!-- STRIPE: paste the Payment Link for this sticker below -->
+      <a href="#" class="buy-btn">Purchase</a>
+    </article>
+
+    <article class="plate">
+      <div class="plate-no">Plate V</div>
+      <div class="plate-art">
+        <!-- <img src="sticker-5.png" alt="The Machine sticker"> -->
+        <svg viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg">
+          <g stroke="#1B2A44" fill="none" stroke-width="2">
+            <circle cx="36" cy="66" r="14"/><circle cx="86" cy="66" r="14"/>
+            <path d="M36 66 L54 46 L74 66 M54 46 L60 40 L70 40 M50 46 L60 46"/>
+            <path d="M36 66 l0 -14 M36 66 l12 7 M86 66 l-7 -12 M86 66 l14 0" stroke-width="1"/>
+          </g>
+          <text x="60" y="92" text-anchor="middle" font-family="serif" font-style="italic" font-size="9" fill="#48566C">your design 5</text>
+        </svg>
+      </div>
+      <h2 class="plate-name">The Machine</h2>
+      <p class="plate-desc">Placeholder — fifth of the set; strike it to launch leaner.</p>
+      <div class="ledger"><span>Price</span><span class="leader"></span><span class="amt">$4</span></div>
+      <div class="ledger" style="margin-top:-0.6rem"><span>Carriage</span><span class="leader"></span><span class="amt">Free</span></div>
+      <!-- STRIPE: paste the Payment Link for this sticker below -->
+      <a href="#" class="buy-btn">Purchase</a>
+    </article>
+
+    <article class="plate folio">
+      <div class="plate-no">The Complete Folio</div>
+      <div class="plate-art">
+        <!-- <img src="sticker-folio.png" alt="All five PMR stickers"> -->
+        <svg viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg">
+          <g stroke="#A0761F" fill="none" stroke-width="2">
+            <rect x="24" y="30" width="40" height="30" transform="rotate(-7 44 45)"/>
+            <rect x="48" y="26" width="40" height="30" transform="rotate(4 68 41)"/>
+            <rect x="38" y="42" width="40" height="30" transform="rotate(-2 58 57)"/>
+          </g>
+          <text x="60" y="92" text-anchor="middle" font-family="serif" font-style="italic" font-size="9" fill="#48566C">all five designs</text>
+        </svg>
+      </div>
+      <h2 class="plate-name">All Five Plates</h2>
+      <p class="plate-desc">The complete set in one envelope — one shipping, best value.</p>
+      <div class="ledger"><span>Price</span><span class="leader"></span><span class="amt">$15</span></div>
+      <div class="ledger" style="margin-top:-0.6rem"><span>Carriage</span><span class="leader"></span><span class="amt">Free</span></div>
+      <!-- STRIPE: paste the Payment Link for the bundle below -->
+      <a href="#" class="buy-btn">Purchase</a>
+    </article>
+
+  </section>
+
+  <div class="divider"><hr><span>❦</span><hr></div>
+
+  <!-- ═══ Colophon ═══ -->
+  <section class="colophon">
+    <h3>Colophon</h3>
+    <p>Orders are dispatched by post within three business days of Castle Rock, Colorado.</p>
+    <p>Payments are handled securely by Stripe — cards, Apple Pay &amp; Google Pay accepted.</p>
+    <p>Mis-struck, mislaid, or in want of a bulk order? Write to <a href="mailto:hello@postmillenniumrenaissance.com">hello@postmillenniumrenaissance.com</a>.</p>
+    <p class="plain">Post Millennium Renaissance · Est. in the age of the Boost hub</p>
+  </section>
+
+</main>
+
+<footer>
+  <hr class="rule-double">
+  <p><a href="https://www.postmillenniumrenaissance.com/">postmillenniumrenaissance.com</a> · Finis</p>
+</footer>
+
+</body>
+</html>
