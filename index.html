@@ -985,6 +985,47 @@
   });
 }());
 </script>
+<!-- ============================================================================
+     WHEEL COMPARISON — SHARE LINK BRIDGE
+     Paste this ONCE onto your PMR page that embeds the wheel comparison widget:
+     https://www.postmillenniumrenaissance.com/wheel-comparison-widget2
 
+     WHAT IT DOES
+     When someone opens a shared link like:
+        .../wheel-comparison-widget2#h1=h1&th=mgb&...
+     this little script copies everything after the "#" and hands it to the
+     embedded widget, so the shared comparison actually shows up instead of the
+     default one. Without it, the link lands on your page but the widget resets.
+
+     WHERE TO PUT IT
+     Paste this block just BEFORE the closing </body> tag of your page's HTML
+     file — the same file you edit for everything else. It must come AFTER the
+     <iframe> that loads the widget (putting it near the end of the page
+     guarantees that). You do NOT need to change anything about your <iframe>.
+
+     IT'S SAFE TO PASTE
+     If there's no "#" in the address, the script does nothing at all — your
+     page behaves exactly as it does today.
+     ============================================================================ -->
+<script>
+(function () {
+  // The settings live in the part of the PMR page address after the "#".
+  var settings = window.location.hash;           // e.g. "#h1=h1&th=mgb&..."
+  if (!settings || settings.length < 2) return;  // nothing shared -> do nothing
+
+  // Find the widget's iframe on this page. We match by its address so this
+  // keeps working even if you move or restyle the iframe later.
+  var frames = document.getElementsByTagName('iframe');
+  for (var i = 0; i < frames.length; i++) {
+    var src = frames[i].getAttribute('src') || '';
+    if (src.indexOf('wheel-comparison-widget2') !== -1) {
+      // Strip any hash already on the iframe src, then attach the shared one.
+      var base = src.split('#')[0];
+      frames[i].setAttribute('src', base + settings);
+      break;
+    }
+  }
+})();
+</script>
 </body>
 </html>
