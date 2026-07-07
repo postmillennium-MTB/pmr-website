@@ -810,6 +810,18 @@
       </button>
     </div>
 
+    <div class="tool-card">
+      <a href="/singletrack-density/" class="card-hit" aria-label="Open Singletrack Density"></a>
+      <div class="tool-tag">Trail data</div>
+      <div class="tool-name">Singletrack Density</div>
+      <p class="tool-desc">Compares trail miles per capita across 26 destinations — from Moab to Squamish.</p>
+      <button class="share-btn" type="button" data-path="/singletrack-density/" data-title="Singletrack Density" aria-label="Share Singletrack Density">
+        <span class="copied-label">Link copied</span>
+        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
+        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
+      </button>
+    </div>
+
   </div>
 </section>
 
@@ -985,47 +997,6 @@
   });
 }());
 </script>
-<!-- ============================================================================
-     WHEEL COMPARISON — SHARE LINK BRIDGE
-     Paste this ONCE onto your PMR page that embeds the wheel comparison widget:
-     https://www.postmillenniumrenaissance.com/wheel-comparison-widget2
 
-     WHAT IT DOES
-     When someone opens a shared link like:
-        .../wheel-comparison-widget2#h1=h1&th=mgb&...
-     this little script copies everything after the "#" and hands it to the
-     embedded widget, so the shared comparison actually shows up instead of the
-     default one. Without it, the link lands on your page but the widget resets.
-
-     WHERE TO PUT IT
-     Paste this block just BEFORE the closing </body> tag of your page's HTML
-     file — the same file you edit for everything else. It must come AFTER the
-     <iframe> that loads the widget (putting it near the end of the page
-     guarantees that). You do NOT need to change anything about your <iframe>.
-
-     IT'S SAFE TO PASTE
-     If there's no "#" in the address, the script does nothing at all — your
-     page behaves exactly as it does today.
-     ============================================================================ -->
-<script>
-(function () {
-  // The settings live in the part of the PMR page address after the "#".
-  var settings = window.location.hash;           // e.g. "#h1=h1&th=mgb&..."
-  if (!settings || settings.length < 2) return;  // nothing shared -> do nothing
-
-  // Find the widget's iframe on this page. We match by its address so this
-  // keeps working even if you move or restyle the iframe later.
-  var frames = document.getElementsByTagName('iframe');
-  for (var i = 0; i < frames.length; i++) {
-    var src = frames[i].getAttribute('src') || '';
-    if (src.indexOf('wheel-comparison-widget2') !== -1) {
-      // Strip any hash already on the iframe src, then attach the shared one.
-      var base = src.split('#')[0];
-      frames[i].setAttribute('src', base + settings);
-      break;
-    }
-  }
-})();
-</script>
 </body>
 </html>
