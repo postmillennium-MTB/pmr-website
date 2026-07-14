@@ -220,86 +220,38 @@
   .nav-right { display: flex; align-items: center; gap: 2rem; }
 
   .nav-links { display: flex; gap: 2rem; list-style: none; }
-.nav-links a {
 
-position: relative; display: inline-block;
-
-font-size: 0.8rem; font-weight: 500; letter-spacing: 0.06em;
-
-color: var(--text-muted); text-decoration: none; text-transform: uppercase;
-
-padding: 0.35rem 0.7rem; margin: -0.35rem -0.2rem;
-
-border-radius: 0px;
-
-transition: color 0.2s;
-
-}
-
-.nav-links a {
-
-position: relative; display: inline-block;
-
-font-size: 0.8rem; font-weight: 500; letter-spacing: 0.06em;
-
-color: var(--text-muted); text-decoration: none; text-transform: uppercase;
-
-padding: 0.35rem 0.7rem; margin: -0.35rem -0.2rem;
-
-transition: color 0.2s;
-
-}
-
-.nav-links a::before {
-
-content: ''; position: absolute; inset: 0; z-index: -1;
-
-opacity: 0;
-
-background: linear-gradient(115deg,
-
-#ff9fe0, #8fe4ff, #a0ffc4, #ffec8f, #ffadc0, #c4adff, #8fe4ff);
-
-background-size: 320% 320%;
-
-transition: opacity 0.25s ease;
-
-}
-
-.nav-links a:hover {
-
-color: #1A1814;
-
-box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25);
-
-}
-
-.nav-links a:hover::before {
-
-opacity: 1;
-
-animation: holoShift 2.6s ease-in-out infinite;
-
-}
-
-@keyframes holoShift {
-
-0% { background-position: 0% 50%; }
-
-50% { background-position: 100% 50%; }
-
-100% { background-position: 0% 50%; }
-
-}
-
-@media (prefers-reduced-motion: reduce) {
-
-.nav-links a:hover::before { animation: none; }
-
-}
-.nav-links a:hover::before { animation: none; }
-
-}
+  /* ── Nav links + holographic foil hover ─────────────────────── */
+  .nav-links a {
+    position: relative; display: inline-block;
+    font-size: 0.8rem; font-weight: 500; letter-spacing: 0.06em;
+    color: var(--text-muted); text-decoration: none; text-transform: uppercase;
+    padding: 0.35rem 0.7rem; margin: -0.35rem -0.2rem;
+    transition: color 0.2s;
+  }
+  .nav-links a::before {
+    content: ''; position: absolute; inset: 0; z-index: -1;
+    opacity: 0;
+    background: linear-gradient(115deg,
+      #ff9fe0, #8fe4ff, #a0ffc4, #ffec8f, #ffadc0, #c4adff, #8fe4ff);
+    background-size: 320% 320%;
+    transition: opacity 0.25s ease;
+  }
+  .nav-links a:hover {
+    color: #1A1814;
+  }
+  .nav-links a:hover::before {
+    opacity: 1;
+    animation: holoShift 2.6s ease-in-out infinite;
+  }
+  @keyframes holoShift {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nav-links a:hover::before { animation: none; }
+  }
 
   .theme-btn {
     display: flex; align-items: center; gap: 0.4rem;
@@ -446,7 +398,6 @@ animation: holoShift 2.6s ease-in-out infinite;
   /* ═══════════════════════════════════════════════════════════════
      TOOLS GRID
   ═══════════════════════════════════════════════════════════════ */
-  /* !! Replace each href="#" with your GitHub Pages tool URL !! */
   .tools-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
@@ -650,7 +601,6 @@ animation: holoShift 2.6s ease-in-out infinite;
 
   <div class="nav-right">
     <ul class="nav-links">
-      <ul class="nav-links">
       <li><a href="#tools">Tools</a></li>
       <li><a href="/stickers/">Stickers</a></li>
       <li><a href="#about">About</a></li>
