@@ -146,6 +146,11 @@
     transition: background 0.2s, color 0.2s; cursor: pointer;
   }
   .buy-btn:hover { background: var(--rubric); border-color: var(--rubric); }
+  .buy-btn.soon {
+    background: transparent; color: var(--ink-soft); border-color: var(--ink-soft);
+    cursor: default; opacity: 0.75;
+  }
+  .buy-btn.soon:hover { background: transparent; border-color: var(--ink-soft); }
 
   .plate.folio { border-color: var(--rubric); box-shadow: inset 0 0 0 4px var(--paper-deep), inset 0 0 0 5px var(--rubric); }
   .plate.folio .plate-no { color: var(--gilt); }
@@ -220,8 +225,7 @@
       <p class="plate-desc">Castle Rock's crown jewel trails.</p>
       <div class="ledger"><span>Price</span><span class="leader"></span><span class="amt">$4</span></div>
       <div class="ledger" style="margin-top:-0.6rem"><span>Carriage</span><span class="leader"></span><span class="amt">Free</span></div>
-      <!-- STRIPE: paste the Payment Link for this sticker below -->
-      <a href="#" class="buy-btn">Purchase</a>
+      <a href="https://buy.stripe.com/3cI00i9xn9rJcUw8JG48000" class="buy-btn">Purchase</a>
     </article>
 
     <article class="plate">
@@ -233,8 +237,7 @@
       <p class="plate-desc">The Ridgeline Open Space of Castle Rock, CO.</p>
       <div class="ledger"><span>Price</span><span class="leader"></span><span class="amt">$4</span></div>
       <div class="ledger" style="margin-top:-0.6rem"><span>Carriage</span><span class="leader"></span><span class="amt">Free</span></div>
-      <!-- STRIPE: paste the Payment Link for this sticker below -->
-      <a href="#" class="buy-btn">Purchase</a>
+      <a href="https://buy.stripe.com/dRmaEWaBr8nF5s43pm48001" class="buy-btn">Purchase</a>
     </article>
 
     <article class="plate">
@@ -253,8 +256,7 @@
       <p class="plate-desc">Placeholder — the Castle Rock advocacy emblem.</p>
       <div class="ledger"><span>Price</span><span class="leader"></span><span class="amt">$4</span></div>
       <div class="ledger" style="margin-top:-0.6rem"><span>Carriage</span><span class="leader"></span><span class="amt">Free</span></div>
-      <!-- STRIPE: paste the Payment Link for this sticker below -->
-      <a href="#" class="buy-btn">Purchase</a>
+      <a href="https://buy.stripe.com/9B66oG4d3dHZ6w84tq48002" class="buy-btn">Purchase</a>
     </article>
 
     <article class="plate">
@@ -273,8 +275,7 @@
       <p class="plate-desc">Placeholder — the contour of a favourite descent.</p>
       <div class="ledger"><span>Price</span><span class="leader"></span><span class="amt">$4</span></div>
       <div class="ledger" style="margin-top:-0.6rem"><span>Carriage</span><span class="leader"></span><span class="amt">Free</span></div>
-      <!-- STRIPE: paste the Payment Link for this sticker below -->
-      <a href="#" class="buy-btn">Purchase</a>
+      <a href="https://buy.stripe.com/28EbJ07pf47p7Acf8448003" class="buy-btn">Purchase</a>
     </article>
 
     <article class="plate">
@@ -294,8 +295,7 @@
       <p class="plate-desc">Placeholder — fifth of the set; strike it to launch leaner.</p>
       <div class="ledger"><span>Price</span><span class="leader"></span><span class="amt">$4</span></div>
       <div class="ledger" style="margin-top:-0.6rem"><span>Carriage</span><span class="leader"></span><span class="amt">Free</span></div>
-      <!-- STRIPE: paste the Payment Link for this sticker below -->
-      <a href="#" class="buy-btn">Purchase</a>
+      <a href="https://buy.stripe.com/eVq28qdND47paMocZW48004" class="buy-btn">Purchase</a>
     </article>
 
     <article class="plate folio">
@@ -315,8 +315,9 @@
       <p class="plate-desc">The complete set in one envelope — one shipping, best value.</p>
       <div class="ledger"><span>Price</span><span class="leader"></span><span class="amt">$15</span></div>
       <div class="ledger" style="margin-top:-0.6rem"><span>Carriage</span><span class="leader"></span><span class="amt">Free</span></div>
-      <!-- STRIPE: paste the Payment Link for the bundle below -->
-      <a href="#" class="buy-btn">Purchase</a>
+      <!-- STRIPE: once you're ready to sell the bundle, replace this span with
+           <a href="YOUR_PAYMENT_LINK" class="buy-btn">Purchase</a> -->
+      <span class="buy-btn soon" aria-disabled="true">Coming Soon</span>
     </article>
 
   </section>
