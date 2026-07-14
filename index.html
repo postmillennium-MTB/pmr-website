@@ -236,15 +236,29 @@ transition: color 0.2s;
 
 }
 
+.nav-links a {
+
+position: relative; display: inline-block;
+
+font-size: 0.8rem; font-weight: 500; letter-spacing: 0.06em;
+
+color: var(--text-muted); text-decoration: none; text-transform: uppercase;
+
+padding: 0.35rem 0.7rem; margin: -0.35rem -0.2rem;
+
+transition: color 0.2s;
+
+}
+
 .nav-links a::before {
 
 content: ''; position: absolute; inset: 0; z-index: -1;
 
-border-radius: 0px; opacity: 0;
+opacity: 0;
 
 background: linear-gradient(115deg,
 
-#ffb3ec, #a8ecff, #b8ffd0, #fff2a8, #ffc2cc, #d0bfff, #a8ecff);
+#ff9fe0, #8fe4ff, #a0ffc4, #ffec8f, #ffadc0, #c4adff, #8fe4ff);
 
 background-size: 320% 320%;
 
@@ -252,7 +266,13 @@ transition: opacity 0.25s ease;
 
 }
 
-.nav-links a:hover { color: #1A1814; }
+.nav-links a:hover {
+
+color: #1A1814;
+
+box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25);
+
+}
 
 .nav-links a:hover::before {
 
@@ -274,6 +294,9 @@ animation: holoShift 2.6s ease-in-out infinite;
 
 @media (prefers-reduced-motion: reduce) {
 
+.nav-links a:hover::before { animation: none; }
+
+}
 .nav-links a:hover::before { animation: none; }
 
 }
