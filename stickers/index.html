@@ -114,11 +114,13 @@
   .plate-art {
     aspect-ratio: 5 / 4; display: flex; align-items: center; justify-content: center;
     background: var(--paper); border: 1px solid var(--ink-soft); margin-bottom: 1rem;
-    overflow: hidden;
+    overflow: hidden; position: relative;
   }
   .plate-art svg { width: 66%; height: auto; }
   .plate-art img {
-    max-width: 80%; max-height: 84%; height: auto;
+    position: absolute; inset: 8% 10%;
+    width: auto; height: auto;
+    object-fit: contain;
     filter: drop-shadow(0 3px 5px rgba(27,42,68,0.22));
   }
   .plate-name {
