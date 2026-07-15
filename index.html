@@ -373,6 +373,108 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════
+     PREVIEW STRIP  —  "See them in action" rotating tool showcase
+  ═══════════════════════════════════════════════════════════════ */
+  .preview-strip { background: var(--bg-card); border: 1px solid var(--bg-rule); }
+  .preview-panels { position: relative; min-height: 340px; }
+  .preview-panel {
+    position: absolute; inset: 0;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: center;
+    padding: 2.5rem; text-decoration: none; color: inherit;
+    opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+  }
+  .preview-panel.active { opacity: 1; pointer-events: auto; }
+
+  .preview-headline {
+    font-family: var(--ff-serif); font-style: italic; font-size: 1.4rem;
+    line-height: 1.3; color: var(--text); margin-bottom: 0.75rem;
+    transition: color 0.5s ease;
+  }
+  .wheel-headline-wrap { position: relative; min-height: 3.8rem; margin-bottom: 0.75rem; }
+  .wheel-headline-wrap .preview-headline {
+    position: absolute; inset: 0; margin-bottom: 0; opacity: 0; transition: opacity 0.4s ease, color 0.5s ease;
+  }
+  .wheel-headline-wrap .preview-headline.active { opacity: 1; }
+
+  .preview-desc { font-size: 0.88rem; color: var(--text-muted); line-height: 1.7; max-width: 38ch; transition: color 0.5s ease; }
+  .preview-cta {
+    display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 1.25rem;
+    font-family: var(--ff-mono); font-size: 0.72rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--accent); transition: color 0.5s ease;
+  }
+  .preview-cta svg { width: 12px; height: 12px; transition: transform 0.2s; }
+  .preview-panel:hover .preview-cta svg { transform: translateX(4px); }
+
+  .preview-visual { position: relative; }
+
+  .wheel-svg { width: 100%; height: auto; display: block; }
+  .wheel-rim { stroke: var(--text-muted); stroke-width: 2; transition: stroke 0.5s ease; }
+  .wheel-rim-pt { fill: var(--text-muted); transition: fill 0.5s ease; }
+  .wheel-spoke { stroke: var(--blue); stroke-width: 1.5; transition: stroke 0.5s ease; }
+  .wheel-flange { fill: var(--accent); transition: fill 0.5s ease; }
+  .wheel-state { opacity: 0; }
+  .wheel-boost { animation: previewCrossfadeA 5s ease-in-out infinite; }
+  .wheel-superboost { animation: previewCrossfadeB 5s ease-in-out infinite; }
+  .wheel-label {
+    position: relative; text-align: center; margin-top: 0.4rem;
+    font-family: var(--ff-mono); font-size: 0.72rem; letter-spacing: 0.06em; color: var(--text-muted);
+    height: 1em; transition: color 0.5s ease;
+  }
+  .wheel-label .wheel-state { position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; }
+
+  @keyframes previewCrossfadeA { 0%, 38% { opacity: 1; } 50%, 88% { opacity: 0; } 100% { opacity: 1; } }
+  @keyframes previewCrossfadeB { 0%, 38% { opacity: 0; } 50%, 88% { opacity: 1; } 100% { opacity: 0; } }
+
+  .chart-visual { position: relative; aspect-ratio: 240 / 150; }
+  .chart-variant { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 0.4s ease; display: block; }
+  .chart-variant.active { opacity: 1; }
+  .chart-axis { stroke: var(--bg-rule); stroke-width: 1.5; transition: stroke 0.5s ease; }
+  .chart-line { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .chart-line-a { stroke: var(--accent); transition: stroke 0.5s ease; }
+  .chart-line-b { stroke: var(--blue); transition: stroke 0.5s ease; }
+  .chart-line-label { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.02em; }
+  .chart-label-a { fill: var(--accent); transition: fill 0.5s ease; }
+  .chart-label-b { fill: var(--blue); transition: fill 0.5s ease; }
+  .chart-dot { fill: var(--accent); animation: chartTravel 4.5s linear infinite; transition: fill 0.5s ease; }
+  @keyframes chartTravel { 0% { offset-distance: 0%; } 100% { offset-distance: 100%; } }
+
+  .patent-search {
+    display: flex; align-items: center; gap: 0.5rem;
+    background: var(--bg); border: 1px solid var(--bg-rule); padding: 0.6rem 0.85rem;
+    font-family: var(--ff-mono); font-size: 0.8rem; color: var(--text);
+    transition: background-color 0.5s ease, border-color 0.5s ease, color 0.5s ease;
+  }
+  .patent-ico { width: 15px; height: 15px; color: var(--text-muted); flex-shrink: 0; }
+  .patent-typed { display: inline-block; overflow: hidden; white-space: nowrap; width: 0; }
+  .patent-cursor { width: 1px; height: 1em; background: var(--text); animation: patentBlink 0.8s step-end infinite; }
+  .patent-result {
+    margin-top: 0.75rem; padding: 0.85rem 1rem;
+    background: var(--bg-card); border: 1px solid var(--bg-rule); border-left: 2px solid var(--accent);
+    border-radius: 0; opacity: 0; transform: translateY(4px);
+    transition: opacity 0.4s ease, transform 0.4s ease, background-color 0.5s ease, border-color 0.5s ease;
+  }
+  .patent-result.shown { opacity: 1; transform: translateY(0); }
+  .patent-result-tag {
+    font-family: var(--ff-mono); font-size: 0.62rem; letter-spacing: 0.14em;
+    color: var(--blue); text-transform: uppercase; margin-bottom: 0.3rem; transition: color 0.5s ease;
+  }
+  .patent-result-name { font-family: var(--ff-serif); font-style: italic; font-size: 0.95rem; color: var(--text); transition: color 0.5s ease; }
+  @keyframes patentBlink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+
+  .preview-dots { display: flex; justify-content: center; gap: 0.6rem; padding: 1.25rem 0; }
+  .preview-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--bg-rule);
+    border: none; cursor: pointer; padding: 0; transition: background-color 0.2s, transform 0.2s;
+  }
+  .preview-dot:hover { background: var(--text-muted); }
+  .preview-dot.active { background: var(--accent); transform: scale(1.25); }
+
+  @media (max-width: 720px) {
+    .preview-panel { grid-template-columns: 1fr; }
+    .preview-panels { min-height: 580px; }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
      SECTIONS  —  shared
   ═══════════════════════════════════════════════════════════════ */
   section { max-width: 1200px; margin: 0 auto; padding: 5rem 2.5rem; }
@@ -576,6 +678,9 @@
   @media (prefers-reduced-motion: reduce) {
     .eyebrow, .hero-title, .hero-desc, .hero-cta { animation: none !important; opacity: 1 !important; transform: none !important; }
     .painting-outer { animation: none !important; }
+    .wheel-boost, .wheel-superboost { animation: none !important; opacity: 1 !important; }
+    .wheel-superboost { display: none !important; }
+    .chart-dot { animation: none !important; offset-distance: 50% !important; }
   }
   </style>
 </head>
@@ -656,6 +761,115 @@
 
   </div>
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PREVIEW STRIP  —  See them in action
+═══════════════════════════════════════════════════════════════ -->
+<section id="preview">
+  <div class="section-header">
+    <span class="section-label">See them in action</span>
+    <h2 class="section-title">What the tools actually do — in miniature.</h2>
+  </div>
+
+  <div class="preview-strip">
+    <div class="preview-panels">
+
+      <a href="/wheel-lab/" class="preview-panel active" data-panel="0" aria-label="Open Wheel Strength Lab">
+        <div class="preview-copy">
+          <div class="tool-tag">Wheel mechanics</div>
+          <div class="wheel-headline-wrap">
+            <span class="preview-headline wheel-h wheel-h1 active">148 vs. 157 — the angle changes more than you'd think.</span>
+            <span class="preview-headline wheel-h wheel-h2">148 vs. 157 — what a difference 9 millimeters makes.</span>
+            <span class="preview-headline wheel-h wheel-h3">148 vs. 157 — welcome to the no-broscience zone.</span>
+          </div>
+          <p class="preview-desc">Boost hubs dish the wheel. Super Boost straightens it out. See the geometry, then build your own comparison.</p>
+          <span class="preview-cta">Open Wheel Strength Lab
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </span>
+        </div>
+        <div class="preview-visual wheel-visual">
+          <svg viewBox="0 0 240 150" class="wheel-svg" aria-hidden="true">
+            <line x1="40" y1="26" x2="200" y2="26" class="wheel-rim"/>
+            <circle cx="120" cy="26" r="3" class="wheel-rim-pt"/>
+            <g class="wheel-state wheel-boost">
+              <line x1="120" y1="26" x2="90" y2="126" class="wheel-spoke"/>
+              <line x1="120" y1="26" x2="145" y2="126" class="wheel-spoke"/>
+              <circle cx="90" cy="126" r="5" class="wheel-flange"/>
+              <circle cx="145" cy="126" r="5" class="wheel-flange"/>
+            </g>
+            <g class="wheel-state wheel-superboost">
+              <line x1="120" y1="26" x2="76" y2="126" class="wheel-spoke"/>
+              <line x1="120" y1="26" x2="164" y2="126" class="wheel-spoke"/>
+              <circle cx="76" cy="126" r="5" class="wheel-flange"/>
+              <circle cx="164" cy="126" r="5" class="wheel-flange"/>
+            </g>
+          </svg>
+          <div class="wheel-label">
+            <span class="wheel-state wheel-boost">148</span>
+            <span class="wheel-state wheel-superboost">150/157</span>
+          </div>
+        </div>
+      </a>
+
+      <a href="/sports-popularity/" class="preview-panel" data-panel="1" aria-label="Open Sports Popularity Over Time">
+        <div class="preview-copy">
+          <div class="tool-tag">Data visualization</div>
+          <div class="preview-headline">Which sports are actually growing?</div>
+          <p class="preview-desc">Trends across action sports, cycling, and racquet sports — plotted, not guessed.</p>
+          <span class="preview-cta">Open Sports Popularity
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </span>
+        </div>
+        <div class="preview-visual chart-visual">
+          <svg viewBox="0 0 240 150" class="chart-variant chart-variant-1 active" aria-hidden="true">
+            <line x1="14" y1="126" x2="226" y2="126" class="chart-axis"/>
+            <polyline points="14,102 68,96 122,86 176,74 226,60" class="chart-line chart-line-b"/>
+            <polyline points="14,116 68,104 122,80 176,46 226,22" class="chart-line chart-line-a"/>
+            <circle r="3.5" class="chart-dot" style="offset-path: path('M14,116 L68,104 L122,80 L176,46 L226,22');"></circle>
+            <text x="222" y="54" class="chart-line-label chart-label-b" text-anchor="end">Mountain biking</text>
+            <text x="222" y="14" class="chart-line-label chart-label-a" text-anchor="end">Pickleball</text>
+          </svg>
+          <svg viewBox="0 0 240 150" class="chart-variant chart-variant-2" aria-hidden="true">
+            <line x1="14" y1="126" x2="226" y2="126" class="chart-axis"/>
+            <polyline points="14,80 68,76 122,72 176,68 226,64" class="chart-line chart-line-b"/>
+            <polyline points="14,112 68,98 122,74 176,48 226,20" class="chart-line chart-line-a"/>
+            <circle r="3.5" class="chart-dot" style="offset-path: path('M14,112 L68,98 L122,74 L176,48 L226,20');"></circle>
+            <text x="222" y="56" class="chart-line-label chart-label-b" text-anchor="end">Cyclocross</text>
+            <text x="222" y="12" class="chart-line-label chart-label-a" text-anchor="end">Gravel cycling</text>
+          </svg>
+        </div>
+      </a>
+
+      <a href="/atlas/" class="preview-panel" data-panel="2" aria-label="Open MTB Patent Atlas">
+        <div class="preview-copy">
+          <div class="tool-tag">IP research</div>
+          <div class="preview-headline">You've heard "Horst Link." Here's the actual patent.</div>
+          <p class="preview-desc">Search your bike and favorite brands.</p>
+          <span class="preview-cta">Open Patent Atlas
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </span>
+        </div>
+        <div class="preview-visual patent-visual">
+          <div class="patent-search">
+            <svg class="patent-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <span class="patent-typed" id="patentTyped"></span><span class="patent-cursor"></span>
+          </div>
+          <div class="patent-result" id="patentResult">
+            <div class="patent-result-tag" id="patentResultTag">Suspension · Four-bar linkage</div>
+            <div class="patent-result-name" id="patentResultName">The patent behind Horst Link</div>
+          </div>
+        </div>
+      </a>
+
+    </div>
+
+    <div class="preview-dots">
+      <button class="preview-dot active" type="button" data-target="0" aria-label="Show Wheel Strength Lab preview"></button>
+      <button class="preview-dot" type="button" data-target="1" aria-label="Show Sports Popularity preview"></button>
+      <button class="preview-dot" type="button" data-target="2" aria-label="Show Patent Atlas preview"></button>
+    </div>
+  </div>
+</section>
 
 <!-- ═══════════════════════════════════════════════════════════════
      TOOLS
@@ -1032,6 +1246,117 @@
       }
     });
   });
+}());
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PREVIEW STRIP  —  rotation, wheel headline sync, sports variant
+     alternation, and the patent search/result cycle
+═══════════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var panels = document.querySelectorAll('.preview-panel');
+  var dots = document.querySelectorAll('.preview-dot');
+  var wheelHeadlines = document.querySelectorAll('.wheel-h');
+  var chartVariants = document.querySelectorAll('.chart-variant');
+  var current = 0;
+  var timer = null;
+  var AUTO_MS = 6000;
+  var wheelVisits = 0;
+  var sportsVisits = 0;
+
+  function show(i) {
+    if (i === 0 && i !== current) {
+      wheelVisits++;
+      var activeHeadline = wheelVisits % 3;
+      wheelHeadlines.forEach(function (h, idx) { h.classList.toggle('active', idx === activeHeadline); });
+    }
+    if (i === 1 && i !== current) {
+      sportsVisits++;
+      var activeVariant = (sportsVisits % 2 === 1) ? 0 : 1;
+      chartVariants.forEach(function (v, idx) { v.classList.toggle('active', idx === activeVariant); });
+    }
+    panels.forEach(function (p, idx) { p.classList.toggle('active', idx === i); });
+    dots.forEach(function (d, idx) { d.classList.toggle('active', idx === i); });
+    current = i;
+  }
+  function next() { show((current + 1) % panels.length); }
+  function start() { if (reduceMotion) return; stop(); timer = setInterval(next, AUTO_MS); }
+  function stop() { if (timer) clearInterval(timer); }
+
+  dots.forEach(function (dot, idx) {
+    dot.addEventListener('click', function (e) { e.preventDefault(); show(idx); start(); });
+  });
+
+  var strip = document.querySelector('.preview-strip');
+  if (strip) {
+    strip.addEventListener('mouseenter', stop);
+    strip.addEventListener('mouseleave', start);
+  }
+
+  start();
+
+  var SEARCHES = [
+    { term: 'Horst Link', tag: 'Suspension · Four-bar linkage', name: 'The patent behind Horst Link' },
+    { term: 'Switch Infinity', tag: 'Suspension · Yeti Cycles', name: 'Switch Infinity translating link' },
+    { term: 'OneUp', tag: 'Components · Tool storage', name: 'The steerer-tube EDC system' },
+    { term: 'Weagle', tag: 'Suspension · Dave Weagle', name: 'DW-link and Split Pivot' },
+    { term: 'Canfield', tag: 'Suspension · Canfield Bikes', name: 'Canfield Balance Formula (CBF)' }
+  ];
+  var typedEl = document.getElementById('patentTyped');
+  var resultEl = document.getElementById('patentResult');
+  var resultTagEl = document.getElementById('patentResultTag');
+  var resultNameEl = document.getElementById('patentResultName');
+  var termIdx = 0;
+
+  function typeTerm() {
+    var search = SEARCHES[termIdx];
+    var chars = search.term.length;
+
+    typedEl.style.transitionDuration = '0s';
+    typedEl.style.width = '0ch';
+    void typedEl.offsetWidth;
+
+    typedEl.textContent = search.term;
+    typedEl.style.transitionProperty = 'width';
+    typedEl.style.transitionDuration = (chars * 0.09) + 's';
+    typedEl.style.transitionTimingFunction = 'steps(' + chars + ', end)';
+
+    requestAnimationFrame(function () {
+      typedEl.style.width = chars + 'ch';
+    });
+
+    resultTagEl.textContent = search.tag;
+    resultNameEl.textContent = search.name;
+
+    setTimeout(function () {
+      resultEl.classList.add('shown');
+    }, chars * 90 + 250);
+  }
+
+  function cycleTerm() {
+    resultEl.classList.remove('shown');
+    setTimeout(function () {
+      termIdx = (termIdx + 1) % SEARCHES.length;
+      typeTerm();
+    }, 450);
+  }
+
+  if (typedEl && resultEl) {
+    if (reduceMotion) {
+      var search0 = SEARCHES[0];
+      typedEl.textContent = search0.term;
+      typedEl.style.width = search0.term.length + 'ch';
+      resultTagEl.textContent = search0.tag;
+      resultNameEl.textContent = search0.name;
+      resultEl.classList.add('shown');
+    } else {
+      typeTerm();
+      setInterval(cycleTerm, 3600);
+    }
+  }
 }());
 </script>
 
