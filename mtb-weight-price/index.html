@@ -1,31 +1,1026 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="fortwilliam">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Weight vs. Price MTB Scatterplot — Post Millennium Renaissance</title>
-  <meta name="description" content="XC, Trail, Enduro, DH, Full Power and Lite eMTB flagship bikes plotted by price and weight, with a toggleable fit line, lb/kg and USD/CHF switching, and a per-bike weight & price adjustment table.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://postmillenniumrenaissance.com/mtb-weight-price/">
-  <meta property="og:title" content="Weight vs. Price MTB Scatterplot — Post Millennium Renaissance">
-  <meta property="og:description" content="XC, Trail, Enduro, DH, Full Power and Lite eMTB flagship bikes plotted by price and weight, with a toggleable fit line, lb/kg and USD/CHF switching, and a per-bike weight & price adjustment table.">
-  <meta property="og:image" content="https://postmillenniumrenaissance.com/og-image.jpg">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Weight vs. Price MTB Scatterplot — Post Millennium Renaissance">
-  <meta name="twitter:description" content="XC, Trail, Enduro, DH, Full Power and Lite eMTB flagship bikes plotted by price and weight, with a toggleable fit line, lb/kg and USD/CHF switching, and a per-bike weight & price adjustment table.">
-  <meta name="twitter:image" content="https://postmillenniumrenaissance.com/og-image.jpg">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; overflow: hidden; background: #1C1A14; }
-    iframe { display: block; width: 100%; height: 100vh; border: none; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weight vs. Price — MTB Scatterplot | Post Millennium Renaissance</title>
+<style>
+  /* ============ THEMES (4) ============ */
+  :root, [data-theme="fortwilliam"] {
+    --bg: #eceef0;        /* rain-washed grey */
+    --panel: #ffffff;
+    --ink: #1d2530;
+    --muted: #5c6a7a;
+    --grid: #d6dbe1;
+    --accent: #2f6db3;    /* steel blue */
+    --accent-soft: #dbe8f5;
+    --point: #2f6db3;
+    --point-user: #c0392b;
+    --fit: #c0392b;
+    --chip: #e3e8ee;
+  }
+  [data-theme="valdisole"] {
+    --bg: #171d18;        /* black loam */
+    --panel: #212a22;
+    --ink: #e8ede6;
+    --muted: #9db09a;
+    --grid: #35402f;
+    --accent: #7fb069;    /* forest green */
+    --accent-soft: #2c3a29;
+    --point: #a3c98a;
+    --point-user: #e8a04c;
+    --fit: #e8a04c;
+    --chip: #2c3a29;
+  }
+  [data-theme="rampage"] {
+    --bg: #f5e9d9;        /* desert sandstone */
+    --panel: #fdf6ec;
+    --ink: #4a2c1a;
+    --muted: #8a6a50;
+    --grid: #e2cfb6;
+    --accent: #b5542c;    /* red rock */
+    --accent-soft: #f0dcc8;
+    --point: #b5542c;
+    --point-user: #2c6e8a;
+    --fit: #2c6e8a;
+    --chip: #ecd9c2;
+  }
+  [data-theme="leogang"] {
+    --bg: #f4f7fa;        /* alpine white */
+    --panel: #ffffff;
+    --ink: #21313d;
+    --muted: #6a7d8c;
+    --grid: #dde6ec;
+    --accent: #0e8f7e;    /* glacier teal */
+    --accent-soft: #d8efeb;
+    --point: #0e8f7e;
+    --point-user: #b5542c;
+    --fit: #b5542c;
+    --chip: #e4ecf1;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding: 16px;
+    transition: background .25s, color .25s;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; }
+
+  header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+  h1 { font-size: 1.35rem; letter-spacing: -0.02em; }
+  h1 span { color: var(--accent); }
+  .home-link {
+    font-size: .8rem; font-weight: 600; text-decoration: none;
+    color: var(--accent); border: 1px solid var(--accent);
+    padding: 5px 12px; border-radius: 999px; white-space: nowrap;
+  }
+  .home-link:hover { background: var(--accent); color: var(--panel); }
+  .subtitle { font-size: .82rem; color: var(--muted); margin-bottom: 14px; }
+
+  /* controls */
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; }
+  .tabs { display: flex; gap: 4px; background: var(--chip); padding: 4px; border-radius: 10px; }
+  .tabs button {
+    border: none; background: transparent; color: var(--muted);
+    font-weight: 700; font-size: .85rem; padding: 6px 14px; border-radius: 7px; cursor: pointer;
+  }
+  .tabs button.active { background: var(--accent); color: var(--panel); }
+  .toggle-group { display: flex; gap: 2px; background: var(--chip); padding: 3px; border-radius: 8px; }
+  .toggle-group button {
+    border: none; background: transparent; color: var(--muted);
+    font-size: .78rem; font-weight: 600; padding: 5px 10px; border-radius: 6px; cursor: pointer;
+  }
+  .toggle-group button.active { background: var(--panel); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.15); }
+  .fit-btn {
+    border: 1px solid var(--accent); background: transparent; color: var(--accent);
+    font-size: .78rem; font-weight: 700; padding: 6px 12px; border-radius: 8px; cursor: pointer;
+  }
+  .fit-btn.on { background: var(--accent); color: var(--panel); }
+  .theme-toggle button { font-size: .72rem; padding: 5px 8px; }
+
+  /* R^2 explainer tooltip */
+  .r2-term {
+    border-bottom: 1px dotted var(--muted); cursor: help; position: relative;
+  }
+  .r2-term .r2-pop {
+    visibility: hidden; opacity: 0; transition: opacity .15s;
+    position: absolute; bottom: 145%; left: 50%; transform: translateX(-50%);
+    width: 260px; background: var(--ink); color: var(--panel);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: .72rem; font-weight: 400; line-height: 1.45; text-align: left;
+    padding: 8px 10px; border-radius: 8px; z-index: 20; pointer-events: none;
+    box-shadow: 0 4px 14px rgba(0,0,0,.25);
+  }
+  .r2-term .r2-pop::after {
+    content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px;
+    border: 5px solid transparent; border-top-color: var(--ink);
+  }
+  .r2-term:hover .r2-pop, .r2-term:focus .r2-pop { visibility: visible; opacity: 1; }
+
+  .mat-stats {
+    font-size: .78rem; color: var(--muted); margin-top: 4px; padding: 0 6px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  .mat-stats b { color: var(--accent); }
+
+  /* chart panel */
+  .panel { background: var(--panel); border: 1px solid var(--grid); border-radius: 14px; padding: 12px; }
+  svg { width: 100%; height: auto; display: block; }
+  .fit-stats {
+    font-size: .78rem; color: var(--muted); margin-top: 6px; padding: 0 6px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  .fit-stats b { color: var(--fit); }
+
+  /* adjustment table */
+  .table-panel { margin-top: 14px; background: var(--panel); border: 1px solid var(--grid); border-radius: 14px; padding: 14px; }
+  .table-head { display: flex; justify-content: space-between; align-items: center; }
+  .table-head h2 { font-size: .95rem; }
+  .expand-btn {
+    border: 1px solid var(--grid); background: var(--bg); color: var(--ink);
+    font-size: .78rem; font-weight: 700; padding: 6px 12px; border-radius: 8px; cursor: pointer;
+  }
+  #tableWrap { overflow-x: auto; margin-top: 10px; }
+  #tableWrap.collapsed { display: none; }
+  table.bikes { width: 100%; min-width: 760px; border-collapse: collapse; font-size: .82rem; }
+  table.bikes td.mat-cell { font-size: .75rem; color: var(--muted); }
+  table.bikes th {
+    text-align: left; font-size: .68rem; text-transform: uppercase; letter-spacing: .05em;
+    color: var(--muted); padding: 6px 8px; border-bottom: 2px solid var(--grid);
+  }
+  table.bikes th.chk, table.bikes td.chk { text-align: center; width: 34px; }
+  table.bikes td.chk input { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); }
+  tr.bike-off td { opacity: .4; }
+  tr.bike-off td.chk { opacity: 1; }
+  table.bikes th.num, table.bikes td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  table.bikes td { padding: 6px 8px; border-bottom: 1px solid var(--grid); }
+  table.bikes tr:last-child td { border-bottom: none; }
+  table.bikes td.delta { color: var(--fit); font-weight: 700; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .76rem; }
+  .adj-cell { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+  .adj-controls { display: flex; gap: 4px; justify-content: flex-end; align-items: center; }
+  .adj-controls .grp-label { font-size: .64rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); width: 30px; text-align: left; }
+  .adj-controls button {
+    border: 1px solid var(--grid); background: var(--bg); color: var(--ink);
+    width: 24px; height: 24px; border-radius: 6px; cursor: pointer;
+    font-weight: 800; font-size: .85rem; line-height: 1;
+  }
+  .adj-controls button:hover { border-color: var(--accent); color: var(--accent); }
+  .adj-controls button.reset { width: auto; padding: 0 7px; font-size: .64rem; font-weight: 700; }
+  .table-note { font-size: .72rem; color: var(--muted); margin-top: 8px; }
+
+  /* add-bike form */
+  .add-panel { margin-top: 14px; background: var(--panel); border: 1px solid var(--grid); border-radius: 14px; padding: 14px; }
+  .add-panel h2 { font-size: .95rem; margin-bottom: 10px; }
+  .add-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+  .field { display: flex; flex-direction: column; gap: 3px; }
+  .field label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  .field input, .field select {
+    border: 1px solid var(--grid); background: var(--bg); color: var(--ink);
+    padding: 7px 9px; border-radius: 8px; font-size: .85rem;
+  }
+  .field input:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .add-form button {
+    border: none; background: var(--accent); color: var(--panel);
+    font-weight: 700; font-size: .85rem; padding: 9px 18px; border-radius: 8px; cursor: pointer;
+  }
+  .add-msg { font-size: .78rem; color: var(--point-user); margin-top: 6px; min-height: 1em; }
+  .user-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .user-chips span {
+    background: var(--chip); font-size: .75rem; padding: 4px 8px; border-radius: 999px;
+    display: inline-flex; gap: 6px; align-items: center;
+  }
+  .user-chips button { border: none; background: none; color: var(--point-user); font-weight: 800; cursor: pointer; font-size: .85rem; }
+
+  footer { margin-top: 14px; font-size: .72rem; color: var(--muted); line-height: 1.5; }
+  footer a { color: var(--accent); }
+</style>
 </head>
 <body>
-  <!-- TODO: point this at wherever the tool itself ends up hosted (its own
-       GitHub Pages repo, like Canada-mtb-parks, or a raw path within
-       pmr-website if you're serving it directly from this repo). -->
-  <iframe src="https://postmillennium-mtb.github.io/mtb-weight-price/" title="Weight vs. Price MTB Scatterplot" allowfullscreen></iframe>
+<div class="wrap">
+  <header>
+    <h1>Weight vs. Price <span>// what a pound costs</span></h1>
+    <a class="home-link" href="https://www.postmillenniumrenaissance.com/">&larr; Post Millennium Renaissance</a>
+  </header>
+  <p class="subtitle">Flagship-tier mountain bikes plotted by MSRP and claimed weight, with model year. Toggle the fit line to see the going rate for a lighter bike — no free lunches, only tradeoffs.</p>
+
+  <div class="controls">
+    <div class="tabs" id="tabs"></div>
+    <div class="toggle-group" id="unitToggle">
+      <button data-unit="lbs" class="active">lbs</button>
+      <button data-unit="kg">kg</button>
+    </div>
+    <div class="toggle-group" id="currToggle">
+      <button data-curr="USD" class="active">USD $</button>
+      <button data-curr="CHF">CHF ₣</button>
+    </div>
+    <div class="toggle-group" id="matToggle" title="Frame material">
+      <button data-mat="all" class="active">Both</button>
+      <button data-mat="carbon">Carbon</button>
+      <button data-mat="alloy">Alloy</button>
+    </div>
+    <button class="fit-btn on" id="fitBtn">Fit line: ON</button>
+    <div class="toggle-group theme-toggle" id="themeToggle" title="Color scheme">
+      <button data-theme="fortwilliam" class="active">Fort William</button>
+      <button data-theme="valdisole">Val di Sole</button>
+      <button data-theme="rampage">Rampage</button>
+      <button data-theme="leogang">Leogang</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <svg id="chart" viewBox="0 0 960 600" role="img" aria-label="Scatterplot of bike weight versus price"></svg>
+    <div class="fit-stats" id="fitStats"></div>
+    <div class="mat-stats" id="matStats"></div>
+  </div>
+
+  <div class="table-panel">
+    <div class="table-head">
+      <h2 id="tableTitle">Bike table</h2>
+      <button class="expand-btn" id="tableToggle">Show table &#9662;</button>
+    </div>
+    <div id="tableWrap" class="collapsed">
+      <table class="bikes">
+        <thead>
+          <tr>
+            <th class="chk">On</th>
+            <th id="thModel">Bike model</th>
+            <th>Frame</th>
+            <th class="num">Year</th>
+            <th class="num" id="thPrice">Price</th>
+            <th class="num">&Delta; price</th>
+            <th class="num" id="thWeight">Weight</th>
+            <th class="num">&Delta; weight</th>
+            <th class="num">Adjust</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div class="table-note">Uncheck a bike to hide it from the chart (and the fit line) without deleting it. Weight steps 0.1 lb (0.05 kg) per click; price steps $50 (or the CHF equivalent) per click. Adjusted bikes are marked * on the chart and move in real time. &ldquo;Reset&rdquo; returns a value to the listed default.</div>
+    </div>
+  </div>
+
+  <div class="add-panel">
+    <h2 id="addTitle">Add a bike</h2>
+    <div class="add-form">
+      <div class="field" style="flex:2; min-width:180px;">
+        <label for="inName">Bike model</label>
+        <input id="inName" type="text" placeholder="e.g. Ibis Ripley AF NX">
+      </div>
+      <div class="field" style="width:100px;">
+        <label for="inMat">Frame</label>
+        <select id="inMat">
+          <option value="carbon">Carbon</option>
+          <option value="alloy">Alloy</option>
+        </select>
+      </div>
+      <div class="field" style="width:90px;">
+        <label for="inYear">Year</label>
+        <input id="inYear" type="number" min="1980" max="2030" placeholder="2025">
+      </div>
+      <div class="field" style="width:120px;">
+        <label for="inPrice" id="priceLabel">Price (USD)</label>
+        <input id="inPrice" type="number" min="1" step="any" placeholder="4999">
+      </div>
+      <div class="field" style="width:120px;">
+        <label for="inWeight" id="weightLabel">Weight (lbs)</label>
+        <input id="inWeight" type="number" min="1" step="any" placeholder="31.5">
+      </div>
+      <button id="addBtn">Add to chart</button>
+    </div>
+    <div class="add-msg" id="addMsg"></div>
+    <div class="user-chips" id="userChips"></div>
+  </div>
+
+  <footer>
+    Prices are approximate US MSRP at launch; weights are manufacturer-claimed or magazine-verified for the listed build (typically size M/L, tubeless, no pedals). Treat individual points as ±0.5 lb / ±a few hundred dollars — the pattern is the point, not any single dot. CHF conversion uses <span id="rateNote">the latest available rate</span>, fetched from the European Central Bank via Frankfurter and cached locally for a few days — so it's current within a business day or so, not real-time. Frame material is the main frame construction; some "carbon" bikes use alloy rear triangles. Bikes you add, weight/price tweaks, and checkbox states live only on this page load — refresh clears them.
+    <br>A <a href="https://www.postmillenniumrenaissance.com/">Post Millennium Renaissance</a> tool.
+  </footer>
+</div>
+
+<script>
+/* =====================================================
+   CONFIG
+===================================================== */
+// Fallback rate, used if the FX fetch fails or before it returns.
+// Also the value shown on very first paint.
+let CHF_PER_USD = 0.80;
+let fxDate = null;          // date string of the rate currently in use
+let fxSource = "fallback";  // "live" | "cached" | "fallback"
+
+const FX_CACHE_KEY = "pmr_fx_chf";
+const FX_MAX_AGE_DAYS = 5;  // refetch if the cached rate is older than this
+
+const LBS_PER_KG  = 2.20462;
+
+/* ---- Exchange rate: fetch, cache for a few days, fall back gracefully ----
+   Uses the Frankfurter API (ECB reference rates, free, no key, CORS-enabled).
+   ECB publishes once per working day, so this is never "real time" — which is
+   fine here. Cached in localStorage so repeat visitors don't refetch daily. */
+async function loadFxRate() {
+  // 1. Try cache first
+  try {
+    const raw = localStorage.getItem(FX_CACHE_KEY);
+    if (raw) {
+      const c = JSON.parse(raw);
+      const ageDays = (Date.now() - c.fetchedAt) / 86400000;
+      if (c.rate && ageDays < FX_MAX_AGE_DAYS) {
+        CHF_PER_USD = c.rate; fxDate = c.date; fxSource = "cached";
+        updateFxNote(); render();
+        return;
+      }
+    }
+  } catch (e) { /* localStorage unavailable or corrupt — just refetch */ }
+
+  // 2. Fetch a fresh rate (try the current host, then the legacy one)
+  const endpoints = [
+    "https://api.frankfurter.dev/v1/latest?base=USD&symbols=CHF",
+    "https://api.frankfurter.app/latest?from=USD&to=CHF"
+  ];
+  try {
+    let d = null;
+    for (const url of endpoints) {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) continue;
+        const j = await res.json();
+        if (j && j.rates && isFinite(j.rates.CHF)) { d = j; break; }
+      } catch (e) { /* try next endpoint */ }
+    }
+    if (!d) throw new Error("FX unreachable");
+    const rate = d.rates.CHF;
+
+    CHF_PER_USD = rate; fxDate = d.date; fxSource = "live";
+    try {
+      localStorage.setItem(FX_CACHE_KEY, JSON.stringify({ rate, date: d.date, fetchedAt: Date.now() }));
+    } catch (e) { /* private mode — fine, we just refetch next visit */ }
+  } catch (e) {
+    // 3. Stale cache beats the hardcoded fallback, so try it before giving up
+    try {
+      const raw = localStorage.getItem(FX_CACHE_KEY);
+      if (raw) {
+        const c = JSON.parse(raw);
+        if (c.rate) { CHF_PER_USD = c.rate; fxDate = c.date; fxSource = "cached"; }
+      }
+    } catch (e2) { /* fall through to hardcoded default */ }
+  }
+  updateFxNote();
+  render();
+}
+
+function updateFxNote() {
+  const el = document.getElementById("rateNote");
+  if (!el) return;
+  let note = CHF_PER_USD.toFixed(4) + " CHF per USD";
+  if (fxSource === "live")        note += " (ECB rate, " + fxDate + ")";
+  else if (fxSource === "cached") note += " (ECB rate, " + fxDate + ", cached)";
+  else                            note += " (fallback \u2014 live rate unavailable)";
+  el.textContent = note;
+}
+
+/* =====================================================
+   DATA — price in USD, weight in lbs (base units)
+   Approximate launch MSRP + claimed/tested weights.
+===================================================== */
+const DATA = {
+  "XC": [
+    { name: "Specialized S-Works Epic 8",         year: 2024, price: 12500, lbs: 22.7, mat: "carbon" },
+    { name: "Trek Supercaliber SLR 9.9 XX AXS",   year: 2024, price: 11750, lbs: 21.8, mat: "carbon" },
+    { name: "Scott Spark RC World Cup AXS",       year: 2024, price: 10000, lbs: 22.3, mat: "carbon" },
+    { name: "Cannondale Scalpel Hi-Mod Ultimate", year: 2024, price: 11000, lbs: 22.3, mat: "carbon" },
+    { name: "Canyon Lux World Cup CFR",           year: 2024, price: 8000,  lbs: 21.4, mat: "carbon" },
+    { name: "Orbea Oiz M-LTD",                    year: 2024, price: 10000, lbs: 22.1, mat: "carbon" },
+    { name: "Santa Cruz Blur XX AXS RSV",         year: 2024, price: 11000, lbs: 22.4, mat: "carbon" },
+    { name: "Pivot Mach 4 SL World Cup",          year: 2024, price: 11900, lbs: 21.9, mat: "carbon" },
+    { name: "BMC Fourstroke 01 LTD",              year: 2024, price: 11500, lbs: 21.5, mat: "carbon" },
+    { name: "Giant Anthem Advanced Pro 29 0",     year: 2023, price: 9000,  lbs: 23.4, mat: "carbon" },
+    { name: "Mondraker F-Podium RR SL",           year: 2024, price: 10500, lbs: 22.0, mat: "carbon" },
+    { name: "Cervelo ZFS-5 XX AXS",               year: 2024, price: 10500, lbs: 22.5, mat: "carbon" },
+    { name: "Specialized Epic World Cup Pro",     year: 2023, price: 9000,  lbs: 22.0, mat: "carbon" },
+    { name: "YT Izzo Uncaged 7",                  year: 2023, price: 6500,  lbs: 24.3, mat: "carbon" }
+  ],
+  "Trail": [
+    { name: "Scott Genius 900 Ultimate",           year: 2023, price: 11999, lbs: 28.4, mat: "carbon" },
+    { name: "Specialized Stumpjumper EVO S-Works", year: 2023, price: 10500, lbs: 29.5, mat: "carbon" },
+    { name: "Trek Fuel EX 9.9 XX AXS",             year: 2023, price: 10499, lbs: 30.2, mat: "carbon" },
+    { name: "Pivot Trail 429 Team XTR",            year: 2022, price: 9799,  lbs: 28.5, mat: "carbon" },
+    { name: "Yeti SB140 TLR T3",                   year: 2023, price: 9600,  lbs: 30.1, mat: "carbon" },
+    { name: "Orbea Occam M-LTD",                   year: 2023, price: 9599,  lbs: 28.2, mat: "carbon" },
+    { name: "Giant Trance X Adv Pro 29 0",         year: 2022, price: 8500,  lbs: 29.9, mat: "carbon" },
+    { name: "Santa Cruz Hightower CC X01",         year: 2023, price: 8499,  lbs: 30.8, mat: "carbon" },
+    { name: "Revel Rascal X0 Transmission",        year: 2023, price: 8499,  lbs: 30.5, mat: "carbon" },
+    { name: "Transition Smuggler Carbon XO AXS",   year: 2023, price: 8299,  lbs: 30.6, mat: "carbon" },
+    { name: "Evil The Offering LS X01",            year: 2023, price: 8299,  lbs: 31.5, mat: "carbon" },
+    { name: "Ibis Ripmo V2S XT",                   year: 2023, price: 6899,  lbs: 31.0, mat: "carbon" },
+    { name: "Canyon Spectral 29 CFR",              year: 2023, price: 6499,  lbs: 29.8, mat: "carbon" },
+    { name: "Commencal Meta TR V4 Signature",      year: 2023, price: 5800,  lbs: 33.1, mat: "alloy"  },
+    { name: "YT Jeffsy Core 4",                    year: 2023, price: 5499,  lbs: 31.3, mat: "carbon" },
+    { name: "Devinci Troy GX AXS (Gen 5)",         year: 2025, price: 5549,  lbs: 34.0, mat: "alloy"  },
+    { name: "Propain Tyee 6.1 AL Trail",           year: 2026, price: 3799,  lbs: 32.9, mat: "alloy"  }
+  ],
+  "Enduro": [
+    { name: "Santa Cruz Megatower X0 AXS RSV", year: 2024, price: 11299, lbs: 34.4, mat: "carbon" },
+    { name: "Trek Slash 9.9 XX AXS T-Type",    year: 2024, price: 11000, lbs: 35.6, mat: "carbon" },
+    { name: "Specialized S-Works Enduro",      year: 2023, price: 12000, lbs: 34.0, mat: "carbon" },
+    { name: "Yeti SB160 T4",                   year: 2024, price: 11300, lbs: 33.9, mat: "carbon" },
+    { name: "Orbea Rallon M-LTD",              year: 2023, price: 10000, lbs: 32.6, mat: "carbon" },
+    { name: "Canyon Strive CFR LTD",           year: 2023, price: 8000,  lbs: 33.5, mat: "carbon" },
+    { name: "Ibis HD6 XX AXS",                 year: 2024, price: 11000, lbs: 33.8, mat: "carbon" },
+    { name: "Pivot Firebird Team XTR",         year: 2024, price: 11100, lbs: 33.6, mat: "carbon" },
+    { name: "Rocky Mountain Altitude C90",     year: 2024, price: 11000, lbs: 34.6, mat: "carbon" },
+    { name: "Giant Reign Advanced Pro 0",      year: 2023, price: 8800,  lbs: 34.8, mat: "carbon" },
+    { name: "Norco Sight C1",                  year: 2024, price: 9000,  lbs: 35.3, mat: "carbon" },
+    { name: "Propain Tyee 6 CF Ultimate",      year: 2024, price: 7500,  lbs: 33.9, mat: "carbon" },
+    { name: "YT Capra Core 5",                 year: 2024, price: 6800,  lbs: 34.6, mat: "carbon" },
+    { name: "Commencal Meta SX V5 Signature",  year: 2024, price: 6900,  lbs: 36.4, mat: "alloy"  },
+    { name: "Scott Ransom 900 RC",             year: 2024, price: 10000, lbs: 33.3, mat: "carbon" },
+    { name: "Devinci Spartan HP GX AXS",       year: 2023, price: 7299,  lbs: 35.5, mat: "carbon" },
+    { name: "Propain Tyee 6.1 AL Enduro",      year: 2026, price: 3999,  lbs: 34.2, mat: "alloy"  },
+    { name: "Sunn Radical Finest",             year: 2025, price: 6800,  lbs: 36.6, mat: "carbon" }
+  ],
+  "DH": [
+    { name: "Santa Cruz V10 DH X01",             year: 2023, price: 10300, lbs: 37.5, mat: "carbon" },
+    { name: "Trek Session 9 X01",                year: 2023, price: 8000,  lbs: 37.8, mat: "carbon" },
+    { name: "Specialized Demo Race",             year: 2023, price: 7500,  lbs: 38.3, mat: "alloy"  },
+    { name: "Commencal Supreme DH V5 Signature", year: 2024, price: 7900,  lbs: 39.0, mat: "alloy"  },
+    { name: "Canyon Sender CFR",                 year: 2024, price: 7000,  lbs: 36.8, mat: "carbon" },
+    { name: "YT Tues Core 4",                    year: 2024, price: 6500,  lbs: 38.1, mat: "carbon" },
+    { name: "Giant Glory Advanced",              year: 2024, price: 7200,  lbs: 37.9, mat: "carbon" },
+    { name: "Pivot Phoenix 29 Team",             year: 2023, price: 11000, lbs: 36.9, mat: "carbon" },
+    { name: "Intense M1 Pro",                    year: 2024, price: 8000,  lbs: 38.5, mat: "carbon" },
+    { name: "Norco Aurum HSP C1",                year: 2023, price: 9000,  lbs: 38.8, mat: "carbon" },
+    { name: "GT Fury Team",                      year: 2022, price: 6800,  lbs: 38.6, mat: "carbon" },
+    { name: "Scott Gambler 900 Tuned",           year: 2022, price: 7700,  lbs: 36.5, mat: "carbon" },
+    { name: "Mondraker Summum Carbon RR MX",     year: 2024, price: 9500,  lbs: 37.0, mat: "carbon" },
+    { name: "Devinci Chainsaw DH",               year: 2024, price: 6499,  lbs: 39.5, mat: "alloy"  },
+    { name: "Propain Rage CF Highend",           year: 2024, price: 6299,  lbs: 37.3, mat: "carbon" }
+  ],
+  "Full Power": [
+    { name: "Specialized S-Works Turbo Levo 4",      year: 2025, price: 14000, lbs: 52.0, mat: "carbon" },
+    { name: "Trek Rail 9.9 XX AXS",                  year: 2024, price: 13500, lbs: 52.5, mat: "carbon" },
+    { name: "Santa Cruz Vala X0 AXS RSV",            year: 2025, price: 11999, lbs: 51.5, mat: "carbon" },
+    { name: "Yeti 160E T1",                          year: 2023, price: 13000, lbs: 52.3, mat: "carbon" },
+    { name: "Orbea Wild M-LTD",                      year: 2024, price: 12000, lbs: 49.6, mat: "carbon" },
+    { name: "Canyon Spectral:ON CFR",                year: 2024, price: 8500,  lbs: 49.2, mat: "carbon" },
+    { name: "Giant Trance X Advanced E+ Elite 0",    year: 2024, price: 12000, lbs: 48.5, mat: "carbon" },
+    { name: "Pivot Shuttle LT Team",                 year: 2023, price: 12500, lbs: 51.7, mat: "carbon" },
+    { name: "Rocky Mountain Altitude Powerplay C90", year: 2024, price: 12700, lbs: 52.9, mat: "carbon" },
+    { name: "Commencal Meta Power SX",               year: 2023, price: 7500,  lbs: 53.5, mat: "alloy"  },
+    { name: "YT Decoy Core 5",                       year: 2024, price: 8500,  lbs: 50.7, mat: "carbon" },
+    { name: "Mondraker Crafty Carbon RR",            year: 2024, price: 10500, lbs: 51.0, mat: "carbon" },
+    { name: "Devinci E-Troy GX AXS",                 year: 2025, price: 8499,  lbs: 51.5, mat: "alloy"  },
+    { name: "Norco Sight VLT CX C2",                 year: 2025, price: 8299,  lbs: 49.0, mat: "alloy"  },
+    { name: "Ibis Oso GX AXS",                       year: 2025, price: 5999,  lbs: 52.0, mat: "carbon" },
+    { name: "Nukeproof Megawatt Elite",              year: 2024, price: 7500,  lbs: 53.5, mat: "alloy"  },
+    { name: "Whyte E-180 RSX",                       year: 2024, price: 9500,  lbs: 51.0, mat: "alloy"  },
+    { name: "Propain Ekano AL Trail",                year: 2026, price: 5799,  lbs: 48.7, mat: "alloy"  }
+  ],
+  "Lite eMTB": [
+    { name: "Specialized S-Works Turbo Levo SL", year: 2023, price: 14000, lbs: 38.4, mat: "carbon" },
+    { name: "Trek Fuel EXe 9.9 XX AXS",          year: 2023, price: 13700, lbs: 39.5, mat: "carbon" },
+    { name: "Santa Cruz Heckler SL X0 AXS RSV",  year: 2024, price: 11500, lbs: 41.5, mat: "carbon" },
+    { name: "Orbea Rise M-LTD",                  year: 2024, price: 11000, lbs: 38.8, mat: "carbon" },
+    { name: "Pivot Shuttle SL Team World Cup",   year: 2023, price: 13000, lbs: 36.5, mat: "carbon" },
+    { name: "Scott Lumen eRide 900 SL",          year: 2023, price: 15000, lbs: 34.4, mat: "carbon" },
+    { name: "Transition Relay PNW XT",           year: 2024, price: 9000,  lbs: 42.0, mat: "carbon" },
+    { name: "Mondraker Neat RR SL",              year: 2024, price: 12500, lbs: 39.7, mat: "carbon" },
+    { name: "Canyon Neuron:ONfly CFR LTD",       year: 2024, price: 9000,  lbs: 41.0, mat: "carbon" },
+    { name: "Norco Fluid VLT C1",                year: 2024, price: 9500,  lbs: 42.5, mat: "carbon" },
+    { name: "Cannondale Moterra SL 1",           year: 2024, price: 9500,  lbs: 44.0, mat: "carbon" },
+    { name: "Devinci E-Troy Lite GX",            year: 2024, price: 7499,  lbs: 46.5, mat: "alloy"  }
+  ]
+};
+
+/* =====================================================
+   STATE
+===================================================== */
+let state = {
+  category: "XC",
+  unit: "lbs",       // "lbs" | "kg"
+  currency: "USD",   // "USD" | "CHF"
+  material: "all",   // "all" | "carbon" | "alloy"
+  fit: true
+};
+
+/* =====================================================
+   HELPERS
+===================================================== */
+const toDisplayWeight = lbs => state.unit === "kg" ? lbs / LBS_PER_KG : lbs;
+const toDisplayPrice  = usd => state.currency === "CHF" ? usd * CHF_PER_USD : usd;
+const currSymbol = () => state.currency === "CHF" ? "\u20A3" : "$";
+const unitLabel  = () => state.unit;
+const fmtMoney = v => currSymbol() + Math.round(v).toLocaleString("en-US");
+const fmtW = v => v.toFixed(1);
+
+// R^2 readout with a hover explainer
+function r2Html(r2) {
+  return 'R\u00B2 = <b>' + r2.toFixed(2) + '</b>' +
+    '<span class="r2-term" tabindex="0">&#9432;' +
+      '<span class="r2-pop">R\u00B2 measures how much of the price variation is explained ' +
+      'by weight alone. 1.00 would mean weight predicts price perfectly; 0.00 means it ' +
+      'tells you nothing. Anything under ~0.30 means other factors \u2014 spec level, brand, ' +
+      'suspension \u2014 are driving price far more than weight is.</span>' +
+    '</span>';
+}
+
+// "In this category on average: carbon adds $X and sheds Y lbs"
+function renderMatStats() {
+  const el = document.getElementById("matStats");
+  el.textContent = "";
+  // Compare across the full category (ignoring the material filter), but respect
+  // checkboxes and any user weight/price adjustments.
+  const live = DATA[state.category].filter(b => !b.off);
+  const carb = live.filter(b => b.mat === "carbon");
+  const allo = live.filter(b => b.mat === "alloy");
+  if (carb.length < 2 || allo.length < 2) {
+    el.innerHTML = "Carbon vs. alloy: not enough alloy bikes in this category yet for a " +
+                   "meaningful average (" + carb.length + " carbon, " + allo.length + " alloy).";
+    return;
+  }
+  const avg = (arr, f) => arr.reduce((s, b) => s + f(b), 0) / arr.length;
+  const priceOf  = b => toDisplayPrice(b.price + (b.priceAdj || 0));
+  const weightOf = b => toDisplayWeight(b.lbs + (b.adj || 0));
+
+  const dPrice = avg(carb, priceOf) - avg(allo, priceOf);
+  const dWeight = avg(allo, weightOf) - avg(carb, weightOf); // positive = carbon lighter
+
+  const priceTxt = (dPrice >= 0 ? "adds " : "saves ") + "<b>" + fmtMoney(Math.abs(dPrice)) + "</b>";
+  const weightTxt = (dWeight >= 0 ? "sheds " : "adds ") + "<b>" + Math.abs(dWeight).toFixed(1) +
+                    " " + unitLabel() + "</b>";
+  el.innerHTML = "In this category on average: carbon " + priceTxt + " and " + weightTxt +
+                 " vs. alloy &nbsp;(" + carb.length + " carbon, " + allo.length + " alloy \u2014 " +
+                 "small samples, different models, not a like-for-like frame swap).";
+}
+
+function linReg(pts) { // pts: [{x,y}] -> {slope, intercept, r2}
+  const n = pts.length;
+  if (n < 3) return null;
+  let sx=0, sy=0, sxx=0, sxy=0, syy=0;
+  for (const p of pts) { sx+=p.x; sy+=p.y; sxx+=p.x*p.x; sxy+=p.x*p.y; syy+=p.y*p.y; }
+  const denom = n*sxx - sx*sx;
+  if (denom === 0) return null;
+  const slope = (n*sxy - sx*sy) / denom;
+  const intercept = (sy - slope*sx) / n;
+  const r2num = (n*sxy - sx*sy) ** 2;
+  const r2den = denom * (n*syy - sy*sy);
+  const r2 = r2den === 0 ? 0 : r2num / r2den;
+  return { slope, intercept, r2 };
+}
+
+/* =====================================================
+   RENDER
+===================================================== */
+const svg = document.getElementById("chart");
+const W = 960, H = 600;
+const M = { top: 24, right: 30, bottom: 52, left: 66 };
+
+function cssVar(name) {
+  return getComputedStyle(document.body).getPropertyValue(name).trim();
+}
+
+function niceTicks(min, max, count) {
+  const span = max - min;
+  const step0 = span / count;
+  const mag = Math.pow(10, Math.floor(Math.log10(step0)));
+  let step = mag;
+  for (const m of [1, 2, 2.5, 5, 10]) { if (m * mag >= step0) { step = m * mag; break; } }
+  const ticks = [];
+  for (let t = Math.ceil(min/step)*step; t <= max + 1e-9; t += step) ticks.push(t);
+  return ticks;
+}
+
+const matchesMat = b => state.material === "all" || b.mat === state.material;
+
+function render() {
+  const bikes = DATA[state.category].filter(b => !b.off && matchesMat(b));
+  svg.innerHTML = "";
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (tag, attrs) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  };
+
+  // display-space values
+  const pts = bikes.map(b => ({
+    ...b,
+    x: toDisplayPrice(b.price + (b.priceAdj || 0)),
+    y: toDisplayWeight(b.lbs + (b.adj || 0))
+  }));
+
+  // Nothing to plot (e.g. an alloy filter with no alloy bikes in this category)
+  if (pts.length === 0) {
+    const msg = el("text", {
+      x: W / 2, y: H / 2, "text-anchor": "middle", "font-size": 16, fill: cssVar("--muted")
+    });
+    msg.textContent = "No " + (state.material === "all" ? "" : state.material + " ") +
+                      "bikes to show in " + state.category + ".";
+    svg.appendChild(msg);
+    document.getElementById("fitStats").textContent = "";
+    document.getElementById("matStats").textContent = "";
+    renderTable();
+    return;
+  }
+
+  // scales with padding
+  const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+  const xPad = (Math.max(...xs) - Math.min(...xs)) * 0.10 || 1;
+  const yPad = (Math.max(...ys) - Math.min(...ys)) * 0.14 || 1;
+  const xMin = Math.min(...xs) - xPad, xMax = Math.max(...xs) + xPad;
+  const yMin = Math.min(...ys) - yPad, yMax = Math.max(...ys) + yPad;
+  const X = v => M.left + (v - xMin) / (xMax - xMin) * (W - M.left - M.right);
+  const Y = v => H - M.bottom - (v - yMin) / (yMax - yMin) * (H - M.top - M.bottom);
+
+  const gridC = cssVar("--grid"), mutedC = cssVar("--muted"), inkC = cssVar("--ink");
+  const pointC = cssVar("--point"), userC = cssVar("--point-user"), fitC = cssVar("--fit");
+
+  // grid + axes
+  for (const t of niceTicks(xMin, xMax, 7)) {
+    svg.appendChild(el("line", { x1: X(t), x2: X(t), y1: M.top, y2: H - M.bottom, stroke: gridC, "stroke-width": 1 }));
+    const lbl = el("text", { x: X(t), y: H - M.bottom + 20, "text-anchor": "middle", "font-size": 12, fill: mutedC });
+    lbl.textContent = fmtMoney(t);
+    svg.appendChild(lbl);
+  }
+  for (const t of niceTicks(yMin, yMax, 7)) {
+    svg.appendChild(el("line", { x1: M.left, x2: W - M.right, y1: Y(t), y2: Y(t), stroke: gridC, "stroke-width": 1 }));
+    const lbl = el("text", { x: M.left - 10, y: Y(t) + 4, "text-anchor": "end", "font-size": 12, fill: mutedC });
+    lbl.textContent = fmtW(t);
+    svg.appendChild(lbl);
+  }
+  const xTitle = el("text", { x: (M.left + W - M.right) / 2, y: H - 12, "text-anchor": "middle", "font-size": 13, "font-weight": 700, fill: inkC });
+  xTitle.textContent = "Price (" + state.currency + ")";
+  svg.appendChild(xTitle);
+  const yTitle = el("text", { x: 18, y: (M.top + H - M.bottom) / 2, "text-anchor": "middle", "font-size": 13, "font-weight": 700, fill: inkC, transform: "rotate(-90 18 " + ((M.top + H - M.bottom) / 2) + ")" });
+  yTitle.textContent = "Weight (" + unitLabel() + ")";
+  svg.appendChild(yTitle);
+
+  // fit line
+  const stats = document.getElementById("fitStats");
+  stats.textContent = "";
+  if (state.fit) {
+    const reg = linReg(pts);
+    if (reg) {
+      const y1 = reg.slope * xMin + reg.intercept;
+      const y2 = reg.slope * xMax + reg.intercept;
+      svg.appendChild(el("line", {
+        x1: X(xMin), y1: Y(y1), x2: X(xMax), y2: Y(y2),
+        stroke: fitC, "stroke-width": 2.5, "stroke-dasharray": "8 5", opacity: .85
+      }));
+      // slope -> cost of shedding one unit of weight
+      if (reg.slope < 0) {
+        const perUnit = 1 / Math.abs(reg.slope); // currency per weight unit
+        stats.innerHTML = "Fit: shedding 1 " + unitLabel() + " costs roughly <b>" +
+          fmtMoney(perUnit) + "</b> in this category &nbsp;|&nbsp; " + r2Html(reg.r2) +
+          (reg.r2 < 0.3 ? " (weak fit \u2014 read with caution)" : "");
+      } else {
+        stats.innerHTML = "Fit slope is flat or positive here \u2014 price isn't buying weight savings in this dataset. " + r2Html(reg.r2);
+      }
+    } else {
+      stats.textContent = "Need at least 3 bikes for a fit line.";
+    }
+  }
+
+  renderMatStats();
+
+  // points
+  for (const p of pts) {
+    const c = el("circle", { cx: X(p.x), cy: Y(p.y), r: 6, fill: p.user ? userC : pointC, stroke: cssVar("--panel"), "stroke-width": 1.5 });
+    const t = document.createElementNS(NS, "title");
+    t.textContent = p.name + " ('" + String(p.year).slice(-2) + ")" + ((p.adj || p.priceAdj) ? " [adjusted]" : "") + " \u2014 " + fmtMoney(p.x) + ", " + fmtW(p.y) + " " + unitLabel();
+    c.appendChild(t);
+    svg.appendChild(c);
+  }
+
+  /* ---- label placement with collision avoidance ---- */
+  const FS = 11;                       // label font size
+  const placed = [];                   // placed label boxes
+  const pointBoxes = pts.map(p => ({ x: X(p.x) - 8, y: Y(p.y) - 8, w: 16, h: 16 }));
+  const overlaps = (a, b) => !(a.x + a.w < b.x || b.x + b.w < a.x || a.y + a.h < b.y || b.y + b.h < a.y);
+
+  // label shorter names first? place denser info: sort by y so stacking reads naturally
+  const order = pts.slice().sort((a, b) => Y(a.y) - Y(b.y));
+
+  for (const p of order) {
+    const text = p.name + " ('" + String(p.year).slice(-2) + ")" + ((p.adj || p.priceAdj) ? " *" : "");
+    const wpx = text.length * FS * 0.56;
+    const hpx = FS + 3;
+    const px = X(p.x), py = Y(p.y);
+
+    // candidate anchor offsets: [dx, dy, anchor]
+    const cands = [
+      [10, 4, "start"], [-10, 4, "end"],
+      [10, -8, "start"], [-10, -8, "end"],
+      [10, 16, "start"], [-10, 16, "end"],
+      [0, -12, "middle"], [0, 20, "middle"],
+      [10, -20, "start"], [-10, -20, "end"],
+      [10, 28, "start"], [-10, 28, "end"],
+      [14, -32, "start"], [-14, -32, "end"],
+      [14, 40, "start"], [-14, 40, "end"],
+      [18, -44, "start"], [-18, -44, "end"],
+      [18, 52, "start"], [-18, 52, "end"]
+    ];
+
+    let box = null, chosen = null;
+    for (const [dx, dy, anchor] of cands) {
+      const bx = anchor === "start" ? px + dx : anchor === "end" ? px + dx - wpx : px - wpx / 2;
+      const by = py + dy - FS;
+      const b = { x: bx, y: by, w: wpx, h: hpx };
+      if (b.x < 2 || b.x + b.w > W - 2 || b.y < 2 || b.y + b.h > H - M.bottom + 14) continue;
+      let hit = placed.some(q => overlaps(b, q)) || pointBoxes.some(q => overlaps(b, q));
+      if (!hit) { box = b; chosen = { dx, dy, anchor }; break; }
+    }
+    if (!box) { // last resort: far right stack
+      chosen = { dx: 10, dy: 4, anchor: "start" };
+      box = { x: px + 10, y: py + 4 - FS, w: wpx, h: hpx };
+    }
+    placed.push(box);
+
+    // leader line if label displaced away from point
+    const far = Math.abs(chosen.dy) > 18;
+    if (far) {
+      const lx = chosen.anchor === "start" ? box.x - 2 : chosen.anchor === "end" ? box.x + box.w + 2 : px;
+      svg.appendChild(el("line", { x1: px, y1: py, x2: lx, y2: box.y + hpx / 2, stroke: mutedC, "stroke-width": 0.8, opacity: .6 }));
+    }
+    const lbl = el("text", {
+      x: chosen.anchor === "start" ? box.x : chosen.anchor === "end" ? box.x + box.w : box.x + box.w / 2,
+      y: box.y + FS - 1,
+      "text-anchor": chosen.anchor, "font-size": FS,
+      fill: p.user ? userC : inkC, "font-weight": p.user ? 700 : 500
+    });
+    lbl.textContent = text;
+    svg.appendChild(lbl);
+  }
+
+  renderTable();
+}
+
+/* =====================================================
+   ADJUSTMENT TABLE
+===================================================== */
+const ADJ_STEP_LBS = 0.1;    // one click = 0.1 lb (~0.05 kg) weight step
+const ADJ_STEP_USD = 50;     // one click = $50 (or CHF equivalent) price step
+
+function renderTable() {
+  const tbody = document.getElementById("tableBody");
+  tbody.innerHTML = "";
+  document.getElementById("tableTitle").textContent = state.category + " bikes \u2014 tweak weight & price";
+  document.getElementById("thPrice").textContent = "Price (" + state.currency + ")";
+  document.getElementById("thWeight").textContent = "Weight (" + unitLabel() + ")";
+  // Count reflects what's actually on the chart: checked AND passing the material filter
+  const shown = DATA[state.category].filter(b => !b.off && matchesMat(b)).length;
+  document.getElementById("thModel").textContent = "Bike model (" + shown + ")";
+
+  const bikes = DATA[state.category].slice().sort((a, b) => b.price - a.price);
+  for (const b of bikes) {
+    const tr = document.createElement("tr");
+    if (b.off || !matchesMat(b)) tr.className = "bike-off";
+
+    const tdChk = document.createElement("td");
+    tdChk.className = "chk";
+    const chk = document.createElement("input");
+    chk.type = "checkbox";
+    chk.checked = !b.off;
+    chk.title = "Show/hide on chart";
+    chk.onchange = () => { b.off = !chk.checked; render(); };
+    tdChk.appendChild(chk);
+    tr.appendChild(tdChk);
+
+    const tdName = document.createElement("td");
+    tdName.textContent = b.name + (b.user ? " (yours)" : "");
+    tr.appendChild(tdName);
+
+    const tdMat = document.createElement("td");
+    tdMat.className = "mat-cell";
+    tdMat.textContent = b.mat === "carbon" ? "Carbon" : b.mat === "alloy" ? "Alloy" : "\u2014";
+    tr.appendChild(tdMat);
+
+    const tdYear = document.createElement("td");
+    tdYear.className = "num";
+    tdYear.textContent = b.year;
+    tr.appendChild(tdYear);
+
+    // --- price + its delta ---
+    const tdPrice = document.createElement("td");
+    tdPrice.className = "num";
+    tdPrice.textContent = fmtMoney(toDisplayPrice(b.price + (b.priceAdj || 0)));
+    tr.appendChild(tdPrice);
+
+    const tdPD = document.createElement("td");
+    tdPD.className = "num delta";
+    if (b.priceAdj) {
+      const pDisp = toDisplayPrice(b.priceAdj);
+      tdPD.textContent = (pDisp > 0 ? "+" : "") + currSymbol() + Math.round(pDisp).toLocaleString("en-US");
+    } else {
+      tdPD.textContent = "\u2014";
+    }
+    tr.appendChild(tdPD);
+
+    // --- weight + its delta ---
+    const tdW = document.createElement("td");
+    tdW.className = "num";
+    tdW.textContent = fmtW(toDisplayWeight(b.lbs + (b.adj || 0)));
+    tr.appendChild(tdW);
+
+    const tdD = document.createElement("td");
+    tdD.className = "num delta";
+    if (b.adj) {
+      const dVal = state.unit === "kg" ? b.adj / LBS_PER_KG : b.adj;
+      tdD.textContent = (dVal > 0 ? "+" : "") + dVal.toFixed(2);
+    } else {
+      tdD.textContent = "\u2014";
+    }
+    tr.appendChild(tdD);
+
+    // --- controls: price row + weight row ---
+    const tdC = document.createElement("td");
+    const cell = document.createElement("div");
+    cell.className = "adj-cell";
+
+    const priceRow = document.createElement("div");
+    priceRow.className = "adj-controls";
+    const pLabel = document.createElement("span");
+    pLabel.className = "grp-label";
+    pLabel.textContent = "price";
+    const pMinus = document.createElement("button");
+    pMinus.textContent = "\u2212";
+    pMinus.title = "Subtract " + ADJ_STEP_USD + " " + state.currency;
+    pMinus.onclick = () => {
+      const stepBase = state.currency === "CHF" ? ADJ_STEP_USD / CHF_PER_USD : ADJ_STEP_USD;
+      b.priceAdj = Math.round(((b.priceAdj || 0) - stepBase));
+      render();
+    };
+    const pPlus = document.createElement("button");
+    pPlus.textContent = "+";
+    pPlus.title = "Add " + ADJ_STEP_USD + " " + state.currency;
+    pPlus.onclick = () => {
+      const stepBase = state.currency === "CHF" ? ADJ_STEP_USD / CHF_PER_USD : ADJ_STEP_USD;
+      b.priceAdj = Math.round(((b.priceAdj || 0) + stepBase));
+      render();
+    };
+    priceRow.appendChild(pLabel);
+    priceRow.appendChild(pMinus);
+    priceRow.appendChild(pPlus);
+    if (b.priceAdj) {
+      const pReset = document.createElement("button");
+      pReset.className = "reset";
+      pReset.textContent = "Reset";
+      pReset.onclick = () => { delete b.priceAdj; render(); };
+      priceRow.appendChild(pReset);
+    }
+
+    const weightRow = document.createElement("div");
+    weightRow.className = "adj-controls";
+    const wLabel = document.createElement("span");
+    wLabel.className = "grp-label";
+    wLabel.textContent = "wt";
+    const wMinus = document.createElement("button");
+    wMinus.textContent = "\u2212";
+    wMinus.title = "Subtract " + ADJ_STEP_LBS + " lb";
+    wMinus.onclick = () => { b.adj = +(((b.adj || 0) - ADJ_STEP_LBS).toFixed(2)); render(); };
+    const wPlus = document.createElement("button");
+    wPlus.textContent = "+";
+    wPlus.title = "Add " + ADJ_STEP_LBS + " lb";
+    wPlus.onclick = () => { b.adj = +(((b.adj || 0) + ADJ_STEP_LBS).toFixed(2)); render(); };
+    weightRow.appendChild(wLabel);
+    weightRow.appendChild(wMinus);
+    weightRow.appendChild(wPlus);
+    if (b.adj) {
+      const wReset = document.createElement("button");
+      wReset.className = "reset";
+      wReset.textContent = "Reset";
+      wReset.onclick = () => { delete b.adj; render(); };
+      weightRow.appendChild(wReset);
+    }
+
+    cell.appendChild(priceRow);
+    cell.appendChild(weightRow);
+    tdC.appendChild(cell);
+    tr.appendChild(tdC);
+
+    tbody.appendChild(tr);
+  }
+}
+
+const tableToggle = document.getElementById("tableToggle");
+tableToggle.onclick = () => {
+  const wrap = document.getElementById("tableWrap");
+  const collapsed = wrap.classList.toggle("collapsed");
+  tableToggle.innerHTML = collapsed ? "Show table &#9662;" : "Hide table &#9652;";
+};
+
+/* =====================================================
+   UI WIRING
+===================================================== */
+// tabs
+const tabsEl = document.getElementById("tabs");
+for (const cat of Object.keys(DATA)) {
+  const b = document.createElement("button");
+  b.textContent = cat;
+  b.className = cat === state.category ? "active" : "";
+  b.onclick = () => {
+    state.category = cat;
+    tabsEl.querySelectorAll("button").forEach(x => x.classList.toggle("active", x === b));
+    document.getElementById("addTitle").textContent = "Add a bike \u2014 " + cat;
+    renderChips(); render();
+  };
+  tabsEl.appendChild(b);
+}
+document.getElementById("addTitle").textContent = "Add a bike \u2014 " + state.category;
+
+// unit toggle
+document.getElementById("unitToggle").querySelectorAll("button").forEach(b => {
+  b.onclick = () => {
+    state.unit = b.dataset.unit;
+    document.getElementById("unitToggle").querySelectorAll("button").forEach(x => x.classList.toggle("active", x === b));
+    document.getElementById("weightLabel").textContent = "Weight (" + state.unit + ")";
+    render();
+  };
+});
+
+// currency toggle
+document.getElementById("currToggle").querySelectorAll("button").forEach(b => {
+  b.onclick = () => {
+    state.currency = b.dataset.curr;
+    document.getElementById("currToggle").querySelectorAll("button").forEach(x => x.classList.toggle("active", x === b));
+    document.getElementById("priceLabel").textContent = "Price (" + state.currency + ")";
+    render();
+  };
+});
+
+// fit toggle
+const fitBtn = document.getElementById("fitBtn");
+fitBtn.onclick = () => {
+  state.fit = !state.fit;
+  fitBtn.classList.toggle("on", state.fit);
+  fitBtn.textContent = "Fit line: " + (state.fit ? "ON" : "OFF");
+  render();
+};
+
+// material filter
+document.getElementById("matToggle").querySelectorAll("button").forEach(b => {
+  b.onclick = () => {
+    state.material = b.dataset.mat;
+    document.getElementById("matToggle").querySelectorAll("button").forEach(x => x.classList.toggle("active", x === b));
+    render();
+  };
+});
+
+// theme
+document.getElementById("themeToggle").querySelectorAll("button").forEach(b => {
+  b.onclick = () => {
+    document.documentElement.setAttribute("data-theme", b.dataset.theme);
+    document.getElementById("themeToggle").querySelectorAll("button").forEach(x => x.classList.toggle("active", x === b));
+    setTimeout(render, 50); // re-read CSS vars after theme swap
+  };
+});
+
+// add bike
+document.getElementById("addBtn").onclick = () => {
+  const name = document.getElementById("inName").value.trim();
+  const year = parseInt(document.getElementById("inYear").value, 10);
+  let price = parseFloat(document.getElementById("inPrice").value);
+  let weight = parseFloat(document.getElementById("inWeight").value);
+  const msg = document.getElementById("addMsg");
+
+  if (!name || !isFinite(price) || !isFinite(weight) || price <= 0 || weight <= 0) {
+    msg.textContent = "Enter a model name plus a positive price and weight.";
+    return;
+  }
+  // convert entered values (in current display units) back to base USD / lbs
+  if (state.currency === "CHF") price = price / CHF_PER_USD;
+  if (state.unit === "kg") weight = weight * LBS_PER_KG;
+
+  const mat = document.getElementById("inMat").value;
+  DATA[state.category].push({ name, year: isFinite(year) ? year : new Date().getFullYear(), price, lbs: weight, mat, user: true });
+  msg.textContent = "";
+  document.getElementById("inName").value = "";
+  document.getElementById("inYear").value = "";
+  document.getElementById("inPrice").value = "";
+  document.getElementById("inWeight").value = "";
+  renderChips(); render();
+};
+
+function renderChips() {
+  const wrap = document.getElementById("userChips");
+  wrap.innerHTML = "";
+  DATA[state.category].forEach((b, i) => {
+    if (!b.user) return;
+    const chip = document.createElement("span");
+    chip.textContent = b.name + " ('" + String(b.year).slice(-2) + ")";
+    const x = document.createElement("button");
+    x.textContent = "\u00D7";
+    x.title = "Remove";
+    x.onclick = () => { DATA[state.category].splice(i, 1); renderChips(); render(); };
+    chip.appendChild(x);
+    wrap.appendChild(chip);
+  });
+}
+
+updateFxNote();
+render();
+loadFxRate();   // async: re-renders with the live/cached rate once resolved
+</script>
 </body>
 </html>
