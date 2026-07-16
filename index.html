@@ -539,6 +539,51 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════
+     DRAG-TO-REORDER (per-visitor, saved locally in their browser)
+  ═══════════════════════════════════════════════════════════════ */
+  .tool-card {
+    cursor: grab;
+    transition: background-color 0.2s, transform 0.18s ease, box-shadow 0.18s ease;
+    will-change: transform;
+  }
+
+  /* Desktop native drag: source card lifts in place while dragging */
+  .tool-card.dragging {
+    cursor: grabbing;
+    opacity: 0.5;
+    transform: scale(1.04);
+    box-shadow: 0 14px 28px rgba(0,0,0,0.28), 0 4px 10px rgba(0,0,0,0.18);
+    z-index: 5;
+  }
+
+  /* Touch drag: card is repositioned via JS transform to follow the finger,
+     so this class layers the "picked up" look on top of that transform */
+  .tool-card.touch-dragging {
+    cursor: grabbing;
+    box-shadow: 0 18px 34px rgba(0,0,0,0.32), 0 6px 14px rgba(0,0,0,0.2);
+    z-index: 10;
+    position: relative;
+    pointer-events: none; /* let elementFromPoint see cards underneath */
+  }
+
+  .tool-card.drag-over {
+    background: var(--bg-rule);
+    box-shadow: inset 0 0 0 2px var(--accent);
+  }
+
+  .grid-reset-row {
+    display: flex; justify-content: flex-end; margin-top: 0.75rem;
+  }
+  .grid-reset-btn {
+    font-family: var(--ff-mono); font-size: 0.62rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text-muted);
+    background: none; border: none; cursor: pointer; padding: 0.25rem 0;
+    opacity: 0; pointer-events: none; transition: color 0.2s, opacity 0.2s;
+  }
+  .grid-reset-btn.visible { opacity: 1; pointer-events: auto; }
+  .grid-reset-btn:hover { color: var(--accent); }
+
+  /* ═══════════════════════════════════════════════════════════════
      ABOUT
   ═══════════════════════════════════════════════════════════════ */
   .about-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 5rem; align-items: start; }
@@ -899,10 +944,10 @@
     <span class="section-label">Interactive tools</span>
     <h2 class="section-title">Built to understand MTB, not just ride it.</h2>
   </div>
-  <div class="tools-grid">
+  <div class="tools-grid" id="tools-grid">
 
-    <div class="tool-card">
-      <a href="/wheel-lab/" class="card-hit" aria-label="Open Wheel Strength Lab"></a>
+    <div class="tool-card" data-tool-id="/wheel-lab/">
+      <a href="/wheel-lab/" class="card-hit" draggable="false" aria-label="Open Wheel Strength Lab"></a>
       <div class="tool-tag">Wheel mechanics</div>
       <div class="tool-name">Wheel Strength Lab</div>
       <p class="tool-desc">148mm Boost vs. 157mm Super Boost hub comparison using Ford's Mode Matrix — across Compare, Simulation, and Deep Dive tabs.</p>
@@ -913,8 +958,8 @@
       </button>
     </div>
 
-    <div class="tool-card">
-      <a href="/atlas/" class="card-hit" aria-label="Open MTB Patent Atlas"></a>
+    <div class="tool-card" data-tool-id="/atlas/">
+      <a href="/atlas/" class="card-hit" draggable="false" aria-label="Open MTB Patent Atlas"></a>
       <div class="tool-tag">IP research</div>
       <div class="tool-name">MTB Patent Atlas</div>
       <p class="tool-desc">Mountain bike intellectual property from 1890 to 2026, across eight categories with 200+ entries and confidence-tier labeling.</p>
@@ -925,8 +970,8 @@
       </button>
     </div>
 
-    <div class="tool-card">
-      <a href="/roi/" class="card-hit" aria-label="Open Trail Investment ROI Calculator"></a>
+    <div class="tool-card" data-tool-id="/roi/">
+      <a href="/roi/" class="card-hit" draggable="false" aria-label="Open Trail Investment ROI Calculator"></a>
       <div class="tool-tag">Trail economics</div>
       <div class="tool-name">Trail Investment ROI Calculator</div>
       <p class="tool-desc">Economic impact modeling for trail projects, synthesized from 13 U.S. investment studies with international currency toggle.</p>
@@ -937,8 +982,8 @@
       </button>
     </div>
 
-    <div class="tool-card">
-      <a href="/suspension-lab/" class="card-hit" aria-label="Open Interactive Suspension Dynamics Laboratory"></a>
+    <div class="tool-card" data-tool-id="/suspension-lab/">
+      <a href="/suspension-lab/" class="card-hit" draggable="false" aria-label="Open Interactive Suspension Dynamics Laboratory"></a>
       <div class="tool-tag">Suspension physics</div>
       <div class="tool-name">Interactive Suspension Dynamics Laboratory</div>
       <p class="tool-desc">HSC/LSC damping controls, terrain-specific inputs, and an anatomically correct fork schematic for visualizing compression behavior.</p>
@@ -949,8 +994,8 @@
       </button>
     </div>
 
-    <div class="tool-card">
-      <a href="/parks-us/" class="card-hit" aria-label="Open US Lift-Served Bike Parks"></a>
+    <div class="tool-card" data-tool-id="/parks-us/">
+      <a href="/parks-us/" class="card-hit" draggable="false" aria-label="Open US Lift-Served Bike Parks"></a>
       <div class="tool-tag">Destinations</div>
       <div class="tool-name">US Lift-Served Bike Parks</div>
       <p class="tool-desc">85+ parks across 29 states, with Loam Pass badge system and mobile-first accordion design for trail-side reference.</p>
@@ -961,8 +1006,8 @@
       </button>
     </div>
 
-    <div class="tool-card">
-      <a href="/parks-ca/" class="card-hit" aria-label="Open Canadian Bike Parks"></a>
+    <div class="tool-card" data-tool-id="/parks-ca/">
+      <a href="/parks-ca/" class="card-hit" draggable="false" aria-label="Open Canadian Bike Parks"></a>
       <div class="tool-tag">Destinations</div>
       <div class="tool-name">Canadian Bike Parks</div>
       <p class="tool-desc">27 parks, bilingual EN/FR, Leaflet map, Gravity Logic and Kodiak Trail Works badge system. Fully self-contained at ~268 KB.</p>
@@ -973,8 +1018,8 @@
       </button>
     </div>
 
-    <div class="tool-card">
-      <a href="/weagle/" class="card-hit" aria-label="Open Dave Weagle Patent Widget"></a>
+    <div class="tool-card" data-tool-id="/weagle/">
+      <a href="/weagle/" class="card-hit" draggable="false" aria-label="Open Dave Weagle Patent Widget"></a>
       <div class="tool-tag">IP research</div>
       <div class="tool-name">Dave Weagle Patent Widget</div>
       <p class="tool-desc">35 suspension patents with live expiration countdowns, three brand-themed color schemes, and Pinkbike iframe deployment.</p>
@@ -985,8 +1030,8 @@
       </button>
     </div>
 
-    <div class="tool-card">
-      <a href="/geometry/" class="card-hit" aria-label="Open MTB Steering Geometry"></a>
+    <div class="tool-card" data-tool-id="/geometry/">
+      <a href="/geometry/" class="card-hit" draggable="false" aria-label="Open MTB Steering Geometry"></a>
       <div class="tool-tag">Geometry</div>
       <div class="tool-name">MTB Steering Geometry</div>
       <p class="tool-desc">Six-axis radar chart with Devinci Troy 2025 presets, corrected Whipple reference wheelbase, and bar sweep RAD correction.</p>
@@ -997,8 +1042,8 @@
       </button>
     </div>
 
-    <div class="tool-card">
-      <a href="/pump-track/" class="card-hit" aria-label="Open Pump Track &amp; Skatepark Calculator"></a>
+    <div class="tool-card" data-tool-id="/pump-track/">
+      <a href="/pump-track/" class="card-hit" draggable="false" aria-label="Open Pump Track &amp; Skatepark Calculator"></a>
       <div class="tool-tag">Trail economics</div>
       <div class="tool-name">Pump Track &amp; Skatepark Calculator</div>
       <p class="tool-desc">Two-pillar economic model anchored to Kemp 2025, built for civic advocacy presentations to parks departments and councils.</p>
@@ -1009,8 +1054,8 @@
       </button>
     </div>
 
-    <div class="tool-card">
-      <a href="/tire-sim/" class="card-hit" aria-label="Open MTB Tire Tread Simulator"></a>
+    <div class="tool-card" data-tool-id="/tire-sim/">
+      <a href="/tire-sim/" class="card-hit" draggable="false" aria-label="Open MTB Tire Tread Simulator"></a>
       <div class="tool-tag">Tire mechanics</div>
       <div class="tool-name">MTB Tire Tread Simulator</div>
       <p class="tool-desc">Pacejka/FastBike tire model for comparing tread patterns across terrain types and load conditions.</p>
@@ -1021,8 +1066,8 @@
       </button>
     </div>
 
-    <div class="tool-card">
-      <a href="/sports-popularity/" class="card-hit" aria-label="Open Sports Popularity Over Time"></a>
+    <div class="tool-card" data-tool-id="/sports-popularity/">
+      <a href="/sports-popularity/" class="card-hit" draggable="false" aria-label="Open Sports Popularity Over Time"></a>
       <div class="tool-tag">Data visualization</div>
       <div class="tool-name">Sports Popularity Over Time</div>
       <p class="tool-desc">Google Trends-style and estimated participant data across action sports, cycling, and racquet sports — charting how participation has shifted over time.</p>
@@ -1033,8 +1078,8 @@
       </button>
     </div>
 
-    <div class="tool-card">
-      <a href="/wheel-comparison-widget2/" class="card-hit" aria-label="Open Wheel Strength Comparison Tool"></a>
+    <div class="tool-card" data-tool-id="/wheel-comparison-widget2/">
+      <a href="/wheel-comparison-widget2/" class="card-hit" draggable="false" aria-label="Open Wheel Strength Comparison Tool"></a>
       <div class="tool-tag">Wheel mechanics</div>
       <div class="tool-name">Wheel Strength Comparison Tool</div>
       <p class="tool-desc">Compares 148×12 Boost to 157×12 Super Boost hubs using Matt Ford's academic research on spoke bracing angles and wheel stiffness.</p>
@@ -1045,8 +1090,8 @@
       </button>
     </div>
 
-    <div class="tool-card">
-      <a href="/MTB-inflation/" class="card-hit" aria-label="Open MTB Inflation Dashboard"></a>
+    <div class="tool-card" data-tool-id="/MTB-inflation/">
+      <a href="/MTB-inflation/" class="card-hit" draggable="false" aria-label="Open MTB Inflation Dashboard"></a>
       <div class="tool-tag">Economics</div>
       <div class="tool-name">MTB Inflation Dashboard</div>
       <p class="tool-desc">Tracks mountain bike price inflation against CPI and other economic metrics, using FRED data across multiple component and complete-bike categories.</p>
@@ -1057,8 +1102,8 @@
       </button>
     </div>
 
-    <div class="tool-card">
-      <a href="/headwaters-ledger/" class="card-hit" aria-label="Open The Headwaters Ledger"></a>
+    <div class="tool-card" data-tool-id="/headwaters-ledger/">
+      <a href="/headwaters-ledger/" class="card-hit" draggable="false" aria-label="Open The Headwaters Ledger"></a>
       <div class="tool-tag">Water &amp; land</div>
       <div class="tool-name">The Headwaters Ledger</div>
       <p class="tool-desc">An interactive map of Rocky Mountain water rights — tracing where the water goes, which states claim it, and the century-old interstate compacts that decide who gets what.</p>
@@ -1069,8 +1114,8 @@
       </button>
     </div>
 
-    <div class="tool-card">
-      <a href="/singletrack-density/" class="card-hit" aria-label="Open Singletrack Density"></a>
+    <div class="tool-card" data-tool-id="/singletrack-density/">
+      <a href="/singletrack-density/" class="card-hit" draggable="false" aria-label="Open Singletrack Density"></a>
       <div class="tool-tag">Trail data</div>
       <div class="tool-name">Singletrack Density</div>
       <p class="tool-desc">Compares trail miles per capita across 26 destinations — from Moab to Squamish.</p>
@@ -1081,8 +1126,8 @@
       </button>
     </div>
 
-    <div class="tool-card">
-      <a href="/trail-partnership-atlas/" class="card-hit" aria-label="Open Trail Partnership Atlas"></a>
+    <div class="tool-card" data-tool-id="/trail-partnership-atlas/">
+      <a href="/trail-partnership-atlas/" class="card-hit" draggable="false" aria-label="Open Trail Partnership Atlas"></a>
       <div class="tool-tag">Trail advocacy</div>
       <div class="tool-name">Trail Partnership Atlas</div>
       <p class="tool-desc">Compares Front Range Colorado towns on nonprofit trail-advocacy partnerships — COMBA, Medicine Wheel, Boulder MBA, and others — making the case that partnership is the regional norm, not the exception.</p>
@@ -1093,7 +1138,24 @@
       </button>
     </div>
 
+    <div class="tool-card" data-tool-id="/maintenance/">
+      <a href="/maintenance/" class="card-hit" draggable="false" aria-label="Open MTB Annual Maintenance Cost Calculator"></a>
+      <div class="tool-tag">Cost planning</div>
+      <div class="tool-name">MTB Annual Maintenance Cost Calculator</div>
+      <p class="tool-desc">Annualized cost dials across suspension, drivetrain, and consumables, plus a Ride Worksheet that suggests part replacement based on how you actually ride.</p>
+      <button class="share-btn" type="button" data-path="/maintenance/" data-title="MTB Annual Maintenance Cost Calculator" aria-label="Share MTB Annual Maintenance Cost Calculator">
+        <span class="copied-label">Link copied</span>
+        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
+        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
+      </button>
+    </div>
+
   </div>
+
+  <div class="grid-reset-row">
+    <button type="button" id="grid-reset-btn" class="grid-reset-btn">Reset tool order</button>
+  </div>
+
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════════
@@ -1385,6 +1447,209 @@
       setInterval(cycleTerm, 3600);
     }
   }
+}());
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     DRAG-TO-REORDER TOOL GRID
+     Desktop: native HTML5 drag/drop.  Touch: pointer-based drag.
+     A card dropped onto another SWAPS positions with it.
+     Order is saved per-browser in localStorage — this only changes
+     what THIS visitor sees; it doesn't change the order for anyone else.
+═══════════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  var STORAGE_KEY = 'pmr-tools-order';
+  var grid = document.getElementById('tools-grid');
+  var resetBtn = document.getElementById('grid-reset-btn');
+  if (!grid) return;
+
+  var DEFAULT_ORDER = Array.prototype.map.call(
+    grid.querySelectorAll('.tool-card'),
+    function (c) { return c.getAttribute('data-tool-id'); }
+  );
+
+  function getCards() {
+    return Array.prototype.slice.call(grid.querySelectorAll('.tool-card'));
+  }
+
+  function applyOrder(order) {
+    var cards = getCards();
+    var byId = {};
+    cards.forEach(function (c) { byId[c.getAttribute('data-tool-id')] = c; });
+    order.forEach(function (id) {
+      if (byId[id]) grid.appendChild(byId[id]);
+    });
+    updateResetVisibility();
+  }
+
+  function saveOrder() {
+    var order = getCards().map(function (c) { return c.getAttribute('data-tool-id'); });
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(order)); } catch (e) {}
+    updateResetVisibility();
+  }
+
+  function loadOrder() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      var order = JSON.parse(raw);
+      if (!Array.isArray(order)) return null;
+      // Guard against a stale saved order (cards added/removed since last visit)
+      var currentIds = DEFAULT_ORDER.slice().sort();
+      var savedIds = order.slice().sort();
+      if (JSON.stringify(currentIds) !== JSON.stringify(savedIds)) return null;
+      return order;
+    } catch (e) { return null; }
+  }
+
+  function isCustomOrder() {
+    var saved = loadOrder();
+    return !!saved;
+  }
+
+  function updateResetVisibility() {
+    if (!resetBtn) return;
+    resetBtn.classList.toggle('visible', isCustomOrder());
+  }
+
+  // Swap two cards' DOM positions
+  function swapCards(a, b) {
+    if (a === b) return;
+    var aNext = a.nextSibling;
+    var bNext = b.nextSibling;
+    if (aNext === b) {
+      grid.insertBefore(b, a);
+    } else if (bNext === a) {
+      grid.insertBefore(a, b);
+    } else {
+      grid.insertBefore(b, aNext);
+      grid.insertBefore(a, bNext);
+    }
+  }
+
+  // Restore saved order on load
+  var saved = loadOrder();
+  if (saved) applyOrder(saved);
+  updateResetVisibility();
+
+  if (resetBtn) {
+    resetBtn.addEventListener('click', function () {
+      try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+      applyOrder(DEFAULT_ORDER);
+    });
+  }
+
+  var dragSrc = null;
+
+  // ---------- Desktop: native HTML5 drag & drop ----------
+  getCards().forEach(setupCard);
+
+  function setupCard(card) {
+    card.setAttribute('draggable', 'true');
+
+    card.addEventListener('dragstart', function (e) {
+      dragSrc = card;
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      try { e.dataTransfer.setData('text/plain', card.getAttribute('data-tool-id')); } catch (err) {}
+    });
+
+    card.addEventListener('dragend', function () {
+      card.classList.remove('dragging');
+      getCards().forEach(function (c) { c.classList.remove('drag-over'); });
+      dragSrc = null;
+    });
+
+    card.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (dragSrc && dragSrc !== card) card.classList.add('drag-over');
+    });
+
+    card.addEventListener('dragleave', function () {
+      card.classList.remove('drag-over');
+    });
+
+    card.addEventListener('drop', function (e) {
+      e.preventDefault();
+      card.classList.remove('drag-over');
+      if (dragSrc && dragSrc !== card) {
+        swapCards(dragSrc, card);
+        saveOrder();
+      }
+    });
+  }
+
+  // ---------- Touch: pointer-based drag (mobile/tablet) ----------
+  // Native HTML5 drag-and-drop isn't supported on touchscreens, so we
+  // implement a touch-drag that visually follows the finger (translate +
+  // scale + shadow), with a movement threshold so normal taps still open
+  // the tool and the page can still scroll until a drag is confirmed.
+  var touchState = null; // { card, startX, startY, dragging }
+  var THRESHOLD = 10; // px of movement before a touch counts as a drag
+
+  getCards().forEach(function (card) {
+    card.addEventListener('touchstart', function (e) {
+      if (e.touches.length !== 1) return;
+      var t = e.touches[0];
+      touchState = { card: card, startX: t.clientX, startY: t.clientY, dragging: false };
+    }, { passive: true });
+
+    card.addEventListener('touchmove', function (e) {
+      if (!touchState || touchState.card !== card) return;
+      var t = e.touches[0];
+      var dx = t.clientX - touchState.startX;
+      var dy = t.clientY - touchState.startY;
+
+      if (!touchState.dragging) {
+        if (Math.abs(dx) < THRESHOLD && Math.abs(dy) < THRESHOLD) return;
+        // Movement exceeded threshold: begin drag, prevent page scroll from here on
+        touchState.dragging = true;
+        card.classList.add('touch-dragging');
+      }
+
+      e.preventDefault(); // stop scrolling while actively dragging a card
+
+      // Make the card visually follow the finger: lift + scale + track offset
+      card.style.transform = 'translate(' + dx + 'px, ' + dy + 'px) scale(1.06)';
+
+      // Temporarily hide the dragged card from hit-testing so elementFromPoint
+      // can see the card underneath the finger
+      var target = document.elementFromPoint(t.clientX, t.clientY);
+      var targetCard = target && target.closest ? target.closest('.tool-card') : null;
+
+      getCards().forEach(function (c) { if (c !== card) c.classList.remove('drag-over'); });
+      if (targetCard && targetCard !== card) targetCard.classList.add('drag-over');
+    }, { passive: false });
+
+    card.addEventListener('touchend', function (e) {
+      if (!touchState || touchState.card !== card) { touchState = null; return; }
+
+      if (touchState.dragging) {
+        var t = e.changedTouches[0];
+        card.style.transform = '';
+        card.classList.remove('touch-dragging');
+        var target = document.elementFromPoint(t.clientX, t.clientY);
+        var targetCard = target && target.closest ? target.closest('.tool-card') : null;
+        getCards().forEach(function (c) { c.classList.remove('drag-over'); });
+        if (targetCard && targetCard !== card) {
+          swapCards(card, targetCard);
+          saveOrder();
+        }
+      }
+      touchState = null;
+    });
+
+    card.addEventListener('touchcancel', function () {
+      if (touchState && touchState.card === card) {
+        card.style.transform = '';
+        card.classList.remove('touch-dragging');
+        getCards().forEach(function (c) { c.classList.remove('drag-over'); });
+      }
+      touchState = null;
+    });
+  });
 }());
 </script>
 
