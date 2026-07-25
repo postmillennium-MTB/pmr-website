@@ -196,6 +196,31 @@
     [data-theme="2049"] body::before { animation: none !important; }
   }
 
+  /* Hero title, 2049 only — matches the mockup: system Helvetica Neue,
+     ultra-light weight, uppercase, tight tracking, second line hollow
+     with an amber outline instead of a fill. Line 1 is sized up quite
+     a bit from its normal small "eyebrow-over-title" scale, because a
+     weight-200 face at the site's normal small size reads as barely
+     visible hairlines — this face needs real size to hold together. */
+  [data-theme="2049"] .hero-title .line1 {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-weight: 200;
+    font-size: clamp(2rem, 5.4vw, 4.6rem);
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  [data-theme="2049"] .hero-title .line2 {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-style: normal;
+    font-weight: 200;
+    font-size: clamp(2.4rem, 6.6vw, 5.8rem);
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--accent);
+  }
+
   /* ═══════════════════════════════════════════════════════════════
      SVG PAINTING  —  all fills/strokes via CSS so theme toggle works
   ═══════════════════════════════════════════════════════════════ */
