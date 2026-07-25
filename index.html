@@ -733,6 +733,23 @@
     #preview { padding-top: 1.5rem; }
     .section-header { flex-direction: column; gap: 0.4rem; }
     footer { flex-direction: column; gap: 0.625rem; text-align: center; }
+
+    /* Square, 2-up tool tiles on mobile (tag + name only — description
+       is dropped here since a real square has no room for it once names
+       get long; full description is still there once a visitor taps in) */
+    .tools-grid { grid-template-columns: 1fr 1fr; }
+    .tool-card {
+      aspect-ratio: 1 / 1;
+      padding: 1rem 0.85rem;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center;
+    }
+    .tool-tag { font-size: 0.56rem; letter-spacing: 0.12em; margin-bottom: 0.5rem; }
+    .tool-name { font-size: 0.92rem; line-height: 1.25; }
+    .tool-desc { display: none; }
+    .share-btn { top: 0.6rem; right: 0.6rem; width: 26px; height: 26px; }
+    .share-btn svg { width: 12px; height: 12px; }
+    .copied-label { font-size: 0.52rem; padding: 3px 6px; right: calc(100% + 6px); }
   }
 
   /* ═══════════════════════════════════════════════════════════════
