@@ -461,7 +461,10 @@
   #preview .section-header { padding-top: 0.75rem; }
 
   .preview-strip { background: var(--bg-card); border: 1px solid var(--bg-rule); }
-  .preview-panels { position: relative; min-height: 340px; }
+  /* min-height has to clear the tallest panel, since panels are
+     absolutely stacked. The 5:4 frame in a ~500px column is ~400px
+     tall, + 2.5rem padding top and bottom. */
+  .preview-panels { position: relative; min-height: 495px; }
   .preview-panel {
     position: absolute; inset: 0;
     display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: center;
@@ -492,59 +495,53 @@
 
   .preview-visual { position: relative; }
 
-  .wheel-svg { width: 100%; height: auto; display: block; }
-  .wheel-rim { stroke: var(--text-muted); stroke-width: 2; transition: stroke 0.5s ease; }
-  .wheel-rim-pt { fill: var(--text-muted); transition: fill 0.5s ease; }
-  .wheel-spoke { stroke: var(--blue); stroke-width: 1.5; transition: stroke 0.5s ease; }
-  .wheel-flange { fill: var(--accent); transition: fill 0.5s ease; }
-  .wheel-state { opacity: 0; }
-  .wheel-boost { animation: previewCrossfadeA 5s ease-in-out infinite; }
-  .wheel-superboost { animation: previewCrossfadeB 5s ease-in-out infinite; }
-  .wheel-label {
-    position: relative; text-align: center; margin-top: 0.4rem;
-    font-family: var(--ff-mono); font-size: 0.72rem; letter-spacing: 0.06em; color: var(--text-muted);
-    height: 1em; transition: color 0.5s ease;
+  /* ── Screenshot / video frame ──────────────────────────────────
+     Every panel visual sits in this same frame, so panels stay a
+     consistent size as the strip rotates. The frame is a fixed 4:3
+     box and the image is object-fit: contain, which means nothing
+     ever gets cropped — screenshots with different aspect ratios
+     just letterbox slightly against the page background.
+  ─────────────────────────────────────────────────────────────── */
+  .shot-frame {
+    position: relative; overflow: hidden;
+    /* 5:4 sits closest to the average shape of the three screenshots,
+       so letterboxing stays minimal on all of them. */
+    aspect-ratio: 5 / 4;
+    background: var(--bg);
+    border: 1px solid var(--bg-rule);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    transition: background-color 0.5s ease, border-color 0.5s ease;
   }
-  .wheel-label .wheel-state { position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; }
+  .shot-frame img,
+  .shot-frame .shot-video {
+    display: block; width: 100%; height: 100%;
+    object-fit: contain; object-position: center;
+  }
 
-  @keyframes previewCrossfadeA { 0%, 38% { opacity: 1; } 50%, 88% { opacity: 0; } 100% { opacity: 1; } }
-  @keyframes previewCrossfadeB { 0%, 38% { opacity: 0; } 50%, 88% { opacity: 1; } 100% { opacity: 0; } }
+  /* Entrance: soft fade + rise, replayed each time the panel shows */
+  .shot-rise { opacity: 0; transform: translateY(10px) scale(0.985); }
+  .preview-panel.active .shot-rise { animation: shotRise 0.7s ease forwards 0.1s; }
+  @keyframes shotRise { to { opacity: 1; transform: translateY(0) scale(1); } }
 
-  .chart-visual { position: relative; aspect-ratio: 240 / 150; }
-  .chart-variant { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 0.4s ease; display: block; }
-  .chart-variant.active { opacity: 1; }
-  .chart-axis { stroke: var(--bg-rule); stroke-width: 1.5; transition: stroke 0.5s ease; }
-  .chart-line { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .chart-line-a { stroke: var(--accent); transition: stroke 0.5s ease; }
-  .chart-line-b { stroke: var(--blue); transition: stroke 0.5s ease; }
-  .chart-line-label { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.02em; }
-  .chart-label-a { fill: var(--accent); transition: fill 0.5s ease; }
-  .chart-label-b { fill: var(--blue); transition: fill 0.5s ease; }
-  .chart-dot { fill: var(--accent); animation: chartTravel 4.5s linear infinite; transition: fill 0.5s ease; }
-  @keyframes chartTravel { 0% { offset-distance: 0%; } 100% { offset-distance: 100%; } }
+  /* Entrance: left-to-right wipe, for chart-style panels where the
+     visual should read as "populating" rather than simply appearing */
+  .shot-wipe::after {
+    content: ''; position: absolute; inset: 0; z-index: 2;
+    background: var(--bg-card); transform-origin: right center;
+    transition: background-color 0.5s ease;
+  }
+  .preview-panel.active .shot-wipe::after {
+    animation: shotWipe 1.4s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  }
+  @keyframes shotWipe { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 
-  .patent-search {
-    display: flex; align-items: center; gap: 0.5rem;
-    background: var(--bg); border: 1px solid var(--bg-rule); padding: 0.6rem 0.85rem;
-    font-family: var(--ff-mono); font-size: 0.8rem; color: var(--text);
-    transition: background-color 0.5s ease, border-color 0.5s ease, color 0.5s ease;
+  /* Reduced-motion: show every visual immediately, no entrance */
+  @media (prefers-reduced-motion: reduce) {
+    .shot-rise { opacity: 1; transform: none; }
+    .preview-panel.active .shot-rise,
+    .preview-panel.active .shot-wipe::after { animation: none; }
+    .shot-wipe::after { display: none; }
   }
-  .patent-ico { width: 15px; height: 15px; color: var(--text-muted); flex-shrink: 0; }
-  .patent-typed { display: inline-block; overflow: hidden; white-space: nowrap; width: 0; }
-  .patent-cursor { width: 1px; height: 1em; background: var(--text); animation: patentBlink 0.8s step-end infinite; }
-  .patent-result {
-    margin-top: 0.75rem; padding: 0.85rem 1rem;
-    background: var(--bg-card); border: 1px solid var(--bg-rule); border-left: 2px solid var(--accent);
-    border-radius: 0; opacity: 0; transform: translateY(4px);
-    transition: opacity 0.4s ease, transform 0.4s ease, background-color 0.5s ease, border-color 0.5s ease;
-  }
-  .patent-result.shown { opacity: 1; transform: translateY(0); }
-  .patent-result-tag {
-    font-family: var(--ff-mono); font-size: 0.62rem; letter-spacing: 0.14em;
-    color: var(--blue); text-transform: uppercase; margin-bottom: 0.3rem; transition: color 0.5s ease;
-  }
-  .patent-result-name { font-family: var(--ff-serif); font-style: italic; font-size: 0.95rem; color: var(--text); transition: color 0.5s ease; }
-  @keyframes patentBlink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
 
   .preview-dots { display: flex; justify-content: center; gap: 0.6rem; padding: 1.25rem 0; }
   .preview-dot {
@@ -555,8 +552,8 @@
   .preview-dot.active { background: var(--accent); transform: scale(1.25); }
 
   @media (max-width: 720px) {
-    .preview-panel { grid-template-columns: 1fr; }
-    .preview-panels { min-height: 580px; }
+    .preview-panel { grid-template-columns: 1fr; padding: 1.75rem 1.5rem; gap: 1.75rem; }
+    .preview-panels { min-height: 620px; }
   }
 
   /* ═══════════════════════════════════════════════════════════════
@@ -938,6 +935,10 @@
   <div class="preview-strip">
     <div class="preview-panels">
 
+      <!-- ─────────────────────────────────────────────────────────
+           PANEL 0 — Wheel Strength Lab
+           To add a subtitle back, un-comment the .preview-desc line.
+      ────────────────────────────────────────────────────────── -->
       <a href="/wheel-lab/" class="preview-panel active" data-panel="0" aria-label="Open Wheel Strength Lab">
         <div class="preview-copy">
           <div class="tool-tag">Wheel mechanics</div>
@@ -946,64 +947,47 @@
             <span class="preview-headline wheel-h wheel-h2">148 vs. 157 — what a difference 9 millimeters makes.</span>
             <span class="preview-headline wheel-h wheel-h3">148 vs. 157 — welcome to the no-broscience zone.</span>
           </div>
-          <p class="preview-desc">Boost hubs dish the wheel. Super Boost straightens it out. See the geometry, then build your own comparison.</p>
+          <!-- SUBTITLE PLACEHOLDER — un-comment and edit to bring one back:
+          <p class="preview-desc">Your subtitle text here.</p>
+          -->
           <span class="preview-cta">Open Wheel Strength Lab
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </span>
         </div>
-        <div class="preview-visual wheel-visual">
-          <svg viewBox="0 0 240 150" class="wheel-svg" aria-hidden="true">
-            <line x1="40" y1="26" x2="200" y2="26" class="wheel-rim"/>
-            <circle cx="120" cy="26" r="3" class="wheel-rim-pt"/>
-            <g class="wheel-state wheel-boost">
-              <line x1="120" y1="26" x2="90" y2="126" class="wheel-spoke"/>
-              <line x1="120" y1="26" x2="145" y2="126" class="wheel-spoke"/>
-              <circle cx="90" cy="126" r="5" class="wheel-flange"/>
-              <circle cx="145" cy="126" r="5" class="wheel-flange"/>
-            </g>
-            <g class="wheel-state wheel-superboost">
-              <line x1="120" y1="26" x2="76" y2="126" class="wheel-spoke"/>
-              <line x1="120" y1="26" x2="164" y2="126" class="wheel-spoke"/>
-              <circle cx="76" cy="126" r="5" class="wheel-flange"/>
-              <circle cx="164" cy="126" r="5" class="wheel-flange"/>
-            </g>
-          </svg>
-          <div class="wheel-label">
-            <span class="wheel-state wheel-boost">148</span>
-            <span class="wheel-state wheel-superboost">150/157</span>
+        <div class="preview-visual">
+          <div class="shot-frame shot-rise">
+            <img src="/images/preview-wheel-lab.png" alt="Wheel Strength Lab comparing a 148mm Boost and 157mm Super Boost wheel build" width="1000" height="788" loading="lazy" decoding="async">
           </div>
         </div>
       </a>
 
+      <!-- ─────────────────────────────────────────────────────────
+           PANEL 1 — Sports Popularity Over Time
+           Uses .shot-wipe: a left-to-right reveal that replays each
+           time the panel comes around, standing in for the chart
+           drawing itself in.
+      ────────────────────────────────────────────────────────── -->
       <a href="/sports-popularity/" class="preview-panel" data-panel="1" aria-label="Open Sports Popularity Over Time">
         <div class="preview-copy">
           <div class="tool-tag">Data visualization</div>
           <div class="preview-headline">Which sports are actually growing?</div>
-          <p class="preview-desc">Trends across action sports, cycling, and racquet sports — plotted, not guessed.</p>
+          <!-- SUBTITLE PLACEHOLDER — un-comment and edit to bring one back:
+          <p class="preview-desc">Your subtitle text here.</p>
+          -->
           <span class="preview-cta">Open Sports Popularity
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </span>
         </div>
-        <div class="preview-visual chart-visual">
-          <svg viewBox="0 0 240 150" class="chart-variant chart-variant-1 active" aria-hidden="true">
-            <line x1="14" y1="126" x2="226" y2="126" class="chart-axis"/>
-            <polyline points="14,102 68,96 122,86 176,74 226,60" class="chart-line chart-line-b"/>
-            <polyline points="14,116 68,104 122,80 176,46 226,22" class="chart-line chart-line-a"/>
-            <circle r="3.5" class="chart-dot" style="offset-path: path('M14,116 L68,104 L122,80 L176,46 L226,22');"></circle>
-            <text x="222" y="54" class="chart-line-label chart-label-b" text-anchor="end">Mountain biking</text>
-            <text x="222" y="14" class="chart-line-label chart-label-a" text-anchor="end">Pickleball</text>
-          </svg>
-          <svg viewBox="0 0 240 150" class="chart-variant chart-variant-2" aria-hidden="true">
-            <line x1="14" y1="126" x2="226" y2="126" class="chart-axis"/>
-            <polyline points="14,80 68,76 122,72 176,68 226,64" class="chart-line chart-line-b"/>
-            <polyline points="14,112 68,98 122,74 176,48 226,20" class="chart-line chart-line-a"/>
-            <circle r="3.5" class="chart-dot" style="offset-path: path('M14,112 L68,98 L122,74 L176,48 L226,20');"></circle>
-            <text x="222" y="56" class="chart-line-label chart-label-b" text-anchor="end">Cyclocross</text>
-            <text x="222" y="12" class="chart-line-label chart-label-a" text-anchor="end">Gravel cycling</text>
-          </svg>
+        <div class="preview-visual">
+          <div class="shot-frame shot-wipe">
+            <img src="/images/preview-sports-popularity.png" alt="Sports Popularity Over Time line chart with mountain biking, racquetball, and pickleball plotted" width="1000" height="740" loading="lazy" decoding="async">
+          </div>
         </div>
       </a>
 
+      <!-- ─────────────────────────────────────────────────────────
+           PANEL 2 — MTB Patent Atlas
+      ────────────────────────────────────────────────────────── -->
       <a href="/atlas/" class="preview-panel" data-panel="2" aria-label="Open MTB Patent Atlas">
         <div class="preview-copy">
           <div class="tool-tag">IP research</div>
@@ -1013,17 +997,40 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </span>
         </div>
-        <div class="preview-visual patent-visual">
-          <div class="patent-search">
-            <svg class="patent-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <span class="patent-typed" id="patentTyped"></span><span class="patent-cursor"></span>
-          </div>
-          <div class="patent-result" id="patentResult">
-            <div class="patent-result-tag" id="patentResultTag">Suspension · Four-bar linkage</div>
-            <div class="patent-result-name" id="patentResultName">The patent behind Horst Link</div>
+        <div class="preview-visual">
+          <div class="shot-frame shot-rise">
+            <img src="/images/preview-patent-atlas.png" alt="MTB Patent Atlas search results for a Fox Factory damping cartridge patent" width="1000" height="852" loading="lazy" decoding="async">
           </div>
         </div>
       </a>
+
+      <!-- ═════════════════════════════════════════════════════════
+           ADDING PANEL 3, 4, … — copy a block above and edit it.
+           The rotation script counts panels automatically, so the
+           only other change needed is adding a matching dot button
+           down in .preview-dots (with data-target set to the new
+           index: 3, 4, …).
+
+           FOR A VIDEO PANEL, swap the <img> for this — same frame,
+           same sizing, no other changes needed:
+
+           <div class="preview-visual">
+             <div class="shot-frame">
+               <video class="shot-video" width="1000" height="740"
+                      autoplay muted loop playsinline preload="metadata"
+                      poster="/images/preview-NAME-poster.jpg">
+                 <source src="/images/preview-NAME.mp4" type="video/mp4">
+               </video>
+             </div>
+           </div>
+
+           Notes for video: muted + playsinline are required or phones
+           won't autoplay it. Keep clips short and silent — this is a
+           background loop, not something anyone will sit and watch.
+           A poster image is what shows before the file loads, and is
+           what people on reduced-motion settings see instead of the
+           video, so it's worth setting.
+      ══════════════════════════════════════════════════════════ -->
 
     </div>
 
@@ -1476,36 +1483,39 @@
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     PREVIEW STRIP  —  rotation, wheel headline sync, sports variant
-     alternation, and the patent search/result cycle
+     PREVIEW STRIP  —  panel rotation, wheel headline rotation, and
+     restarting any video panel when it comes into view.
+     Panel count is read from the DOM: to add a 4th/5th panel, add
+     the markup and a matching dot — no change needed in here.
 ═══════════════════════════════════════════════════════════════ -->
 <script>
 (function () {
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // Panel count is read from the DOM, so adding a 4th/5th panel needs
+  // no change here — just add the panel markup and a matching dot.
   var panels = document.querySelectorAll('.preview-panel');
   var dots = document.querySelectorAll('.preview-dot');
   var wheelHeadlines = document.querySelectorAll('.wheel-h');
-  var chartVariants = document.querySelectorAll('.chart-variant');
   var current = 0;
   var timer = null;
   var AUTO_MS = 6000;
   var wheelVisits = 0;
-  var sportsVisits = 0;
 
   function show(i) {
+    // Wheel panel rotates through its three headlines on each visit
     if (i === 0 && i !== current) {
       wheelVisits++;
       var activeHeadline = wheelVisits % 3;
       wheelHeadlines.forEach(function (h, idx) { h.classList.toggle('active', idx === activeHeadline); });
     }
-    if (i === 1 && i !== current) {
-      sportsVisits++;
-      var activeVariant = (sportsVisits % 2 === 1) ? 0 : 1;
-      chartVariants.forEach(function (v, idx) { v.classList.toggle('active', idx === activeVariant); });
-    }
     panels.forEach(function (p, idx) { p.classList.toggle('active', idx === i); });
     dots.forEach(function (d, idx) { d.classList.toggle('active', idx === i); });
+
+    // Restart any video in the newly shown panel from the top
+    var vid = panels[i] ? panels[i].querySelector('.shot-video') : null;
+    if (vid && !reduceMotion) { try { vid.currentTime = 0; vid.play(); } catch (e) {} }
+
     current = i;
   }
   function next() { show((current + 1) % panels.length); }
@@ -1524,65 +1534,6 @@
 
   start();
 
-  var SEARCHES = [
-    { term: 'Horst Link', tag: 'Suspension · Four-bar linkage', name: 'The patent behind Horst Link' },
-    { term: 'Switch Infinity', tag: 'Suspension · Yeti Cycles', name: 'Switch Infinity translating link' },
-    { term: 'OneUp', tag: 'Components · Tool storage', name: 'The steerer-tube EDC system' },
-    { term: 'Weagle', tag: 'Suspension · Dave Weagle', name: 'DW-link and Split Pivot' },
-    { term: 'Canfield', tag: 'Suspension · Canfield Bikes', name: 'Canfield Balance Formula (CBF)' }
-  ];
-  var typedEl = document.getElementById('patentTyped');
-  var resultEl = document.getElementById('patentResult');
-  var resultTagEl = document.getElementById('patentResultTag');
-  var resultNameEl = document.getElementById('patentResultName');
-  var termIdx = 0;
-
-  function typeTerm() {
-    var search = SEARCHES[termIdx];
-    var chars = search.term.length;
-
-    typedEl.style.transitionDuration = '0s';
-    typedEl.style.width = '0ch';
-    void typedEl.offsetWidth;
-
-    typedEl.textContent = search.term;
-    typedEl.style.transitionProperty = 'width';
-    typedEl.style.transitionDuration = (chars * 0.09) + 's';
-    typedEl.style.transitionTimingFunction = 'steps(' + chars + ', end)';
-
-    requestAnimationFrame(function () {
-      typedEl.style.width = chars + 'ch';
-    });
-
-    resultTagEl.textContent = search.tag;
-    resultNameEl.textContent = search.name;
-
-    setTimeout(function () {
-      resultEl.classList.add('shown');
-    }, chars * 90 + 250);
-  }
-
-  function cycleTerm() {
-    resultEl.classList.remove('shown');
-    setTimeout(function () {
-      termIdx = (termIdx + 1) % SEARCHES.length;
-      typeTerm();
-    }, 450);
-  }
-
-  if (typedEl && resultEl) {
-    if (reduceMotion) {
-      var search0 = SEARCHES[0];
-      typedEl.textContent = search0.term;
-      typedEl.style.width = search0.term.length + 'ch';
-      resultTagEl.textContent = search0.tag;
-      resultNameEl.textContent = search0.name;
-      resultEl.classList.add('shown');
-    } else {
-      typeTerm();
-      setInterval(cycleTerm, 3600);
-    }
-  }
 }());
 </script>
 
