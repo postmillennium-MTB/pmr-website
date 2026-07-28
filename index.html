@@ -67,22 +67,23 @@
   .pmr-home svg{width:11px; height:11px; flex:none;}
   .theme-switch .div{width:1px; align-self:stretch; background:var(--line); margin:0 2px;}
 
-  /* Header readability panel - only kicks in when the pattern background is on */
-  body.bg-pattern .header-panel{
+  /* Header readability panel - fixed styling always, regardless of theme or pattern
+     state, so nothing in the header changes size/position when either is toggled. */
+  .header-panel{
     background:#14171d; border-radius:12px; padding:16px 18px 18px; display:inline-block; max-width:100%;
     border:1px solid rgba(255,47,176,.28);
     box-shadow:0 0 0 1px rgba(0,0,0,.4), 0 14px 34px rgba(0,0,0,.45);
   }
-  body.bg-pattern .header-panel .eyebrow{color:#ff8fd4;}
-  body.bg-pattern .header-panel h1{color:#ffffff; text-shadow:0 0 22px rgba(255,47,176,.35);}
-  body.bg-pattern .header-panel .sub{color:#dcdfe6;}
-  body.bg-pattern .theme-switch button{
+  .header-panel .eyebrow{color:#ff8fd4;}
+  .header-panel h1{color:#ffffff; text-shadow:0 0 22px rgba(255,47,176,.35);}
+  .header-panel .sub{color:#dcdfe6;}
+  .theme-switch button{
     color:#ff8fd4; background:rgba(255,47,176,.07); border-color:rgba(255,47,176,.35);
   }
-  body.bg-pattern .theme-switch button.active{
+  .theme-switch button.active{
     color:#fff; background:rgba(255,47,176,.22); border-color:#ff2fb0;
   }
-  body.bg-pattern .theme-switch .div{background:rgba(255,47,176,.28);}
+  .theme-switch .div{background:rgba(255,47,176,.28);}
 
   .quick-look{margin:20px 0 26px; padding:16px 16px 18px; border-radius:14px;
     background:linear-gradient(180deg, var(--panel), var(--panel-2)); border:1px solid var(--line);}
