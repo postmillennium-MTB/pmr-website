@@ -143,6 +143,12 @@
     flex: 1; border-bottom: 2px dotted var(--ink-soft); transform: translateY(-4px);
   }
   .ledger .amt { color: var(--rubric); font-size: 1rem; }
+  /* The Carriage row tucks up under the Price row. This was
+     style="margin-top:-0.6rem" pasted onto every second ledger line;
+     as a rule it now applies to any additional row automatically. */
+  .ledger + .ledger { margin-top: -0.6rem; }
+  /* Dimensions should never wrap mid-measurement. */
+  .plate-size { white-space: nowrap; }
   .buy-btn {
     display: inline-block; font-family: 'IM Fell English SC', serif;
     font-size: 0.86rem; letter-spacing: 0.26em; text-decoration: none;
@@ -211,96 +217,178 @@
     <p>Payment is taken securely by Stripe; no account is required, and every order ships in a stiffened envelope from Castle Rock.</p>
   </section>
 
-  <!-- ═══ The plates ═══
-       Remaining TODO: the Complete Folio bundle still needs its own artwork
-       (currently placeholder SVG) and a Payment Link once you're ready to sell it —
-       see the comment near that plate below.
-       3. Update the name, description, and prices to match Stripe exactly.        ═══ -->
-  <section class="plates">
+  <!-- The catalogue is filled in by the script below from PMR_STICKERS.
+       No hand-written plate markup here — see that list to change stock. -->
+  <section class="plates" id="plates"></section>
 
-    <article class="plate">
-      <div class="plate-no">Plate I</div>
-      <div class="plate-art">
-        <img src="sticker-1.png" alt="The Mac">
-      </div>
-      <h2 class="plate-name">Philip S Miller a.k.a. The Mac </h2>
-      <p class="plate-desc">Castle Rock's crown jewel 3.5″ × 2.34″</p>
-      <div class="ledger"><span>Price</span><span class="leader"></span><span class="amt">$5</span></div>
-      <div class="ledger" style="margin-top:-0.6rem"><span>Carriage</span><span class="leader"></span><span class="amt">Free</span></div>
-      <a href="https://buy.stripe.com/3cI00i9xn9rJcUw8JG48000" class="buy-btn">Purchase</a>
-    </article>
+  <!-- ═══════════════════════════════════════════════════════════
+       STOCK LIST — the single source of truth for this catalogue
 
-    <article class="plate">
-      <div class="plate-no">Plate II</div>
-      <div class="plate-art">
-        <img src="sticker-2.png" alt="The Ridgeline Open Space">
-      </div>
-      <h2 class="plate-name">The Ridgeline Open Space</h2>
-      <p class="plate-desc">Ridgeline Open Space - Castle Rock, CO 5′′ × 1′′ </p>
-      <div class="ledger"><span>Price</span><span class="leader"></span><span class="amt">$5</span></div>
-      <div class="ledger" style="margin-top:-0.6rem"><span>Carriage</span><span class="leader"></span><span class="amt">Free</span></div>
-      <a href="https://buy.stripe.com/dRmaEWaBr8nF5s43pm48001" class="buy-btn">Purchase</a>
-    </article>
+       ─── TO ADD A STICKER ───
+         1. Create the Payment Link in Stripe.
+         2. Drop the artwork in this folder as sticker-N.png.
+         3. Add one entry below, in the order you want it displayed.
 
-    <article class="plate">
-      <div class="plate-no">Plate III</div>
-      <div class="plate-art">
-        <img src="sticker-3.png" alt="The Castle Keep sticker">
-      </div>
-      <h2 class="plate-name">The Castle Keep</h2>
-      <p class="plate-desc">The Block is Hot - Deter bike or bike rack theft 1″ × 2.27″</p>
-      <div class="ledger"><span>Price</span><span class="leader"></span><span class="amt">$4</span></div>
-      <div class="ledger" style="margin-top:-0.6rem"><span>Carriage</span><span class="leader"></span><span class="amt">Free</span></div>
-      <a href="https://buy.stripe.com/9B66oG4d3dHZ6w84tq48002" class="buy-btn">Purchase</a>
-    </article>
+       ─── TO RETIRE ONE ───  delete its entry. Plate numbers renumber
+       themselves, so removing Plate III leaves I, II, III, IV rather
+       than the gap you'd get by hand.
 
-    <article class="plate">
-      <div class="plate-no">Plate IV</div>
-      <div class="plate-art">
-        <img src="sticker-4.png" alt="The Singletrack sticker">
-      </div>
-      <h2 class="plate-name">The Singletrack</h2>
-      <p class="plate-desc">high quality transfer sticker, 2″ × 1.58″ white text</p>
-      <div class="ledger"><span>Price</span><span class="leader"></span><span class="amt">$4</span></div>
-      <div class="ledger" style="margin-top:-0.6rem"><span>Carriage</span><span class="leader"></span><span class="amt">Free</span></div>
-      <a href="https://buy.stripe.com/28EbJ07pf47p7Acf8448003" class="buy-btn">Purchase</a>
-    </article>
+       ─── TO REORDER ───  move an entry. Numbering follows position.
 
-    <article class="plate">
-      <div class="plate-no">Plate V</div>
-      <div class="plate-art">
-        <img src="sticker-5.png" alt="The Machine sticker">
-      </div>
-      <h2 class="plate-name">The Machine</h2>
-      <p class="plate-desc">woodgrain high quality vinyl 3″ × 2.22″ sticker</p>
-      <div class="ledger"><span>Price</span><span class="leader"></span><span class="amt">$5</span></div>
-      <div class="ledger" style="margin-top:-0.6rem"><span>Carriage</span><span class="leader"></span><span class="amt">Free</span></div>
-      <a href="https://buy.stripe.com/eVq28qdND47paMocZW48004" class="buy-btn">Purchase</a>
-    </article>
+       FIELDS
+         name    Display name.
+         alt     Alt text for the artwork. Describe the sticker, not
+                 the fact that it is a sticker.
+         img     Filename in this folder. Use EITHER img or svg.
+         svg     Inline SVG markup, for plates with no photograph yet.
+         desc    One short line. Keep dimensions OUT of this — they
+                 have their own field so they format consistently.
+         size    e.g. "3.5″ × 2.34″". Use ″ (double prime) for inches,
+                 not " or ′′. Omit for items with no single size.
+         price   A number in whole dollars, or null. null hides the
+                 Price row entirely, which is what the Folio wants
+                 while it has no price yet.
+         stripe  The Payment Link URL, or null. null renders the
+                 disabled "Coming Soon" button instead of Purchase.
+         folio   true for the bundle. It sits outside the Plate I/II/III
+                 numbering (it isn't a plate) and gets the gilt border.
 
-    <article class="plate folio">
-      <div class="plate-no">The Complete Folio</div>
-      <div class="plate-art">
-        <!-- <img src="sticker-folio.png" alt="All five PMR stickers"> -->
-        <svg viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg">
-          <g stroke="#A0761F" fill="none" stroke-width="2">
-            <rect x="24" y="30" width="40" height="30" transform="rotate(-7 44 45)"/>
-            <rect x="48" y="26" width="40" height="30" transform="rotate(4 68 41)"/>
-            <rect x="38" y="42" width="40" height="30" transform="rotate(-2 58 57)"/>
-          </g>
-          <text x="60" y="92" text-anchor="middle" font-family="serif" font-style="italic" font-size="9" fill="#48566C">all five designs</text>
-        </svg>
-      </div>
-      <h2 class="plate-name">All Five Plates</h2>
-      <p class="plate-desc">The complete set in one envelope — one shipping, best value.</p>
-      <div class="ledger"><span>Price</span><span class="leader"></span><span class="amt">$</span></div>
-      <div class="ledger" style="margin-top:-0.6rem"><span>Carriage</span><span class="leader"></span><span class="amt">Free</span></div>
-      <!-- STRIPE: once you're ready to sell the bundle, replace this span with
-           <a href="YOUR_PAYMENT_LINK" class="buy-btn">Purchase</a> -->
-      <span class="buy-btn soon" aria-disabled="true">Coming Soon</span>
-    </article>
+       PRICES MUST MATCH STRIPE. Nothing here can check that for you —
+       this list only controls what the page says. Changing a price
+       below does not change what a customer is actually charged.
+  ═══════════════════════════════════════════════════════════ -->
+  <script>
+  window.PMR_STICKERS = [
+    { name: "Philip S Miller a.k.a. The Mac",
+      alt:  "The Mac — Philip S. Miller Park emblem",
+      img:  "sticker-1.png",
+      desc: "Castle Rock's crown jewel.",
+      size: "3.5″ × 2.34″",
+      price: 5,
+      stripe: "https://buy.stripe.com/3cI00i9xn9rJcUw8JG48000" },
 
-  </section>
+    { name: "The Ridgeline Open Space",
+      alt:  "The Ridgeline Open Space wordmark",
+      img:  "sticker-2.png",
+      desc: "Ridgeline Open Space — Castle Rock, Colorado.",
+      size: "5″ × 1″",
+      price: 5,
+      stripe: "https://buy.stripe.com/dRmaEWaBr8nF5s43pm48001" },
+
+    { name: "The Castle Keep",
+      alt:  "The Castle Keep sticker",
+      img:  "sticker-3.png",
+      desc: "The Block is Hot — deters bike and bike-rack theft.",
+      size: "1″ × 2.27″",
+      price: 4,
+      stripe: "https://buy.stripe.com/9B66oG4d3dHZ6w84tq48002" },
+
+    { name: "The Singletrack",
+      alt:  "The Singletrack sticker, white lettering",
+      img:  "sticker-4.png",
+      desc: "High-quality transfer sticker, white text.",
+      size: "2″ × 1.58″",
+      price: 4,
+      stripe: "https://buy.stripe.com/28EbJ07pf47p7Acf8448003" },
+
+    { name: "The Machine",
+      alt:  "The Machine sticker, woodgrain finish",
+      img:  "sticker-5.png",
+      desc: "Woodgrain, high-quality vinyl.",
+      size: "3″ × 2.22″",
+      price: 5,
+      stripe: "https://buy.stripe.com/eVq28qdND47paMocZW48004" },
+
+    // Placeholder artwork and no price yet — both handled by the
+    // renderer, so this entry needs no special markup of its own.
+    // When it goes on sale: add img, size, price and stripe, and
+    // delete the svg field.
+    { name: "All Five Plates",
+      alt:  "All five PMR stickers together",
+      svg:  '<svg viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="All five PMR stickers together">' +
+              '<g stroke="#A0761F" fill="none" stroke-width="2">' +
+                '<rect x="24" y="30" width="40" height="30" transform="rotate(-7 44 45)"/>' +
+                '<rect x="48" y="26" width="40" height="30" transform="rotate(4 68 41)"/>' +
+                '<rect x="38" y="42" width="40" height="30" transform="rotate(-2 58 57)"/>' +
+              '</g>' +
+              '<text x="60" y="92" text-anchor="middle" font-family="serif" font-style="italic" font-size="9" fill="#48566C">all five designs</text>' +
+            '</svg>',
+      desc: "The complete set in one envelope — one shipping, best value.",
+      size: null,
+      price: null,
+      stripe: null,
+      folio: true }
+  ];
+
+  (function () {
+    var wrap = document.getElementById('plates');
+    if (!wrap || !window.PMR_STICKERS) return;
+
+    // Plate numbers are printed as Roman numerals to match the
+    // catalogue conceit. Subtractive pairs (IV, IX, XL...) are listed
+    // alongside the plain values so 4 renders "IV" and not "IIII";
+    // the loop walks the table high to low, subtracting as it goes.
+    var NUMERALS = [[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
+    function roman(n) {
+      var out = '';
+      NUMERALS.forEach(function (pair) {
+        while (n >= pair[0]) { out += pair[1]; n -= pair[0]; }
+      });
+      return out;
+    }
+
+    // Names and descriptions are plain text going into HTML, so
+    // anything that would read as markup is neutralised first.
+    // NOTE: the svg field is deliberately NOT escaped — it is markup
+    // on purpose. Only ever put your own SVG in that field.
+    function esc(str) {
+      return String(str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function ledgerRow(label, value) {
+      return '<div class="ledger"><span>' + label + '</span>' +
+             '<span class="leader"></span>' +
+             '<span class="amt">' + value + '</span></div>';
+    }
+
+    // Counts only the numbered plates, so the Folio doesn't consume a
+    // numeral and the sequence stays unbroken if it moves or goes away.
+    var plateNo = 0;
+
+    function plateHTML(item) {
+      var heading = item.folio ? 'The Complete Folio' : 'Plate ' + roman(++plateNo);
+
+      var art = item.svg
+        ? item.svg
+        : '<img src="' + esc(item.img) + '" alt="' + esc(item.alt || item.name) + '" loading="lazy">';
+
+      var desc = esc(item.desc) +
+        (item.size ? ' <span class="plate-size">' + esc(item.size) + '</span>' : '');
+
+      // A null price prints no Price row at all. An empty one would
+      // render as a bare "$", which reads as a mistake rather than as
+      // "not for sale yet".
+      var rows = (item.price == null ? '' : ledgerRow('Price', '$' + item.price)) +
+                 ledgerRow('Carriage', 'Free');
+
+      var button = item.stripe
+        ? '<a href="' + esc(item.stripe) + '" class="buy-btn">Purchase</a>'
+        : '<span class="buy-btn soon" aria-disabled="true">Coming Soon</span>';
+
+      return '<article class="plate' + (item.folio ? ' folio' : '') + '">' +
+               '<div class="plate-no">' + heading + '</div>' +
+               '<div class="plate-art">' + art + '</div>' +
+               '<h2 class="plate-name">' + esc(item.name) + '</h2>' +
+               '<p class="plate-desc">' + desc + '</p>' +
+               rows + button +
+             '</article>';
+    }
+
+    wrap.innerHTML = window.PMR_STICKERS.map(plateHTML).join('');
+  }());
+  </script>
 
   <div class="divider"><hr><span>❦</span><hr></div>
 
