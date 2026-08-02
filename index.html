@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+<!-- data-theme is the no-JavaScript fallback only. The bootstrap script
+     at the end of <head> overwrites it before the page paints. -->
 <html lang="en" data-theme="day">
 <head>
   <meta charset="UTF-8">
@@ -41,17 +43,6 @@
     --nav-bg:      rgba(236,234,228,0.93);
     --castle-fill: #2E2416;
     --paint-filter: none;
-    --sky-hi:      #8FAEBB;
-    --sky-lo:      #BACED6;
-    --distant:     #9AABAF;
-    --rock:        #7C7062;
-    --rock-sh:     #584E44;
-    --rock-st:     #665C52;
-    --ground:      #B6AA92;
-    --ground-sh:   #A09278;
-    --trail:       #8A7C68;
-    --canvas-bg:   #C8C0B0;
-    --frame-b:     #2E2416;
     --ff-serif:    'EB Garamond', Georgia, serif;
     --ff-sans:     'Space Grotesk', sans-serif;
     --ff-body:     'Inter', sans-serif;
@@ -73,17 +64,6 @@
     --nav-bg:      rgba(230,235,228,0.93);
     --castle-fill: #2A3A28;
     --paint-filter: brightness(1.04) saturate(1.18) hue-rotate(8deg);
-    --sky-hi:      #88AAAA;
-    --sky-lo:      #ACCAB8;
-    --distant:     #90A890;
-    --rock:        #6A7A60;
-    --rock-sh:     #4A5840;
-    --rock-st:     #587050;
-    --ground:      #8AAA78;
-    --ground-sh:   #70906A;
-    --trail:       #7A9068;
-    --canvas-bg:   #B8C8A8;
-    --frame-b:     #2A3A28;
   }
 
   /* ═══════════════════════════════════════════════════════════════
@@ -101,17 +81,6 @@
     --nav-bg:      rgba(237,230,218,0.93);
     --castle-fill: #3A2810;
     --paint-filter: sepia(0.28) saturate(1.5) brightness(1.0) hue-rotate(-6deg);
-    --sky-hi:      #A89878;
-    --sky-lo:      #C8B48A;
-    --distant:     #B0A080;
-    --rock:        #8A7060;
-    --rock-sh:     #6A5040;
-    --rock-st:     #7A6050;
-    --ground:      #B09060;
-    --ground-sh:   #987848;
-    --trail:       #9A8060;
-    --canvas-bg:   #C8A870;
-    --frame-b:     #3A2810;
   }
 
   /* ═══════════════════════════════════════════════════════════════
@@ -129,17 +98,6 @@
     --nav-bg:      rgba(24,28,34,0.93);
     --castle-fill: #7A8898;
     --paint-filter: brightness(0.42) saturate(0.22) hue-rotate(198deg);
-    --sky-hi:      #080E18;
-    --sky-lo:      #101C2C;
-    --distant:     #182030;
-    --rock:        #282E38;
-    --rock-sh:     #181C24;
-    --rock-st:     #303848;
-    --ground:      #1A1E28;
-    --ground-sh:   #101418;
-    --trail:       #222830;
-    --canvas-bg:   #141820;
-    --frame-b:     #080C12;
   }
 
   /* ═══════════════════════════════════════════════════════════════
@@ -161,17 +119,6 @@
     --nav-bg:      rgba(11,10,8,0.93);
     --castle-fill: #C9A227;
     --paint-filter: sepia(0.55) saturate(1.6) brightness(0.62) hue-rotate(-8deg) contrast(1.08);
-    --sky-hi:      #4A3418;
-    --sky-lo:      #C9A227;
-    --distant:     #5A4426;
-    --rock:        #241F18;
-    --rock-sh:     #120F0B;
-    --rock-st:     #3A3126;
-    --ground:      #332B1F;
-    --ground-sh:   #1E1912;
-    --trail:       #8C3A1E;
-    --canvas-bg:   #1A1815;
-    --frame-b:     #0B0A08;
   }
 
   /* Faint amber haze + scanline, only in the 2049 theme — atmosphere
@@ -222,27 +169,6 @@
     text-transform: uppercase;
     color: transparent;
     -webkit-text-stroke: 1px var(--accent);
-  }
-
-  /* ═══════════════════════════════════════════════════════════════
-     SVG PAINTING  —  all fills/strokes via CSS so theme toggle works
-  ═══════════════════════════════════════════════════════════════ */
-  .p-sky-hi    { fill: var(--sky-hi); }
-  .p-sky-lo    { fill: var(--sky-lo); }
-  .p-distant   { fill: var(--distant); }
-  .p-rock      { fill: var(--rock); }
-  .p-rock-sh   { fill: var(--rock-sh); }
-  .p-ground    { fill: var(--ground); }
-  .p-ground-sh { fill: var(--ground-sh); }
-  .p-strata    { fill: none; stroke: var(--rock-st); stroke-width: 0.7; }
-  .p-trail     { fill: none; stroke: var(--trail); stroke-width: 1.8;
-                 stroke-linecap: round; stroke-linejoin: round; }
-  .p-canvas    { fill: var(--canvas-bg); }
-
-  /* Transitions on paint elements */
-  .p-sky-hi, .p-sky-lo, .p-distant, .p-rock, .p-rock-sh,
-  .p-ground, .p-ground-sh, .p-strata, .p-trail, .p-canvas {
-    transition: fill 0.5s ease, stroke 0.5s ease;
   }
 
   /* ═══════════════════════════════════════════════════════════════
@@ -381,6 +307,10 @@
     to   { opacity: 1; transform: translateY(-50%) translateX(0); }
   }
 
+  /* <picture> is inline by default, which would leave a baseline gap
+     under the image inside the shadowed frame. */
+  .painting-outer picture { display: block; }
+
   .painting-img {
     display: block; width: 100%; height: auto;
     filter: var(--paint-filter);
@@ -472,9 +402,29 @@
     position: absolute; inset: 0;
     display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: center;
     padding: 2.5rem; text-decoration: none; color: inherit;
-    opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+
+    /* Three things are needed to hide an inactive panel, and they do
+       different jobs — dropping any one leaves a real problem:
+         opacity        makes it invisible, but it is still "there"
+         pointer-events stops the mouse reaching it
+         visibility     takes it out of the tab order AND out of the
+                        screen-reader tree
+       Without visibility, a keyboard visitor tabs into two links they
+       cannot see, and a screen reader announces all three tool panels
+       at once as though they were all on screen. */
+    opacity: 0; pointer-events: none; visibility: hidden;
+
+    /* visibility can't tween, so it is stepped instead: delayed by the
+       length of the fade on the way out (stay visible while fading),
+       and applied instantly on the way in. Hence the 0.5s delay here
+       and the 0s delay on .active below — the two must match the fade
+       duration or the panel will vanish partway through it. */
+    transition: opacity 0.5s ease, visibility 0s linear 0.5s;
   }
-  .preview-panel.active { opacity: 1; pointer-events: auto; }
+  .preview-panel.active {
+    opacity: 1; pointer-events: auto; visibility: visible;
+    transition: opacity 0.5s ease, visibility 0s linear 0s;
+  }
 
   .preview-headline {
     font-family: var(--ff-serif); font-style: italic; font-size: 1.4rem;
@@ -842,11 +792,100 @@
   @media (prefers-reduced-motion: reduce) {
     .eyebrow, .hero-title, .hero-desc, .hero-cta { animation: none !important; opacity: 1 !important; transform: none !important; }
     .painting-outer { animation: none !important; }
-    .wheel-boost, .wheel-superboost { animation: none !important; opacity: 1 !important; }
-    .wheel-superboost { display: none !important; }
-    .chart-dot { animation: none !important; offset-distance: 50% !important; }
   }
   </style>
+  <!-- ═══════════════════════════════════════════════════════════════
+       THEME BOOTSTRAP  —  must stay in <head>, above </head>
+
+       Why here and not at the bottom with the other scripts: whatever
+       sets data-theme has to run BEFORE the browser paints. When this
+       lived at the bottom of <body>, a Sunday visitor got a full flash
+       of the light "Day" look and then a snap to dark Winter once the
+       HTML finished parsing. Running it here means the first paint is
+       already correct.
+
+       Keep this block small and dependency-free. It is deliberately
+       inline (not an external file) because an external script would
+       have to be fetched, which reintroduces the flash.
+
+       Precedence, highest first:
+         1. A theme the visitor chose by hand EARLIER TODAY
+         2. Today's day-of-week theme
+
+       Storing the date alongside the choice is what makes a manual
+       pick "sticky but temporary": click to 2049, open a tool, hit
+       back — still 2049. Come back tomorrow and the seasonal rotation
+       has resumed on its own, which is the point of the rotation.
+
+       Everything the theme system knows lives in this one object so
+       there's a single place to edit. To ADD A THEME: add its name to
+       THEMES, a display name to LABELS, and a [data-theme="name"]
+       block in the CSS above. Nothing else needs to change — the
+       cycle button reads its list from here.
+  ═══════════════════════════════════════════════════════════════ -->
+  <script>
+  window.PMR_THEME = (function () {
+    // Click-cycle order. Also the list of themes considered valid.
+    var THEMES = ['day', 'spring', 'autumn', 'winter', '2049'];
+
+    // What the nav button shows for each theme.
+    var LABELS = { day:'Day', spring:'Spring', autumn:'Autumn', winter:'Winter', '2049':'2049' };
+
+    // 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat
+    // Weighted toward the lighter looks on workdays, dark on Sunday.
+    // 2049 is intentionally absent — it's manual-only, a mood rather
+    // than a Colorado lighting condition.
+    var DAY_MAP = { 0:'winter', 1:'day', 2:'day', 3:'spring', 4:'spring', 5:'autumn', 6:'autumn' };
+
+    var STORAGE_KEY = 'pmr-theme';
+
+    // "Sun Aug 02 2026" — a date with no time component, so two visits
+    // on the same calendar day match and a visit tomorrow does not.
+    function todayStamp() { return new Date().toDateString(); }
+
+    // remember=true writes the choice to localStorage. Pass false for
+    // the automatic day-of-week load, so an auto-load never gets
+    // mistaken for a deliberate choice on the next page view.
+    function apply(theme, remember) {
+      if (THEMES.indexOf(theme) === -1) return;
+      document.documentElement.setAttribute('data-theme', theme);
+
+      // Null on the first call (this runs before <body> exists); the
+      // nav script sets the label once the button is in the document.
+      var label = document.getElementById('theme-label');
+      if (label) label.textContent = LABELS[theme];
+
+      if (remember) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({ theme: theme, date: todayStamp() }));
+        } catch (e) { /* storage blocked (private mode) — the theme still applies, it just won't persist */ }
+      }
+    }
+
+    function current() { return document.documentElement.getAttribute('data-theme'); }
+
+    // Advance one step through THEMES and remember the result.
+    function cycle() {
+      var i = THEMES.indexOf(current());
+      apply(THEMES[(i + 1) % THEMES.length], true);
+    }
+
+    // Decide what to show on arrival.
+    function initialTheme() {
+      try {
+        var saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+        if (saved && saved.date === todayStamp() && THEMES.indexOf(saved.theme) !== -1) {
+          return saved.theme;
+        }
+      } catch (e) { /* unreadable or corrupt — fall through to the day theme */ }
+      return DAY_MAP[new Date().getDay()];
+    }
+
+    apply(initialTheme(), false);
+
+    return { THEMES: THEMES, LABELS: LABELS, apply: apply, cycle: cycle, current: current };
+  }());
+  </script>
 </head>
 <body>
 
@@ -895,9 +934,30 @@
 
     <!-- ── Colville-style landscape painting ── -->
     <div class="painting-outer" aria-hidden="true">
-      <img class="painting-img" src="FullSizeRender.jpeg"
-           alt="Colville-style painting: mountain biker on a singletrack trail with the Colorado Rockies behind"
-           width="1408" height="768">
+      <!-- Hero painting. This is the largest thing on the page and the
+           first thing a visitor waits for, so it's worth the extra markup:
+
+           · <picture> serves WebP (258 KB) to browsers that take it and
+             falls back to JPEG (316 KB) for everything else. The original
+             export was 2,134 KB — an untouched full-quality save.
+           · fetchpriority="high" tells the browser this is the important
+             image and to fetch it ahead of the preview screenshots.
+           · NO loading="lazy" here. This is above the fold; lazy-loading
+             it would delay the very thing the page is waiting on.
+           · width/height are the file's TRUE pixel size (1376x768). They
+             don't set the display size — CSS caps that at 620px — they
+             just reserve the right shape so the hero doesn't jump as the
+             image arrives. The old markup said 1408, which was wrong and
+             caused a small shift on load.
+
+           If you re-export this image, re-export BOTH formats and keep
+           the dimensions matched to the file. -->
+      <picture>
+        <source srcset="hero-painting.webp" type="image/webp">
+        <img class="painting-img" src="hero-painting.jpg"
+             alt="Colville-style painting: mountain biker on a singletrack trail with the Colorado Rockies behind"
+             width="1376" height="768" fetchpriority="high" decoding="async">
+      </picture>
     </div>
     <div class="hero-edge"></div>
 
@@ -942,7 +1002,7 @@
            PANEL 0 — Wheel Strength Lab
            To add a subtitle back, un-comment the .preview-desc line.
       ────────────────────────────────────────────────────────── -->
-      <a href="/wheel-lab/" class="preview-panel active" data-panel="0" aria-label="Open Wheel Strength Lab">
+      <a href="/wheel-lab/" class="preview-panel active" aria-label="Open Wheel Strength Lab">
         <div class="preview-copy">
           <div class="tool-tag">Wheel mechanics</div>
           <div class="wheel-headline-wrap">
@@ -970,7 +1030,7 @@
            time the panel comes around, standing in for the chart
            drawing itself in.
       ────────────────────────────────────────────────────────── -->
-      <a href="/sports-popularity/" class="preview-panel" data-panel="1" aria-label="Open Sports Popularity Over Time">
+      <a href="/sports-popularity/" class="preview-panel" aria-label="Open Sports Popularity Over Time">
         <div class="preview-copy">
           <div class="tool-tag">Data visualization</div>
           <div class="preview-headline">Which sports are actually growing?</div>
@@ -991,7 +1051,7 @@
       <!-- ─────────────────────────────────────────────────────────
            PANEL 2 — MTB Patent Atlas
       ────────────────────────────────────────────────────────── -->
-      <a href="/atlas/" class="preview-panel" data-panel="2" aria-label="Open MTB Patent Atlas">
+      <a href="/atlas/" class="preview-panel" aria-label="Open MTB Patent Atlas">
         <div class="preview-copy">
           <div class="tool-tag">IP research</div>
           <div class="preview-headline">You've heard "Horst Link." Here's the actual patent.</div>
@@ -1008,18 +1068,20 @@
       </a>
 
       <!-- ═════════════════════════════════════════════════════════
-           ADDING PANEL 3, 4, … — copy a block above and edit it.
-           The rotation script counts panels automatically, so the
-           only other change needed is adding a matching dot button
-           down in .preview-dots (with data-target set to the new
-           index: 3, 4, …).
+           ADDING A PANEL — copy one of the blocks above and edit it.
+           That is the whole job. The rotation script counts panels
+           from the DOM and now builds the navigation dots to match,
+           so there is nothing to keep in sync by hand.
+
+           The dot's label is taken from the panel's aria-label, which
+           must read "Open <Tool Name>" for that to come out right.
 
            FOR A VIDEO PANEL, swap the <img> for this — same frame,
            same sizing, no other changes needed:
 
            <div class="preview-visual">
              <div class="shot-frame">
-               <video class="shot-video" width="1000" height="740"
+               <video class="shot-video" width="1000" height="800"
                       autoplay muted loop playsinline preload="metadata"
                       poster="/images/preview-NAME-poster.jpg">
                  <source src="/images/preview-NAME.mp4" type="video/mp4">
@@ -1027,21 +1089,27 @@
              </div>
            </div>
 
-           Notes for video: muted + playsinline are required or phones
-           won't autoplay it. Keep clips short and silent — this is a
-           background loop, not something anyone will sit and watch.
-           A poster image is what shows before the file loads, and is
-           what people on reduced-motion settings see instead of the
-           video, so it's worth setting.
-      ══════════════════════════════════════════════════════════ -->
+           Notes for video:
+           · muted + playsinline are required or phones won't autoplay.
+           · The frame is 5:4 and the video is object-fit: contain, so
+             nothing is ever cropped — but anything that isn't 5:4 will
+             letterbox. Export at 1000x800 to fill it exactly.
+           · The rotation script already restarts the clip from 0:00
+             each time the panel comes around, and already skips that
+             for visitors on reduced-motion settings. Nothing to add.
+           · Keep clips short and silent — this is a background loop,
+             not something anyone will sit and watch.
+           · The poster image shows before the file loads and is what
+             reduced-motion visitors see instead, so it's worth setting.
+           · .preview-panels has min-height: 495px, sized to the 5:4
+             frame. A taller panel needs that raised or it will clip.
+        ══════════════════════════════════════════════════════════ -->
 
     </div>
 
-    <div class="preview-dots">
-      <button class="preview-dot active" type="button" data-target="0" aria-label="Show Wheel Strength Lab preview"></button>
-      <button class="preview-dot" type="button" data-target="1" aria-label="Show Sports Popularity preview"></button>
-      <button class="preview-dot" type="button" data-target="2" aria-label="Show Patent Atlas preview"></button>
-    </div>
+    <!-- Filled in by the rotation script from however many panels exist.
+         Do not hand-write dots here — they would be wiped on load. -->
+    <div class="preview-dots"></div>
   </div>
 </section>
 
@@ -1053,261 +1121,178 @@
     <span class="section-label">Interactive tools</span>
     <h2 class="section-title">Built to understand MTB, not just ride it.</h2>
   </div>
-  <div class="tools-grid" id="tools-grid">
+  <!-- The grid is filled in by the script below from the PMR_TOOLS list.
+       There is deliberately no hand-written card markup here — see the
+       comment on PMR_TOOLS for how to add, remove, or reorder a tool. -->
+  <div class="tools-grid" id="tools-grid"></div>
 
-    <div class="tool-card" data-tool-id="/wheel-lab/">
-      <a href="/wheel-lab/" class="card-hit" draggable="false" aria-label="Open Wheel Strength Lab"></a>
-      <div class="tool-tag">Wheel mechanics</div>
-      <div class="tool-name">Wheel Strength Lab</div>
-      <p class="tool-desc">148mm Boost vs. 157mm Super Boost hub comparison using Ford's Mode Matrix — across Compare, Simulation, and Deep Dive tabs.</p>
-      <button class="share-btn" type="button" data-path="/wheel-lab/" data-title="Wheel Strength Lab" aria-label="Share Wheel Strength Lab">
-        <span class="copied-label">Link copied</span>
-        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-      </button>
-    </div>
+  <!-- ═══════════════════════════════════════════════════════════════
+       TOOL LIST  —  the single source of truth for the grid
 
-    <div class="tool-card" data-tool-id="/atlas/">
-      <a href="/atlas/" class="card-hit" draggable="false" aria-label="Open MTB Patent Atlas"></a>
-      <div class="tool-tag">IP research</div>
-      <div class="tool-name">MTB Patent Atlas</div>
-      <p class="tool-desc">Mountain bike intellectual property from 1890 to 2026, across eight categories with 200+ entries and confidence-tier labeling.</p>
-      <button class="share-btn" type="button" data-path="/atlas/" data-title="MTB Patent Atlas" aria-label="Share MTB Patent Atlas">
-        <span class="copied-label">Link copied</span>
-        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-      </button>
-    </div>
+       ─── TO ADD A TOOL ───────────────────────────────────────────
+         1. Add one entry to PMR_TOOLS below (four fields).
+         2. Create the wrapper page at <path>/index.html.
+         3. Add a <url> line to /sitemap.xml.
+       Steps 2 and 3 are separate files, so they still have to be done
+       by hand for now — but everything the HOMEPAGE needs is step 1.
 
-    <div class="tool-card" data-tool-id="/roi/">
-      <a href="/roi/" class="card-hit" draggable="false" aria-label="Open Trail Investment ROI Calculator"></a>
-      <div class="tool-tag">Trail economics</div>
-      <div class="tool-name">Trail Investment ROI Calculator</div>
-      <p class="tool-desc">Economic impact modeling for trail projects, synthesized from 13 U.S. investment studies with international currency toggle.</p>
-      <button class="share-btn" type="button" data-path="/roi/" data-title="Trail Investment ROI Calculator" aria-label="Share Trail Investment ROI Calculator">
-        <span class="copied-label">Link copied</span>
-        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-      </button>
-    </div>
+       ─── TO REMOVE ONE ───  delete its entry (and the folder + the
+       sitemap line).  ─── TO REORDER ───  move its entry up or down;
+       the grid renders in list order.
 
-    <div class="tool-card" data-tool-id="/suspension-lab/">
-      <a href="/suspension-lab/" class="card-hit" draggable="false" aria-label="Open Interactive Suspension Dynamics Laboratory"></a>
-      <div class="tool-tag">Suspension physics</div>
-      <div class="tool-name">Interactive Suspension Dynamics Laboratory</div>
-      <p class="tool-desc">HSC/LSC damping controls, terrain-specific inputs, and an anatomically correct fork schematic for visualizing compression behavior.</p>
-      <button class="share-btn" type="button" data-path="/suspension-lab/" data-title="Interactive Suspension Dynamics Laboratory" aria-label="Share Interactive Suspension Dynamics Laboratory">
-        <span class="copied-label">Link copied</span>
-        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-      </button>
-    </div>
+       Why a list instead of 21 blocks of markup: each tool's name and
+       path used to be typed out eight times inside its own card (the
+       link href, the card's data-tool-id, the aria-label, the visible
+       name, the share button's data-path, data-title and aria-label).
+       Every one of those is now derived from the two fields below, so
+       they cannot drift apart from each other.
 
-    <div class="tool-card" data-tool-id="/parks-us/">
-      <a href="/parks-us/" class="card-hit" draggable="false" aria-label="Open US Lift-Served Bike Parks"></a>
-      <div class="tool-tag">Destinations</div>
-      <div class="tool-name">US Lift-Served Bike Parks</div>
-      <p class="tool-desc">85+ parks across 29 states, with Loam Pass badge system and mobile-first accordion design for trail-side reference.</p>
-      <button class="share-btn" type="button" data-path="/parks-us/" data-title="US Lift-Served Bike Parks" aria-label="Share US Lift-Served Bike Parks">
-        <span class="copied-label">Link copied</span>
-        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-      </button>
-    </div>
+       FIELD NOTES
+         path — must start and end with "/" and match the folder name.
+                It is also the card's identity for the saved drag order,
+                so changing a path resets that visitor's custom order.
+         tag  — the small uppercase category line. Reuse existing tags
+                where they fit; each new one is a new category in effect.
+         desc — hidden on phones (cards go square, tag + name only), so
+                it can run long. Watch the hard-coded counts in these
+                ("200+ entries", "85+ parks"): they describe tools that
+                keep growing, and nothing here checks them for you.
+  ═══════════════════════════════════════════════════════════════ -->
+  <script>
+  window.PMR_TOOLS = [
+    { path: "/wheel-lab/",
+      tag:  "Wheel mechanics",
+      name: "Wheel Strength Lab",
+      desc: "148mm Boost vs. 157mm Super Boost hub comparison using Ford's Mode Matrix — across Compare, Simulation, and Deep Dive tabs." },
+    { path: "/atlas/",
+      tag:  "IP research",
+      name: "MTB Patent Atlas",
+      desc: "Mountain bike intellectual property from 1890 to 2026, across eight categories with 200+ entries and confidence-tier labeling." },
+    { path: "/roi/",
+      tag:  "Trail economics",
+      name: "Trail Investment ROI Calculator",
+      desc: "Economic impact modeling for trail projects, synthesized from 13 U.S. investment studies with international currency toggle." },
+    { path: "/suspension-lab/",
+      tag:  "Suspension physics",
+      name: "Interactive Suspension Dynamics Laboratory",
+      desc: "HSC/LSC damping controls, terrain-specific inputs, and an anatomically correct fork schematic for visualizing compression behavior." },
+    { path: "/parks-us/",
+      tag:  "Destinations",
+      name: "US Lift-Served Bike Parks",
+      desc: "85+ parks across 29 states, with Loam Pass badge system and mobile-first accordion design for trail-side reference." },
+    { path: "/parks-ca/",
+      tag:  "Destinations",
+      name: "Canadian Bike Parks",
+      desc: "27 parks, bilingual EN/FR, Leaflet map, Gravity Logic and Kodiak Trail Works badge system. Fully self-contained at ~268 KB." },
+    { path: "/weagle/",
+      tag:  "IP research",
+      name: "Dave Weagle Patent Widget",
+      desc: "35 suspension patents with live expiration countdowns, three brand-themed color schemes, and Pinkbike iframe deployment." },
+    { path: "/geometry/",
+      tag:  "Geometry",
+      name: "MTB Steering Geometry",
+      desc: "Six-axis radar chart with Devinci Troy 2025 presets, corrected Whipple reference wheelbase, and bar sweep RAD correction." },
+    { path: "/pump-track/",
+      tag:  "Trail economics",
+      name: "Pump Track & Skatepark Calculator",
+      desc: "Two-pillar economic model anchored to Kemp 2025, built for civic advocacy presentations to parks departments and councils." },
+    { path: "/tire-sim/",
+      tag:  "Tire mechanics",
+      name: "MTB Tire Tread Simulator",
+      desc: "Pacejka/FastBike tire model for comparing tread patterns across terrain types and load conditions." },
+    { path: "/sports-popularity/",
+      tag:  "Data visualization",
+      name: "Sports Popularity Over Time",
+      desc: "Google Trends-style and estimated participant data across action sports, cycling, and racquet sports — charting how participation has shifted over time." },
+    { path: "/wheel-comparison-widget2/",
+      tag:  "Wheel mechanics",
+      name: "Wheel Strength Comparison Tool",
+      desc: "Compares 148×12 Boost to 157×12 Super Boost hubs using Matt Ford's academic research on spoke bracing angles and wheel stiffness." },
+    { path: "/MTB-inflation/",
+      tag:  "Economics",
+      name: "MTB Inflation Dashboard",
+      desc: "Tracks mountain bike price inflation against CPI and other economic metrics, using FRED data across multiple component and complete-bike categories." },
+    { path: "/headwaters-ledger/",
+      tag:  "Water & land",
+      name: "The Headwaters Ledger",
+      desc: "An interactive map of Rocky Mountain water rights — tracing where the water goes, which states claim it, and the century-old interstate compacts that decide who gets what." },
+    { path: "/singletrack-density/",
+      tag:  "Trail data",
+      name: "Singletrack Density",
+      desc: "Compares trail miles per capita across 26 destinations — from Moab to Squamish." },
+    { path: "/trail-partnership-atlas/",
+      tag:  "Trail advocacy",
+      name: "Trail Partnership Atlas",
+      desc: "Compares Front Range Colorado towns on nonprofit trail-advocacy partnerships — COMBA, Medicine Wheel, Boulder MBA, and others — making the case that partnership is the regional norm, not the exception." },
+    { path: "/trail-advocacy-atlas/",
+      tag:  "Trail advocacy",
+      name: "Trail Advocacy Atlas",
+      desc: "A working directory of nonprofit MTB trail advocacy organizations across the US — grouped by state and tiered from national umbrella groups down to local chapters, with directory, map, and chart views." },
+    { path: "/maintenance/",
+      tag:  "Cost planning",
+      name: "MTB Annual Maintenance Cost Calculator",
+      desc: "Annualized cost dials across suspension, drivetrain, and consumables, plus a Ride Worksheet that suggests part replacement based on how you actually ride." },
+    { path: "/mtb-weight-price/",
+      tag:  "MTB economics",
+      name: "Weight vs. Price MTB Scatterplot",
+      desc: "XC, Trail, Enduro, DH, and eMTB flagship bikes plotted by price and weight, with a toggleable fit line and lb/kg, USD/CHF unit switching." },
+    { path: "/autonomy-paradox/",
+      tag:  "Transit policy",
+      name: "The Rail Automation Paradox",
+      desc: "Robotaxis run roughly 500,000 driverless rides a week in the US, yet almost no train does — an interactive look at the automation ladder across the US, Canada, and Switzerland." },
+    { path: "/viscosity-ledger/",
+      tag:  "Suspension physics",
+      name: "The Viscosity Ledger",
+      desc: "Two 10wt fork oils can read identical on the bottle and sit nearly 2× apart at 0 °C. Set a baseline, build two comparison setups, and watch oil choice and heat build reshape the damping curve." },
+  ];
 
-    <div class="tool-card" data-tool-id="/parks-ca/">
-      <a href="/parks-ca/" class="card-hit" draggable="false" aria-label="Open Canadian Bike Parks"></a>
-      <div class="tool-tag">Destinations</div>
-      <div class="tool-name">Canadian Bike Parks</div>
-      <p class="tool-desc">27 parks, bilingual EN/FR, Leaflet map, Gravity Logic and Kodiak Trail Works badge system. Fully self-contained at ~268 KB.</p>
-      <button class="share-btn" type="button" data-path="/parks-ca/" data-title="Canadian Bike Parks" aria-label="Share Canadian Bike Parks">
-        <span class="copied-label">Link copied</span>
-        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-      </button>
-    </div>
+  (function () {
+    var grid = document.getElementById('tools-grid');
+    if (!grid || !window.PMR_TOOLS) return;
 
-    <div class="tool-card" data-tool-id="/weagle/">
-      <a href="/weagle/" class="card-hit" draggable="false" aria-label="Open Dave Weagle Patent Widget"></a>
-      <div class="tool-tag">IP research</div>
-      <div class="tool-name">Dave Weagle Patent Widget</div>
-      <p class="tool-desc">35 suspension patents with live expiration countdowns, three brand-themed color schemes, and Pinkbike iframe deployment.</p>
-      <button class="share-btn" type="button" data-path="/weagle/" data-title="Dave Weagle Patent Widget" aria-label="Share Dave Weagle Patent Widget">
-        <span class="copied-label">Link copied</span>
-        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-      </button>
-    </div>
+    // Defined once instead of pasted into all 21 cards. Editing the
+    // share glyph is now a one-place change.
+    var ICON_SHARE =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>' +
+      '<line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>';
 
-    <div class="tool-card" data-tool-id="/geometry/">
-      <a href="/geometry/" class="card-hit" draggable="false" aria-label="Open MTB Steering Geometry"></a>
-      <div class="tool-tag">Geometry</div>
-      <div class="tool-name">MTB Steering Geometry</div>
-      <p class="tool-desc">Six-axis radar chart with Devinci Troy 2025 presets, corrected Whipple reference wheelbase, and bar sweep RAD correction.</p>
-      <button class="share-btn" type="button" data-path="/geometry/" data-title="MTB Steering Geometry" aria-label="Share MTB Steering Geometry">
-        <span class="copied-label">Link copied</span>
-        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-      </button>
-    </div>
+    var ICON_CHECK =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<polyline points="20 6 9 17 4 12"/></svg>';
 
-    <div class="tool-card" data-tool-id="/pump-track/">
-      <a href="/pump-track/" class="card-hit" draggable="false" aria-label="Open Pump Track &amp; Skatepark Calculator"></a>
-      <div class="tool-tag">Trail economics</div>
-      <div class="tool-name">Pump Track &amp; Skatepark Calculator</div>
-      <p class="tool-desc">Two-pillar economic model anchored to Kemp 2025, built for civic advocacy presentations to parks departments and councils.</p>
-      <button class="share-btn" type="button" data-path="/pump-track/" data-title="Pump Track &amp; Skatepark Calculator" aria-label="Share Pump Track &amp; Skatepark Calculator">
-        <span class="copied-label">Link copied</span>
-        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-      </button>
-    </div>
+    // Tool names and descriptions are plain text that gets dropped into
+    // HTML, so anything that would be read as markup has to be neutered
+    // first. Without this, an ampersand or angle bracket in a future
+    // description would silently break the card it sits in.
+    function esc(str) {
+      return String(str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
 
-    <div class="tool-card" data-tool-id="/tire-sim/">
-      <a href="/tire-sim/" class="card-hit" draggable="false" aria-label="Open MTB Tire Tread Simulator"></a>
-      <div class="tool-tag">Tire mechanics</div>
-      <div class="tool-name">MTB Tire Tread Simulator</div>
-      <p class="tool-desc">Pacejka/FastBike tire model for comparing tread patterns across terrain types and load conditions.</p>
-      <button class="share-btn" type="button" data-path="/tire-sim/" data-title="MTB Tire Tread Simulator" aria-label="Share MTB Tire Tread Simulator">
-        <span class="copied-label">Link copied</span>
-        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-      </button>
-    </div>
+    function cardHTML(tool) {
+      var path = esc(tool.path), name = esc(tool.name);
+      return '' +
+        '<div class="tool-card" data-tool-id="' + path + '">' +
+          '<a href="' + path + '" class="card-hit" draggable="false" aria-label="Open ' + name + '"></a>' +
+          '<div class="tool-tag">'  + esc(tool.tag)  + '</div>' +
+          '<div class="tool-name">' + name           + '</div>' +
+          '<p class="tool-desc">'   + esc(tool.desc) + '</p>' +
+          '<button class="share-btn" type="button" data-path="' + path + '" ' +
+                  'data-title="' + name + '" aria-label="Share ' + name + '">' +
+            '<span class="copied-label">Link copied</span>' +
+            '<span class="ico ico-share">' + ICON_SHARE + '</span>' +
+            '<span class="ico ico-check" hidden>' + ICON_CHECK + '</span>' +
+          '</button>' +
+        '</div>';
+    }
 
-    <div class="tool-card" data-tool-id="/sports-popularity/">
-      <a href="/sports-popularity/" class="card-hit" draggable="false" aria-label="Open Sports Popularity Over Time"></a>
-      <div class="tool-tag">Data visualization</div>
-      <div class="tool-name">Sports Popularity Over Time</div>
-      <p class="tool-desc">Google Trends-style and estimated participant data across action sports, cycling, and racquet sports — charting how participation has shifted over time.</p>
-      <button class="share-btn" type="button" data-path="/sports-popularity/" data-title="Sports Popularity Over Time" aria-label="Share Sports Popularity Over Time">
-        <span class="copied-label">Link copied</span>
-        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-      </button>
-    </div>
-
-    <div class="tool-card" data-tool-id="/wheel-comparison-widget2/">
-      <a href="/wheel-comparison-widget2/" class="card-hit" draggable="false" aria-label="Open Wheel Strength Comparison Tool"></a>
-      <div class="tool-tag">Wheel mechanics</div>
-      <div class="tool-name">Wheel Strength Comparison Tool</div>
-      <p class="tool-desc">Compares 148×12 Boost to 157×12 Super Boost hubs using Matt Ford's academic research on spoke bracing angles and wheel stiffness.</p>
-      <button class="share-btn" type="button" data-path="/wheel-comparison-widget2/" data-title="Wheel Strength Comparison Tool" aria-label="Share Wheel Strength Comparison Tool">
-        <span class="copied-label">Link copied</span>
-        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-      </button>
-    </div>
-
-    <div class="tool-card" data-tool-id="/MTB-inflation/">
-      <a href="/MTB-inflation/" class="card-hit" draggable="false" aria-label="Open MTB Inflation Dashboard"></a>
-      <div class="tool-tag">Economics</div>
-      <div class="tool-name">MTB Inflation Dashboard</div>
-      <p class="tool-desc">Tracks mountain bike price inflation against CPI and other economic metrics, using FRED data across multiple component and complete-bike categories.</p>
-      <button class="share-btn" type="button" data-path="/MTB-inflation/" data-title="MTB Inflation Dashboard" aria-label="Share MTB Inflation Dashboard">
-        <span class="copied-label">Link copied</span>
-        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-      </button>
-    </div>
-
-    <div class="tool-card" data-tool-id="/headwaters-ledger/">
-      <a href="/headwaters-ledger/" class="card-hit" draggable="false" aria-label="Open The Headwaters Ledger"></a>
-      <div class="tool-tag">Water &amp; land</div>
-      <div class="tool-name">The Headwaters Ledger</div>
-      <p class="tool-desc">An interactive map of Rocky Mountain water rights — tracing where the water goes, which states claim it, and the century-old interstate compacts that decide who gets what.</p>
-      <button class="share-btn" type="button" data-path="/headwaters-ledger/" data-title="The Headwaters Ledger" aria-label="Share The Headwaters Ledger">
-        <span class="copied-label">Link copied</span>
-        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-      </button>
-    </div>
-
-    <div class="tool-card" data-tool-id="/singletrack-density/">
-      <a href="/singletrack-density/" class="card-hit" draggable="false" aria-label="Open Singletrack Density"></a>
-      <div class="tool-tag">Trail data</div>
-      <div class="tool-name">Singletrack Density</div>
-      <p class="tool-desc">Compares trail miles per capita across 26 destinations — from Moab to Squamish.</p>
-      <button class="share-btn" type="button" data-path="/singletrack-density/" data-title="Singletrack Density" aria-label="Share Singletrack Density">
-        <span class="copied-label">Link copied</span>
-        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-      </button>
-    </div>
-
-    <div class="tool-card" data-tool-id="/trail-partnership-atlas/">
-      <a href="/trail-partnership-atlas/" class="card-hit" draggable="false" aria-label="Open Trail Partnership Atlas"></a>
-      <div class="tool-tag">Trail advocacy</div>
-      <div class="tool-name">Trail Partnership Atlas</div>
-      <p class="tool-desc">Compares Front Range Colorado towns on nonprofit trail-advocacy partnerships — COMBA, Medicine Wheel, Boulder MBA, and others — making the case that partnership is the regional norm, not the exception.</p>
-      <button class="share-btn" type="button" data-path="/trail-partnership-atlas/" data-title="Trail Partnership Atlas" aria-label="Share Trail Partnership Atlas">
-        <span class="copied-label">Link copied</span>
-        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-      </button>
-    </div>
-
-    <div class="tool-card" data-tool-id="/trail-advocacy-atlas/">
-      <a href="/trail-advocacy-atlas/" class="card-hit" draggable="false" aria-label="Open Trail Advocacy Atlas"></a>
-      <div class="tool-tag">Trail advocacy</div>
-      <div class="tool-name">Trail Advocacy Atlas</div>
-      <p class="tool-desc">A working directory of nonprofit MTB trail advocacy organizations across the US — grouped by state and tiered from national umbrella groups down to local chapters, with directory, map, and chart views.</p>
-      <button class="share-btn" type="button" data-path="/trail-advocacy-atlas/" data-title="Trail Advocacy Atlas" aria-label="Share Trail Advocacy Atlas">
-        <span class="copied-label">Link copied</span>
-        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-      </button>
-    </div>
-
-    <div class="tool-card" data-tool-id="/maintenance/">
-      <a href="/maintenance/" class="card-hit" draggable="false" aria-label="Open MTB Annual Maintenance Cost Calculator"></a>
-      <div class="tool-tag">Cost planning</div>
-      <div class="tool-name">MTB Annual Maintenance Cost Calculator</div>
-      <p class="tool-desc">Annualized cost dials across suspension, drivetrain, and consumables, plus a Ride Worksheet that suggests part replacement based on how you actually ride.</p>
-      <button class="share-btn" type="button" data-path="/maintenance/" data-title="MTB Annual Maintenance Cost Calculator" aria-label="Share MTB Annual Maintenance Cost Calculator">
-        <span class="copied-label">Link copied</span>
-        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-      </button>
-    </div>
-
-    <div class="tool-card" data-tool-id="/mtb-weight-price/">
-      <a href="/mtb-weight-price/" class="card-hit" draggable="false" aria-label="Open Weight vs. Price MTB Scatterplot"></a>
-      <div class="tool-tag">MTB economics</div>
-      <div class="tool-name">Weight vs. Price MTB Scatterplot</div>
-      <p class="tool-desc">XC, Trail, Enduro, DH, and eMTB flagship bikes plotted by price and weight, with a toggleable fit line and lb/kg, USD/CHF unit switching.</p>
-      <button class="share-btn" type="button" data-path="/mtb-weight-price/" data-title="Weight vs. Price MTB Scatterplot" aria-label="Share Weight vs. Price MTB Scatterplot">
-        <span class="copied-label">Link copied</span>
-        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-      </button>
-    </div>
-
-    <div class="tool-card" data-tool-id="/autonomy-paradox/">
-      <a href="/autonomy-paradox/" class="card-hit" draggable="false" aria-label="Open The Rail Automation Paradox"></a>
-      <div class="tool-tag">Transit policy</div>
-      <div class="tool-name">The Rail Automation Paradox</div>
-      <p class="tool-desc">Robotaxis run roughly 500,000 driverless rides a week in the US, yet almost no train does — an interactive look at the automation ladder across the US, Canada, and Switzerland.</p>
-      <button class="share-btn" type="button" data-path="/autonomy-paradox/" data-title="The Rail Automation Paradox" aria-label="Share The Rail Automation Paradox">
-        <span class="copied-label">Link copied</span>
-        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-      </button>
-    </div>
-
-    <div class="tool-card" data-tool-id="/viscosity-ledger/">
-      <a href="/viscosity-ledger/" class="card-hit" draggable="false" aria-label="Open The Viscosity Ledger"></a>
-      <div class="tool-tag">Suspension physics</div>
-      <div class="tool-name">The Viscosity Ledger</div>
-      <p class="tool-desc">Two 10wt fork oils can read identical on the bottle and sit nearly 2× apart at 0 °C. Set a baseline, build two comparison setups, and watch oil choice and heat build reshape the damping curve.</p>
-      <button class="share-btn" type="button" data-path="/viscosity-ledger/" data-title="The Viscosity Ledger" aria-label="Share The Viscosity Ledger">
-        <span class="copied-label">Link copied</span>
-        <span class="ico ico-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-        <span class="ico ico-check" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-      </button>
-    </div>
-
-  </div>
+    // One assignment rather than 21 appends: the grid is built off-screen
+    // and swapped in once, so the browser only lays out the section once.
+    grid.innerHTML = window.PMR_TOOLS.map(cardHTML).join('');
+  }());
+  </script>
 
   <div class="grid-reset-row">
     <button type="button" id="grid-reset-btn" class="grid-reset-btn">Reset tool order</button>
@@ -1412,37 +1397,28 @@
 </footer>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     THEME SCRIPT — auto-loads by day of week, cycles on click
-     Mon-Tue: Day  |  Wed-Thu: Spring  |  Fri-Sat: Autumn  |  Sun: Winter
-     2049 is manual-only — not tied to a day, just an extra stop in
-     the click-cycle (it's a mood, not a Colorado lighting condition).
+     THEME BUTTON  —  wiring only
+
+     All the theme LOGIC (the theme list, the day-of-week map, saving
+     a choice) lives in the PMR_THEME bootstrap at the end of <head>,
+     because it has to run before the page paints. This block only
+     connects the nav button to it, so it can safely sit down here
+     with the rest of the scripts.
 ═══════════════════════════════════════════════════════════════ -->
 <script>
 (function () {
-  var THEMES = ['day', 'spring', 'autumn', 'winter', '2049'];
-  var LABELS = { day:'Day', spring:'Spring', autumn:'Autumn', winter:'Winter', '2049':'2049' };
-
-  // 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat
-  var DAY_MAP = { 0:'winter', 1:'day', 2:'day', 3:'spring', 4:'spring', 5:'autumn', 6:'autumn' };
+  var T = window.PMR_THEME;
+  if (!T) return; // bootstrap missing or blocked — leave the button inert
 
   var btn   = document.getElementById('theme-btn');
   var label = document.getElementById('theme-label');
-  var root  = document.documentElement;
+  if (!btn || !label) return;
 
-  function setTheme(t) {
-    root.setAttribute('data-theme', t);
-    label.textContent = LABELS[t];
-  }
+  // The bootstrap already set data-theme, but the label element didn't
+  // exist yet at that point. Sync it now.
+  label.textContent = T.LABELS[T.current()];
 
-  // Auto-load today's theme on arrival
-  setTheme(DAY_MAP[new Date().getDay()]);
-
-  // Manual cycle through all four on click
-  btn.addEventListener('click', function () {
-    var cur = root.getAttribute('data-theme');
-    var idx = THEMES.indexOf(cur);
-    setTheme(THEMES[(idx + 1) % THEMES.length]);
-  });
+  btn.addEventListener('click', T.cycle);
 }());
 </script>
 
@@ -1510,8 +1486,28 @@
   // Panel count is read from the DOM, so adding a 4th/5th panel needs
   // no change here — just add the panel markup and a matching dot.
   var panels = document.querySelectorAll('.preview-panel');
-  var dots = document.querySelectorAll('.preview-dot');
   var wheelHeadlines = document.querySelectorAll('.wheel-h');
+
+  // Build one dot per panel. This used to be hand-written markup that
+  // had to be kept in step with the panels by hand — add a panel and
+  // forget the dot, and you got a slide nobody could navigate to, with
+  // nothing to warn you. Now the two cannot disagree.
+  //
+  // Each panel's aria-label reads "Open <Tool Name>", so the tool name
+  // is already there to reuse for the dot's label.
+  var dotsWrap = document.querySelector('.preview-dots');
+  if (dotsWrap) {
+    dotsWrap.innerHTML = '';
+    panels.forEach(function (panel, idx) {
+      var toolName = (panel.getAttribute('aria-label') || '').replace(/^Open /, '');
+      var dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'preview-dot' + (idx === 0 ? ' active' : '');
+      dot.setAttribute('aria-label', 'Show ' + toolName + ' preview');
+      dotsWrap.appendChild(dot);
+    });
+  }
+  var dots = document.querySelectorAll('.preview-dot');
   var current = 0;
   var timer = null;
   var AUTO_MS = 6000;
@@ -1521,7 +1517,9 @@
     // Wheel panel rotates through its three headlines on each visit
     if (i === 0 && i !== current) {
       wheelVisits++;
-      var activeHeadline = wheelVisits % 3;
+      // Modulo the actual number of headlines, not a hard-coded 3 —
+      // add a fourth .wheel-h span and it joins the rotation on its own.
+      var activeHeadline = wheelVisits % wheelHeadlines.length;
       wheelHeadlines.forEach(function (h, idx) { h.classList.toggle('active', idx === activeHeadline); });
     }
     panels.forEach(function (p, idx) { p.classList.toggle('active', idx === i); });
