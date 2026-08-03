@@ -120,12 +120,31 @@
     overflow: hidden; position: relative;
   }
   .plate-art svg { width: 66%; height: auto; }
+  /* Both views of a sticker sit in the same square, stacked. Only the
+     one carrying .on is visible; swapping that class crossfades them. */
   .plate-art img {
     position: absolute; top: 8%; left: 10%;
     width: 80%; height: 84%;
     object-fit: contain;
     filter: drop-shadow(0 3px 5px rgba(27,42,68,0.22));
+    opacity: 0; transition: opacity 900ms ease-in-out;
   }
+  .plate-art img.on { opacity: 1; }
+  .plate-art.zoomable { cursor: zoom-in; }
+  .plate-art.zoomable:focus-visible { outline: 2px solid var(--rubric); outline-offset: 3px; }
+
+  /* Dots below the artwork: one per view. Absent when there is only one. */
+  .art-dots {
+    position: absolute; left: 0; right: 0; bottom: 6px; z-index: 2;
+    display: flex; justify-content: center; gap: 7px;
+  }
+  .art-dot {
+    width: 8px; height: 8px; padding: 0; border-radius: 50%;
+    background: transparent; border: 1px solid var(--ink-soft);
+    cursor: pointer; transition: background 0.25s, border-color 0.25s;
+  }
+  .art-dot.on { background: var(--rubric); border-color: var(--rubric); }
+  .art-dot:focus-visible { outline: 2px solid var(--rubric); outline-offset: 2px; }
   .plate-name {
     font-family: 'IM Fell English', serif; font-size: 1.45rem; font-weight: 400;
     line-height: 1.15; margin-bottom: 0.35rem;
@@ -191,9 +210,79 @@
   }
   footer a { color: var(--ink-soft); }
 
+  /* ═══ Plates not yet released ═══
+     Dashed rules and muted lettering, so an empty plate reads as
+     "not printed yet" rather than as artwork that failed to load. */
+  .plate.awaiting { border-style: dashed; }
+  .plate.awaiting .plate-art { border-style: dashed; }
+  .plate.awaiting .plate-no,
+  .plate.awaiting .plate-name { color: var(--ink-soft); }
+
+  /* ═══ Enlarged view ═══ */
+  .lightbox {
+    position: fixed; inset: 0; z-index: 60; display: none;
+    align-items: center; justify-content: center;
+    padding: 1.25rem; background: rgba(14,22,37,0.92);
+  }
+  .lightbox.open { display: flex; }
+  .lb-stage {
+    width: min(880px, 100%); display: flex; flex-direction: column;
+    align-items: center; gap: 0.85rem;
+  }
+  .lb-frame {
+    position: relative; width: 100%;
+    display: flex; align-items: center; justify-content: center;
+    padding: 1.6rem; background: var(--paper); border: 1px solid var(--ink);
+    box-shadow: inset 0 0 0 4px var(--paper), inset 0 0 0 5px var(--ink-soft),
+                0 20px 50px rgba(0,0,0,0.45);
+  }
+  .lb-frame img {
+    max-width: 100%; max-height: min(64vh, 600px); object-fit: contain;
+    filter: drop-shadow(0 5px 10px rgba(27,42,68,0.22));
+  }
+  .lb-nav {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(237,238,230,0.94); color: var(--ink);
+    border: 1px solid var(--ink); cursor: pointer;
+    font-family: 'IM Fell English', serif; font-size: 1.7rem; line-height: 1;
+    padding-bottom: 4px; transition: background 0.2s, color 0.2s;
+  }
+  .lb-nav:hover { background: var(--rubric); color: var(--paper); border-color: var(--rubric); }
+  .lb-nav[hidden] { display: none; }
+  .lb-prev { left: 10px; }
+  .lb-next { right: 10px; }
+  .lb-cap {
+    font-family: 'IM Fell English', serif; font-size: 1.35rem;
+    color: var(--paper); text-align: center;
+  }
+  .lb-count {
+    font-family: 'IM Fell English SC', serif; font-size: 0.72rem;
+    letter-spacing: 0.26em; color: #B9C0B2;
+  }
+  .lb-close {
+    position: absolute; top: 1rem; right: 1.1rem;
+    width: 40px; height: 40px; border-radius: 50%;
+    background: transparent; color: var(--paper);
+    border: 1px solid rgba(237,238,230,0.55); cursor: pointer;
+    font-size: 1.15rem; line-height: 1; transition: background 0.2s, color 0.2s;
+  }
+  .lb-close:hover { background: var(--paper); color: var(--ink); }
+  body.lb-open { overflow: hidden; }
+
   @media (max-width: 640px) {
     .plates { gap: 1.6rem; }
     body { font-size: 16px; }
+    .lb-frame { padding: 1rem; }
+    .lb-nav { width: 38px; height: 38px; font-size: 1.4rem; }
+    .lb-prev { left: 4px; } .lb-next { right: 4px; }
+  }
+
+  /* Readers who ask their system for less motion get no crossfade and
+     no automatic changes; the dots and arrows still work. */
+  @media (prefers-reduced-motion: reduce) {
+    .plate-art img { transition: none; }
   }
 </style>
 </head>
@@ -240,7 +329,18 @@
          alt     Alt text for the artwork. Describe the sticker, not
                  the fact that it is a sticker.
          img     Filename in this folder. Use EITHER img or svg.
+         img2    OPTIONAL second photograph, e.g. "sticker-1a.png".
+                 When present the plate crossfades between the two and
+                 the enlarged view gets left/right arrows. Leave it out
+                 entirely for stickers with only one photograph — the
+                 dots and arrows then don't appear at all.
+         img3    A third view, if you ever want one. Same rules.
          svg     Inline SVG markup, for plates with no photograph yet.
+                 Omit it AND img on an unreleased plate and you get the
+                 house "artwork in preparation" engraving for free.
+         awaiting  true for a plate that isn't printed yet. Dashes the
+                 rules and mutes the lettering so a blank plate reads
+                 as forthcoming rather than as a broken image.
          desc    One short line. Keep dimensions OUT of this — they
                  have their own field so they format consistently.
          size    e.g. "3.5″ × 2.34″". Use ″ (double prime) for inches,
@@ -262,6 +362,7 @@
     { name: "Philip S Miller a.k.a. The Mac",
       alt:  "The Mac — Philip S. Miller Park emblem",
       img:  "sticker-1.png",
+      img2: "sticker-1a.png",
       desc: "Castle Rock's crown jewel.",
       size: "3.5″ × 2.34″",
       price: 5,
@@ -270,6 +371,7 @@
     { name: "The Ridgeline Open Space",
       alt:  "The Ridgeline Open Space wordmark",
       img:  "sticker-2.png",
+      img2: "sticker-2a.png",
       desc: "Ridgeline Open Space — Castle Rock, Colorado.",
       size: "5″ × 1″",
       price: 5,
@@ -278,6 +380,7 @@
     { name: "The Castle Keep",
       alt:  "The Castle Keep sticker",
       img:  "sticker-3.png",
+      img2: "sticker-3a.png",
       desc: "The Block is Hot — deters bike and bike-rack theft.",
       size: "1″ × 2.27″",
       price: 4,
@@ -286,6 +389,7 @@
     { name: "The Singletrack",
       alt:  "The Singletrack sticker, white lettering",
       img:  "sticker-4.png",
+      img2: "sticker-4a.png",
       desc: "High-quality transfer sticker, white text.",
       size: "2″ × 1.58″",
       price: 4,
@@ -294,10 +398,46 @@
     { name: "The Machine",
       alt:  "The Machine sticker, woodgrain finish",
       img:  "sticker-5.png",
+      img2: "sticker-5a.png",
       desc: "Woodgrain, high-quality vinyl.",
       size: "3″ × 2.22″",
       price: 5,
       stripe: "https://buy.stripe.com/eVq28qdND47paMocZW48004" },
+
+    // ─── FORTHCOMING ───────────────────────────────────────────
+    // Five blanks held open for the next run. To bring one to market:
+    //   1. add   img:  "sticker-6.png",   (and img2 if there are two)
+    //   2. add   size: "3″ × 2″",
+    //   3. add   price: 5,
+    //   4. add   stripe: "https://buy.stripe.com/…",
+    //   5. delete the  awaiting: true  line
+    //   6. replace the name and desc with the real ones
+    // Nothing else needs touching — the numbering, the button and the
+    // arrows all follow from those fields.
+    { name: "Design the Sixth",
+      alt:  "Artwork in preparation",
+      desc: "Presently at the press.",
+      size: null, price: null, stripe: null, awaiting: true },
+
+    { name: "Design the Seventh",
+      alt:  "Artwork in preparation",
+      desc: "Presently at the press.",
+      size: null, price: null, stripe: null, awaiting: true },
+
+    { name: "Design the Eighth",
+      alt:  "Artwork in preparation",
+      desc: "Drawn, not yet cut.",
+      size: null, price: null, stripe: null, awaiting: true },
+
+    { name: "Design the Ninth",
+      alt:  "Artwork in preparation",
+      desc: "Drawn, not yet cut.",
+      size: null, price: null, stripe: null, awaiting: true },
+
+    { name: "Design the Tenth",
+      alt:  "Artwork in preparation",
+      desc: "Announced here when ready.",
+      size: null, price: null, stripe: null, awaiting: true },
 
     // Placeholder artwork and no price yet — both handled by the
     // renderer, so this entry needs no special markup of its own.
@@ -320,9 +460,24 @@
       folio: true }
   ];
 
-  (function () {
+  // Runs once the page is parsed — the enlarged-view markup sits at
+  // the foot of the document and must exist before it can be wired up.
+  function buildCatalogue() {
     var wrap = document.getElementById('plates');
     if (!wrap || !window.PMR_STICKERS) return;
+
+    /* ─── Behaviour you may want to change ───────────────────────
+       AUTO_FLIP     false stops the plates turning over by themselves.
+                     The dots and the enlarged view still work.
+       FLIP_HOLD     milliseconds each photograph is held on screen.
+       FLIP_STAGGER  offset between neighbouring plates, so they don't
+                     all turn over on the same beat.                  */
+    var AUTO_FLIP    = true;
+    var FLIP_HOLD    = 5000;
+    var FLIP_STAGGER = 1100;
+
+    var wantsStillness = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     // Plate numbers are printed as Roman numerals to match the
     // catalogue conceit. Subtractive pairs (IV, IX, XL...) are listed
@@ -353,6 +508,25 @@
              '<span class="amt">' + value + '</span></div>';
     }
 
+    // The house engraving, used for any plate that has neither a
+    // photograph nor an SVG of its own. Saves repeating markup across
+    // the five blanks held open at the end of the list.
+    var IN_PREPARATION =
+      '<svg viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg" role="img" ' +
+           'aria-label="Artwork in preparation">' +
+        '<g stroke="#A0761F" fill="none" stroke-width="1.5">' +
+          '<rect x="27" y="17" width="66" height="45"/>' +
+          '<path d="M27 54 L46 37 L59 49 L73 33 L93 54"/>' +
+          '<circle cx="79" cy="28" r="5"/>' +
+        '</g>' +
+        '<text x="60" y="82" text-anchor="middle" font-family="serif" ' +
+              'font-style="italic" font-size="9" fill="#48566C">artwork in preparation</text>' +
+      '</svg>';
+
+    // Every gallery on the page, in render order. The enlarged view
+    // reads from here rather than from the DOM.
+    var galleries = [];
+
     // Counts only the numbered plates, so the Folio doesn't consume a
     // numeral and the sequence stays unbroken if it moves or goes away.
     var plateNo = 0;
@@ -360,9 +534,39 @@
     function plateHTML(item) {
       var heading = item.folio ? 'The Complete Folio' : 'Plate ' + roman(++plateNo);
 
-      var art = item.svg
-        ? item.svg
-        : '<img src="' + esc(item.img) + '" alt="' + esc(item.alt || item.name) + '" loading="lazy">';
+      // One, two or three photographs, in that order, skipping blanks.
+      var views = ['img', 'img2', 'img3'].filter(function (key) {
+        return item[key];
+      }).map(function (key) { return item[key]; });
+
+      var art, artAttrs = '';
+
+      if (views.length) {
+        var g = galleries.length;
+        galleries.push({ name: item.name, alt: item.alt || item.name, views: views });
+
+        // The first view carries .on; the rest wait at opacity 0.
+        art = views.map(function (src, n) {
+          var label = esc(item.alt || item.name) + (n ? ' — alternate view' : '');
+          return '<img src="' + esc(src) + '" alt="' + label + '"' +
+                 (n ? '' : ' class="on"') + ' loading="lazy">';
+        }).join('');
+
+        if (views.length > 1) {
+          art += '<div class="art-dots">' + views.map(function (src, n) {
+            return '<button type="button" class="art-dot' + (n ? '' : ' on') + '" ' +
+                   'data-view="' + n + '" aria-label="View ' + (n + 1) +
+                   ' of ' + views.length + '"></button>';
+          }).join('') + '</div>';
+        }
+
+        artAttrs = ' class="plate-art zoomable" role="button" tabindex="0"' +
+                   ' data-gallery="' + g + '" data-view="0"' +
+                   ' aria-label="Enlarge ' + esc(item.name) + '"';
+      } else {
+        art = item.svg || IN_PREPARATION;
+        artAttrs = ' class="plate-art"';
+      }
 
       var desc = esc(item.desc) +
         (item.size ? ' <span class="plate-size">' + esc(item.size) + '</span>' : '');
@@ -377,9 +581,12 @@
         ? '<a href="' + esc(item.stripe) + '" class="buy-btn">Purchase</a>'
         : '<span class="buy-btn soon" aria-disabled="true">Coming Soon</span>';
 
-      return '<article class="plate' + (item.folio ? ' folio' : '') + '">' +
+      var cls = 'plate' + (item.folio ? ' folio' : '') +
+                          (item.awaiting ? ' awaiting' : '');
+
+      return '<article class="' + cls + '">' +
                '<div class="plate-no">' + heading + '</div>' +
-               '<div class="plate-art">' + art + '</div>' +
+               '<div' + artAttrs + '>' + art + '</div>' +
                '<h2 class="plate-name">' + esc(item.name) + '</h2>' +
                '<p class="plate-desc">' + desc + '</p>' +
                rows + button +
@@ -387,7 +594,186 @@
     }
 
     wrap.innerHTML = window.PMR_STICKERS.map(plateHTML).join('');
-  }());
+
+    /* ═══════════════════════════════════════════════════════════
+       TURNING THE PLATES
+       Each plate with more than one photograph keeps its current
+       view in data-view. Changing that swaps which image carries
+       the .on class; the CSS transition does the crossfade.
+       ═══════════════════════════════════════════════════════════ */
+
+    var arts = [].slice.call(wrap.querySelectorAll('.plate-art.zoomable'));
+
+    function showView(art, n) {
+      var imgs = art.querySelectorAll('img'),
+          dots = art.querySelectorAll('.art-dot'),
+          i;
+      n = (n + imgs.length) % imgs.length;
+      for (i = 0; i < imgs.length; i++) imgs[i].classList.toggle('on', i === n);
+      for (i = 0; i < dots.length; i++) dots[i].classList.toggle('on', i === n);
+      art.dataset.view = n;
+      return n;
+    }
+
+    arts.forEach(function (art) {
+      // A dot picks its own view and must not also open the enlarged
+      // view, so its click stops here.
+      art.addEventListener('click', function (e) {
+        var dot = e.target.closest ? e.target.closest('.art-dot') : null;
+        if (dot) {
+          e.stopPropagation();
+          showView(art, +dot.dataset.view);
+          art.dataset.hold = '1';   // a deliberate choice isn't overridden
+          return;
+        }
+        openLightbox(+art.dataset.gallery, +art.dataset.view);
+      });
+
+      art.addEventListener('keydown', function (e) {
+        if (e.target !== art) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openLightbox(+art.dataset.gallery, +art.dataset.view);
+        }
+      });
+
+      // Hovering or tabbing into a plate holds it still, so it never
+      // changes out from under someone who is looking at it.
+      art.addEventListener('mouseenter', function () { art.dataset.hold = '1'; });
+      art.addEventListener('mouseleave', function () { art.dataset.hold = ''; });
+      art.addEventListener('focusin',    function () { art.dataset.hold = '1'; });
+      art.addEventListener('focusout',   function () { art.dataset.hold = ''; });
+    });
+
+    // If a second photograph hasn't been uploaded yet, drop it quietly
+    // — no broken-image icon, no dead dot, no empty arrow. The plate
+    // simply behaves as a one-view plate until the file appears.
+    function dropView(art, img) {
+      var imgs = [].slice.call(art.querySelectorAll('img')),
+          n = imgs.indexOf(img),
+          gallery = galleries[+art.dataset.gallery];
+      if (imgs.length < 2 || n < 0) return;
+
+      var dots = art.querySelectorAll('.art-dot');
+      if (dots[n]) dots[n].parentNode.removeChild(dots[n]);
+      img.parentNode.removeChild(img);
+      gallery.views.splice(n, 1);
+
+      var left = [].slice.call(art.querySelectorAll('.art-dot'));
+      if (left.length < 2) {
+        var tray = art.querySelector('.art-dots');
+        if (tray) tray.parentNode.removeChild(tray);
+      } else {
+        left.forEach(function (d, i) {
+          d.dataset.view = i;
+          d.setAttribute('aria-label', 'View ' + (i + 1) + ' of ' + left.length);
+        });
+      }
+      showView(art, 0);
+    }
+
+    arts.forEach(function (art) {
+      [].slice.call(art.querySelectorAll('img')).forEach(function (img) {
+        if (img.complete && img.naturalWidth === 0) { dropView(art, img); return; }
+        img.addEventListener('error', function () { dropView(art, img); });
+      });
+    });
+
+    if (AUTO_FLIP && !wantsStillness) {
+      arts.filter(function (art) {
+        return art.querySelectorAll('img').length > 1;
+      }).forEach(function (art, n) {
+        setTimeout(function () {
+          setInterval(function () {
+            if (art.dataset.hold || document.body.classList.contains('lb-open')) return;
+            showView(art, +art.dataset.view + 1);
+          }, FLIP_HOLD);
+        }, n * FLIP_STAGGER);
+      });
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       THE ENLARGED VIEW
+       ═══════════════════════════════════════════════════════════ */
+
+    var box     = document.getElementById('lightbox'),
+        lbImg   = document.getElementById('lb-img'),
+        lbCap   = document.getElementById('lb-cap'),
+        lbCount = document.getElementById('lb-count'),
+        lbPrev  = document.getElementById('lb-prev'),
+        lbNext  = document.getElementById('lb-next'),
+        lbClose = document.getElementById('lb-close');
+
+    var current = null, at = 0, returnFocusTo = null;
+
+    function paint() {
+      var solo = current.views.length < 2;
+      lbImg.src = current.views[at];
+      lbImg.alt = current.alt + (at ? ' — alternate view' : '');
+      lbCap.textContent = current.name;
+      lbCount.textContent = solo ? '' : (at + 1) + ' of ' + current.views.length;
+      lbPrev.hidden = solo;
+      lbNext.hidden = solo;
+    }
+
+    function openLightbox(g, view) {
+      current = galleries[g];
+      if (!current) return;
+      at = view || 0;
+      returnFocusTo = document.activeElement;
+      paint();
+      box.classList.add('open');
+      document.body.classList.add('lb-open');
+      lbClose.focus();
+    }
+
+    function closeLightbox() {
+      box.classList.remove('open');
+      document.body.classList.remove('lb-open');
+      current = null;
+      if (returnFocusTo && returnFocusTo.focus) returnFocusTo.focus();
+    }
+
+    function stepLightbox(dir) {
+      if (!current || current.views.length < 2) return;
+      at = (at + dir + current.views.length) % current.views.length;
+      paint();
+    }
+
+    lbPrev.addEventListener('click', function () { stepLightbox(-1); });
+    lbNext.addEventListener('click', function () { stepLightbox(1); });
+    lbClose.addEventListener('click', closeLightbox);
+
+    // Clicking the surround closes; clicking the artwork itself does not.
+    box.addEventListener('click', function (e) {
+      if (e.target === box || e.target.classList.contains('lb-stage')) closeLightbox();
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (!box.classList.contains('open')) return;
+      if (e.key === 'Escape')     { closeLightbox(); }
+      if (e.key === 'ArrowLeft')  { stepLightbox(-1); }
+      if (e.key === 'ArrowRight') { stepLightbox(1); }
+    });
+
+    // A horizontal drag on a touch screen turns to the next view.
+    var swipeFrom = null;
+    box.addEventListener('touchstart', function (e) {
+      swipeFrom = e.changedTouches[0].clientX;
+    }, { passive: true });
+    box.addEventListener('touchend', function (e) {
+      if (swipeFrom === null) return;
+      var travelled = e.changedTouches[0].clientX - swipeFrom;
+      if (Math.abs(travelled) > 45) stepLightbox(travelled < 0 ? 1 : -1);
+      swipeFrom = null;
+    }, { passive: true });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', buildCatalogue);
+  } else {
+    buildCatalogue();
+  }
   </script>
 
   <div class="divider"><hr><span>❦</span><hr></div>
@@ -407,6 +793,20 @@
   <hr class="rule-double">
   <p><a href="https://www.postmillenniumrenaissance.com/">postmillenniumrenaissance.com</a> · Finis</p>
 </footer>
+
+<!-- ═══ Enlarged view — filled in and shown by the script above ═══ -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Sticker artwork, enlarged">
+  <button type="button" class="lb-close" id="lb-close" aria-label="Close">&#10005;</button>
+  <div class="lb-stage">
+    <div class="lb-frame">
+      <button type="button" class="lb-nav lb-prev" id="lb-prev" aria-label="Previous view">&#8249;</button>
+      <img id="lb-img" src="" alt="">
+      <button type="button" class="lb-nav lb-next" id="lb-next" aria-label="Next view">&#8250;</button>
+    </div>
+    <div class="lb-cap" id="lb-cap"></div>
+    <div class="lb-count" id="lb-count"></div>
+  </div>
+</div>
 
 </body>
 </html>
