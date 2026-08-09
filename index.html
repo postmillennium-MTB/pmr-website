@@ -511,11 +511,19 @@
     color: var(--accent); text-transform: uppercase; white-space: nowrap;
     flex-shrink: 0; transition: color 0.5s ease;
   }
+  /* Same Helvetica Neue / hollow-outline treatment as the hero title
+     (.hero-title .line2), just sized down — a section title, not the
+     hero. Only --accent varies per theme; font, weight and tracking
+     are identical everywhere. */
   .section-title {
-    font-family: var(--ff-serif); font-style: italic;
-    font-size: 1.875rem; font-weight: 400;
-    letter-spacing: -0.01em; line-height: 1.15; color: var(--text);
-    transition: color 0.5s ease;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-style: normal; font-weight: 200;
+    font-size: 1.5rem;
+    letter-spacing: -0.02em; text-transform: uppercase;
+    line-height: 1.15;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--accent);
+    transition: -webkit-text-stroke-color 0.5s ease;
   }
 
   /* ═══════════════════════════════════════════════════════════════
@@ -683,7 +691,18 @@
     max-width: 1200px; margin: 0 auto; padding: 2rem 2.5rem;
     display: flex; justify-content: space-between; align-items: center;
   }
-  .footer-brand { font-family: var(--ff-serif); font-style: italic; font-size: 1rem; }
+  /* Same Helvetica Neue / hollow-outline treatment as the hero title
+     and section titles, sized down further still — smallest instance
+     of the mark on the page. */
+  .footer-brand {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-style: normal; font-weight: 200;
+    font-size: 0.95rem;
+    letter-spacing: -0.02em; text-transform: uppercase;
+    color: transparent;
+    -webkit-text-stroke: 0.6px var(--accent);
+    transition: -webkit-text-stroke-color 0.5s ease;
+  }
   .footer-meta {
     font-family: var(--ff-mono); font-size: 0.66rem; color: var(--text-muted);
     letter-spacing: 0.1em; transition: color 0.5s ease;
