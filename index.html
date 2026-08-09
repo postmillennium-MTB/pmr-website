@@ -747,6 +747,12 @@
       width: calc(100% + 2.5rem); margin: 2.5rem -1.25rem 0;
       max-width: none;
     }
+    /* The right-edge fade only makes sense while the painting overlaps
+       the copy on wider layouts. Below this breakpoint the painting is
+       a full-bleed block of its own, so the fade's fixed 80px band lands
+       mid-image instead of at a real edge — a stray vertical seam across
+       the picture. Just hide it here. */
+    .hero-edge { display: none; }
     section { padding: 3.5rem 1.25rem; }
     #preview { padding-top: 1.5rem; }
     .section-header { flex-direction: column; gap: 0.4rem; }
