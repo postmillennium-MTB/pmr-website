@@ -273,6 +273,16 @@
     box-shadow: 0 8px 40px rgba(0,0,0,0.22);
     animation: paintFadeIn 1.2s ease forwards;
     transition: box-shadow 0.5s ease;
+    /* Right-edge fade so the painting doesn't hard-clip against the
+       copy. This used to be a separate ".hero-edge" div layered on top
+       of just the <img> — but the box-shadow above lives on THIS
+       element and blooms past that overlay's fade zone untouched,
+       leaving a visible ghost of the shadow's rectangle floating past
+       where the picture itself had already faded away. Masking the
+       whole element (image + shadow together) fades both in lockstep,
+       so there's nothing left to go out of alignment. */
+    -webkit-mask-image: linear-gradient(to left, transparent 0, #000 140px);
+    mask-image: linear-gradient(to left, transparent 0, #000 140px);
   }
   [data-theme="winter"] .painting-outer {
     box-shadow: 0 8px 50px rgba(0,0,0,0.55);
@@ -290,14 +300,6 @@
     display: block; width: 100%; height: auto;
     filter: var(--paint-filter);
     transition: filter 0.6s ease;
-  }
-
-  /* Subtle right-edge fade so painting doesn't hard-clip on small screens */
-  .hero-edge {
-    position: absolute; right: 0; top: 0; bottom: 0; width: 80px;
-    pointer-events: none;
-    background: linear-gradient(to left, var(--bg), transparent);
-    transition: background 0.5s ease;
   }
 
   /* ── Hero copy ───────────────────────────────────────────────── */
@@ -765,13 +767,14 @@
       position: relative; right: auto; top: auto; transform: none;
       width: calc(100% + 2.5rem); margin: 2.5rem -1.25rem 0;
       max-width: none;
+      /* The right-edge mask only makes sense while the painting overlaps
+         the copy on wider layouts. Below this breakpoint the painting is
+         a full-bleed block of its own, so clear it — the fixed 140px
+         fade zone would otherwise land mid-image instead of at a real
+         edge. */
+      -webkit-mask-image: none;
+      mask-image: none;
     }
-    /* The right-edge fade only makes sense while the painting overlaps
-       the copy on wider layouts. Below this breakpoint the painting is
-       a full-bleed block of its own, so the fade's fixed 80px band lands
-       mid-image instead of at a real edge — a stray vertical seam across
-       the picture. Just hide it here. */
-    .hero-edge { display: none; }
     section { padding: 3.5rem 1.25rem; }
     #preview { padding-top: 1.5rem; }
     .section-header { flex-direction: column; gap: 0.4rem; }
@@ -970,7 +973,6 @@
              width="1376" height="768" fetchpriority="high" decoding="async">
       </picture>
     </div>
-    <div class="hero-edge"></div>
 
     <!-- ── Copy ── -->
     <div class="hero-copy">
