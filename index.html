@@ -146,31 +146,6 @@
     [data-theme="2049"] body::before { animation: none !important; }
   }
 
-  /* Hero title, 2049 only — matches the mockup: system Helvetica Neue,
-     ultra-light weight, uppercase, tight tracking, second line hollow
-     with an amber outline instead of a fill. Line 1 is sized up quite
-     a bit from its normal small "eyebrow-over-title" scale, because a
-     weight-200 face at the site's normal small size reads as barely
-     visible hairlines — this face needs real size to hold together. */
-  [data-theme="2049"] .hero-title .line1 {
-    font-family: "Helvetica Neue", Arial, sans-serif;
-    font-weight: 200;
-    font-size: clamp(2rem, 5.4vw, 4.6rem);
-    letter-spacing: -0.02em;
-    text-transform: uppercase;
-    color: var(--text);
-  }
-  [data-theme="2049"] .hero-title .line2 {
-    font-family: "Helvetica Neue", Arial, sans-serif;
-    font-style: normal;
-    font-weight: 200;
-    font-size: clamp(2.4rem, 6.6vw, 5.8rem);
-    letter-spacing: -0.02em;
-    text-transform: uppercase;
-    color: transparent;
-    -webkit-text-stroke: 1px var(--accent);
-  }
-
   /* ═══════════════════════════════════════════════════════════════
      BASE
   ═══════════════════════════════════════════════════════════════ */
@@ -339,12 +314,21 @@
     margin-bottom: 2rem;
     opacity: 0; animation: slideUp 0.7s ease forwards 0.38s;
   }
+  /* Hero title — same Helvetica Neue / hollow-outline treatment across
+     every theme (day, spring, autumn, winter, 2049): ultra-light weight,
+     uppercase, tight tracking, second line hollow with an accent-colored
+     outline instead of a fill. Only --text/--accent change per theme;
+     font, weight and tracking stay identical everywhere. Line 1 is sized
+     up quite a bit from a normal small "eyebrow-over-title" scale,
+     because a weight-200 face at the site's normal small size reads as
+     barely visible hairlines — this face needs real size to hold
+     together. */
   .hero-title .line1 {
     display: block;
-    font-family: var(--ff-sans);
-    font-weight: 700;
-    font-size: clamp(1.4rem, 3.5vw, 2.4rem);
-    letter-spacing: 0.16em;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-weight: 200;
+    font-size: clamp(2rem, 5.4vw, 4.6rem);
+    letter-spacing: -0.02em;
     text-transform: uppercase;
     color: var(--text);
     line-height: 1;
@@ -353,14 +337,16 @@
   }
   .hero-title .line2 {
     display: block;
-    font-family: var(--ff-serif);
-    font-style: italic;
-    font-weight: 400;
-    font-size: clamp(3.2rem, 7.5vw, 6.5rem);
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-style: normal;
+    font-weight: 200;
+    font-size: clamp(2.4rem, 6.6vw, 5.8rem);
     line-height: 0.9;
-    color: var(--text);
-    letter-spacing: -0.01em;
-    transition: color 0.5s ease;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--accent);
+    transition: -webkit-text-stroke-color 0.5s ease;
   }
 
   .hero-desc {
