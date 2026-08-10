@@ -376,125 +376,226 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════
-     PREVIEW STRIP  —  "See them in action" rotating tool showcase
+     PLATES  —  "See them in action", three live instruments
+
+     Replaces the rotating screenshot strip that used to live here.
+     The strip showed three stills of interactive tools on a six-second
+     timer, inside one bordered box, using the same 1fr/1fr grid for
+     all three — so three different ideas arrived in one shape and
+     nothing was ever actually demonstrated.
+
+     Each plate now gets its own axis, chosen from what the tool
+     measures:  Plate I is radial (a wheel), Plate II is horizontal
+     (time), Plate III is depth (an archive). Nothing auto-advances;
+     the visitor drives every one of them.
   ═══════════════════════════════════════════════════════════════ */
-  #preview { padding-top: 2rem; }
+  #preview { padding-top: 2rem; padding-bottom: 0; }
   #preview .section-header { padding-top: 0.75rem; }
 
-  .preview-strip { background: var(--bg-card); border: 1px solid var(--bg-rule); }
-  /* min-height has to clear the tallest panel, since panels are
-     absolutely stacked. The 5:4 frame in a ~500px column is ~400px
-     tall, + 2.5rem padding top and bottom. */
-  .preview-panels { position: relative; min-height: 495px; }
-  .preview-panel {
-    position: absolute; inset: 0;
-    display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: center;
-    padding: 2.5rem; text-decoration: none; color: inherit;
-
-    /* Three things are needed to hide an inactive panel, and they do
-       different jobs — dropping any one leaves a real problem:
-         opacity        makes it invisible, but it is still "there"
-         pointer-events stops the mouse reaching it
-         visibility     takes it out of the tab order AND out of the
-                        screen-reader tree
-       Without visibility, a keyboard visitor tabs into two links they
-       cannot see, and a screen reader announces all three tool panels
-       at once as though they were all on screen. */
-    opacity: 0; pointer-events: none; visibility: hidden;
-
-    /* visibility can't tween, so it is stepped instead: delayed by the
-       length of the fade on the way out (stay visible while fading),
-       and applied instantly on the way in. Hence the 0.5s delay here
-       and the 0s delay on .active below — the two must match the fade
-       duration or the panel will vanish partway through it. */
-    transition: opacity 0.5s ease, visibility 0s linear 0.5s;
+  .plate { padding-top: 1.5rem; padding-bottom: 4rem; position: relative; }
+  .plate-tag {
+    font-family: var(--ff-mono); font-size: 0.62rem; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--accent);
+    display: block; margin-bottom: 0.9rem; transition: color 0.5s ease;
   }
-  .preview-panel.active {
-    opacity: 1; pointer-events: auto; visibility: visible;
-    transition: opacity 0.5s ease, visibility 0s linear 0s;
-  }
-
-  .preview-headline {
-    font-family: var(--ff-serif); font-style: italic; font-size: 1.4rem;
-    line-height: 1.3; color: var(--text); margin-bottom: 0.75rem;
+  .plate-h {
+    font-family: var(--ff-serif); font-style: italic;
+    font-size: clamp(1.45rem, 3.1vw, 2.15rem); line-height: 1.25;
+    color: var(--text); margin-bottom: 0.8rem; max-width: 22ch;
     transition: color 0.5s ease;
   }
-  .wheel-headline-wrap { position: relative; min-height: 3.8rem; margin-bottom: 0.75rem; }
-  .wheel-headline-wrap .preview-headline {
-    position: absolute; inset: 0; margin-bottom: 0; opacity: 0; transition: opacity 0.4s ease, color 0.5s ease;
+  .plate-p {
+    font-size: 0.9rem; line-height: 1.75; color: var(--text-muted);
+    max-width: 42ch; transition: color 0.5s ease;
   }
-  .wheel-headline-wrap .preview-headline.active { opacity: 1; }
-
-  .preview-desc { font-size: 0.88rem; color: var(--text-muted); line-height: 1.7; max-width: 38ch; transition: color 0.5s ease; }
-  .preview-cta {
-    display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 1.25rem;
+  .plate-cta {
+    display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 1.5rem;
     font-family: var(--ff-mono); font-size: 0.72rem; letter-spacing: 0.12em;
-    text-transform: uppercase; color: var(--accent); transition: color 0.5s ease;
+    text-transform: uppercase; color: var(--accent); text-decoration: none;
+    border-bottom: 1px solid transparent; transition: color 0.5s ease, border-color 0.2s ease;
   }
-  .preview-cta svg { width: 12px; height: 12px; transition: transform 0.2s; }
-  .preview-panel:hover .preview-cta svg { transform: translateX(4px); }
+  .plate-cta:hover { border-bottom-color: var(--accent); }
+  .plate-cta svg { width: 12px; height: 12px; transition: transform 0.2s; }
+  .plate-cta:hover svg { transform: translateX(4px); }
 
-  .preview-visual { position: relative; }
-
-  /* ── Screenshot / video frame ──────────────────────────────────
-     Every panel visual sits in this same frame, so panels stay a
-     consistent size as the strip rotates. The frame is a fixed 4:3
-     box and the image is object-fit: contain, which means nothing
-     ever gets cropped — screenshots with different aspect ratios
-     just letterbox slightly against the page background.
-  ─────────────────────────────────────────────────────────────── */
-  .shot-frame {
-    position: relative; overflow: hidden;
-    /* 5:4 sits closest to the average shape of the three screenshots,
-       so letterboxing stays minimal on all of them. */
-    aspect-ratio: 5 / 4;
-    background: var(--bg);
-    border: 1px solid var(--bg-rule);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-    transition: background-color 0.5s ease, border-color 0.5s ease;
+  /* Readouts share one look across all three plates — mono, tabular,
+     instrument-like. Digits must not reflow as values change, hence
+     tabular-nums everywhere a number updates live. */
+  .ro-k {
+    font-family: var(--ff-mono); font-size: 0.55rem; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--text-muted); display: block;
+    margin-bottom: 0.3rem; transition: color 0.5s ease;
   }
-  .shot-frame img,
-  .shot-frame .shot-video {
-    display: block; width: 100%; height: 100%;
-    object-fit: contain; object-position: center;
+  .ro-v {
+    font-family: var(--ff-mono); font-weight: 700; font-size: 1.5rem;
+    color: var(--text); font-variant-numeric: tabular-nums; line-height: 1;
+    transition: color 0.5s ease;
+  }
+  .ro-v .u { font-size: 0.62rem; font-weight: 400; color: var(--text-muted); margin-left: 0.15rem; }
+  .ro-v.accent { color: var(--accent); }
+
+  /* ── Plate I — wheel ─────────────────────────────────────────── */
+  .plate-wheel .plate-grid {
+    display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 3rem; align-items: center;
+  }
+  .wheel-stage { position: relative; }
+  .wheel-stage canvas {
+    display: block; width: 100%; height: auto; aspect-ratio: 4 / 3;
+    cursor: ew-resize; touch-action: pan-y;
+  }
+  .wheel-readouts { display: flex; gap: 2.2rem; flex-wrap: wrap; margin: 1.6rem 0 1.1rem; }
+  .wheel-detents { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .detent {
+    font-family: var(--ff-mono); font-size: 0.62rem; letter-spacing: 0.08em;
+    padding: 0.4rem 0.7rem; border: 1px solid var(--bg-rule); background: transparent;
+    color: var(--text-muted); cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, background-color 0.2s;
+  }
+  .detent:hover { border-color: var(--accent); color: var(--accent); }
+  .detent[aria-pressed="true"] { border-color: var(--accent); background: var(--accent); color: var(--bg); }
+  .wheel-hint {
+    font-family: var(--ff-mono); font-size: 0.58rem; letter-spacing: 0.1em;
+    color: var(--text-muted); margin-top: 1rem; text-transform: uppercase;
+    transition: color 0.5s ease;
   }
 
-  /* Entrance: soft fade + rise, replayed each time the panel shows */
-  .shot-rise { opacity: 0; transform: translateY(10px) scale(0.985); }
-  .preview-panel.active .shot-rise { animation: shotRise 0.7s ease forwards 0.1s; }
-  @keyframes shotRise { to { opacity: 1; transform: translateY(0) scale(1); } }
-
-  /* Entrance: left-to-right wipe, for chart-style panels where the
-     visual should read as "populating" rather than simply appearing */
-  .shot-wipe::after {
-    content: ''; position: absolute; inset: 0; z-index: 2;
-    background: var(--bg-card); transform-origin: right center;
-    transition: background-color 0.5s ease;
+  /* ── Plate II — chart ────────────────────────────────────────── */
+  .plate-chart .chart-head {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    gap: 2rem; flex-wrap: wrap; margin-bottom: 1.5rem;
   }
-  .preview-panel.active .shot-wipe::after {
-    animation: shotWipe 1.4s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  .chart-stage svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .chart-legend { display: flex; gap: 1.6rem; flex-wrap: wrap; margin-top: 1.2rem; }
+  .cl-i {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-family: var(--ff-mono); font-size: 0.62rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text-muted); transition: color 0.5s ease;
   }
-  @keyframes shotWipe { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+  .cl-sw { width: 18px; height: 2px; flex: none; }
+  .cl-v { font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+  .chart-scrub { margin-top: 1.4rem; }
+  .chart-scrub label {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: var(--ff-mono); font-size: 0.58rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.6rem;
+  }
+  .chart-scrub .yr {
+    font-size: 1.1rem; font-weight: 700; color: var(--accent);
+    letter-spacing: 0; font-variant-numeric: tabular-nums;
+  }
+  input[type="range"].pmr-range { width: 100%; accent-color: var(--accent); }
+  .s-mtb { stroke: var(--accent); }
+  .s-pick { stroke: var(--gold); }
+  .s-racq { stroke: var(--text-muted); }
+  .f-mtb { fill: var(--accent); }
+  .f-pick { fill: var(--gold); }
+  .f-racq { fill: var(--text-muted); }
 
-  /* Reduced-motion: show every visual immediately, no entrance */
+  /* ── Plate III — archive ─────────────────────────────────────── */
+  /* This plate is always dark, in every theme. An archive is a
+     different room; the palette drift in the spine script takes the
+     rest of the page down to meet it as you arrive, and back up to
+     daylight as you leave. Tokens are local so the plate does not
+     depend on which theme happens to be active. */
+  .plate-archive {
+    max-width: none; padding-left: 0; padding-right: 0;
+    --pl-bg: #14120D; --pl-ink: #D9CFBC; --pl-dim: #8C8371;
+    --pl-rule: #342D1E; --pl-amber: #C8912F;
+    background: var(--pl-bg); color: var(--pl-ink);
+    margin-top: 2rem;
+  }
+  .plate-archive .plate-inner { max-width: 1200px; margin: 0 auto; padding: 4rem 2.5rem; }
+  .plate-archive .plate-tag { color: var(--pl-amber); }
+  .plate-archive .plate-h { color: var(--pl-ink); }
+  .plate-archive .plate-p { color: var(--pl-dim); }
+  .plate-archive .plate-cta { color: var(--pl-amber); }
+  .plate-archive .plate-cta:hover { border-bottom-color: var(--pl-amber); }
+
+  .stack-stage {
+    position: relative; height: 360px; overflow: hidden; margin-top: 2rem;
+    perspective: 900px; perspective-origin: 50% 46%;
+    background: radial-gradient(ellipse at 50% 45%, #1A1610 0%, #0B0A06 78%);
+    border: 1px solid var(--pl-rule);
+  }
+  .sheet {
+    position: absolute; left: 50%; top: 50%; width: 216px; height: 152px;
+    margin: -76px 0 0 -108px; padding: 10px 11px;
+    border: 1px solid rgba(200,145,47,0.42); background: rgba(24,20,13,0.86);
+    cursor: pointer; transform-style: preserve-3d;
+    transition: opacity 0.3s ease, border-color 0.2s ease;
+  }
+  .sheet.dim { opacity: 0.07 !important; }
+  .sheet.hit {
+    border-color: var(--pl-amber);
+    box-shadow: 0 0 0 1px rgba(200,145,47,0.45), 0 10px 36px rgba(0,0,0,0.6);
+  }
+  .sheet-n { font-family: var(--ff-mono); font-size: 0.5rem; letter-spacing: 0.1em; color: var(--pl-amber); display: block; }
+  .sheet-t {
+    font-family: var(--ff-mono); font-size: 0.54rem; line-height: 1.45; color: #CFC4AC;
+    margin-top: 6px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .sheet-a { font-family: var(--ff-mono); font-size: 0.47rem; letter-spacing: 0.06em; color: #7E7561; margin-top: 5px; display: block; }
+  .sheet-y { position: absolute; left: 11px; bottom: 9px; font-family: var(--ff-mono); font-size: 0.5rem; color: #6E6653; }
+  .sheet-fig { position: absolute; right: 10px; bottom: 8px; opacity: 0.5; }
+
+  .stack-ctl { display: flex; gap: 0.9rem; flex-wrap: wrap; align-items: center; margin-top: 1.2rem; }
+  .stack-ctl input[type="search"] {
+    flex: 1 1 210px; background: #0B0A06; border: 1px solid var(--pl-rule);
+    color: var(--pl-ink); font-family: var(--ff-mono); font-size: 0.72rem;
+    padding: 0.6rem 0.75rem; letter-spacing: 0.05em;
+  }
+  .stack-ctl input[type="search"]::placeholder { color: #5F5847; }
+  .stack-ctl input[type="range"] { flex: 1 1 180px; accent-color: var(--pl-amber); }
+  .stack-meta {
+    font-family: var(--ff-mono); font-size: 0.58rem; letter-spacing: 0.1em;
+    color: #7E7561; margin-top: 0.9rem;
+  }
+  .stack-meta b { color: var(--pl-amber); font-weight: 700; }
+  .stack-detail {
+    font-family: var(--ff-mono); font-size: 0.6rem; line-height: 1.75; color: #9A9078;
+    margin-top: 0.8rem; min-height: 3.4rem; border-top: 1px solid var(--pl-rule); padding-top: 0.8rem;
+  }
+  .stack-detail b { color: var(--pl-ink); }
+  .stack-detail .num { color: var(--pl-amber); }
+
+  /* ── The spine: a caliper pinned to the left margin ──────────────
+     One instrument measuring progressively larger things as the page
+     descends — 9 mm of hub spacing at the top, ~2M annual visitors at
+     the bottom. The jaws open as the subject grows. Hidden below
+     1100px, where there is no margin to spare. */
+  .spine {
+    position: fixed; left: 0; top: 0; bottom: 0; width: 74px; z-index: 40;
+    pointer-events: none; display: none;
+  }
+  .spine-rule { position: absolute; left: 46px; top: 12vh; bottom: 12vh; width: 1px; background: var(--bg-rule); transition: background-color 0.5s ease; }
+  .spine-jaw { position: absolute; left: 46px; width: 18px; height: 1px; background: var(--accent); transition: top 0.35s cubic-bezier(0.22,0.61,0.36,1), background-color 0.5s ease; }
+  .spine-jaw.b { transition-delay: 0.04s; }
+  .spine-read {
+    position: absolute; left: 0; width: 74px; text-align: center;
+    font-family: var(--ff-mono); font-size: 0.58rem; letter-spacing: 0.1em;
+    color: var(--accent); font-variant-numeric: tabular-nums;
+    transition: top 0.35s cubic-bezier(0.22,0.61,0.36,1), color 0.5s ease;
+  }
+  .spine-unit {
+    position: absolute; left: 46px; top: 50%; transform: translate(-50%, -50%) rotate(180deg);
+    writing-mode: vertical-rl; font-family: var(--ff-mono); font-size: 0.54rem;
+    letter-spacing: 0.34em; text-transform: uppercase; color: var(--text-muted);
+    transition: color 0.5s ease;
+  }
+  @media (min-width: 1100px) { .spine { display: block; } }
+
+  @media (max-width: 900px) {
+    .plate-wheel .plate-grid { grid-template-columns: 1fr; gap: 2rem; }
+    .plate-archive .plate-inner { padding: 3rem 1.5rem; }
+    .stack-stage { height: 300px; }
+  }
+
+  /* Reduced motion: instruments still work, they just do not animate
+     themselves. Every one of them is driven by input anyway, so there
+     is nothing to disable except the idle drift. */
   @media (prefers-reduced-motion: reduce) {
-    .shot-rise { opacity: 1; transform: none; }
-    .preview-panel.active .shot-rise,
-    .preview-panel.active .shot-wipe::after { animation: none; }
-    .shot-wipe::after { display: none; }
-  }
-
-  .preview-dots { display: flex; justify-content: center; gap: 0.6rem; padding: 1.25rem 0; }
-  .preview-dot {
-    width: 8px; height: 8px; border-radius: 50%; background: var(--bg-rule);
-    border: none; cursor: pointer; padding: 0; transition: background-color 0.2s, transform 0.2s;
-  }
-  .preview-dot:hover { background: var(--text-muted); }
-  .preview-dot.active { background: var(--accent); transform: scale(1.25); }
-
-  @media (max-width: 720px) {
-    .preview-panel { grid-template-columns: 1fr; padding: 1.75rem 1.5rem; gap: 1.75rem; }
-    .preview-panels { min-height: 620px; }
+    .spine-jaw, .spine-read { transition: none; }
+    .sheet { transition: none; }
   }
 
   /* ═══════════════════════════════════════════════════════════════
@@ -874,6 +975,11 @@
           localStorage.setItem(STORAGE_KEY, JSON.stringify({ theme: theme, date: todayStamp() }));
         } catch (e) { /* storage blocked (private mode) — the theme still applies, it just won't persist */ }
       }
+
+      // Anything that samples the theme's colours rather than simply
+      // inheriting them — the wheel canvas, the palette drift — needs
+      // to know the tokens just changed underneath it.
+      try { window.dispatchEvent(new CustomEvent('pmr:themechange', { detail: theme })); } catch (e) {}
     }
 
     function current() { return document.documentElement.getAttribute('data-theme'); }
@@ -1000,129 +1106,149 @@
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     PREVIEW STRIP  —  See them in action
+     PLATES  —  See them in action
+
+     Three live instruments. Each is a working reduction of the real
+     tool with one variable exposed, so the section demonstrates
+     instead of claiming. Every plate degrades to a static screenshot
+     without JavaScript, via the <noscript> block inside it.
 ═══════════════════════════════════════════════════════════════ -->
 <section id="preview">
   <div class="section-header">
     <span class="section-label">See them in action</span>
-    <h2 class="section-title">What the tools actually do — in miniature.</h2>
+    <h2 class="section-title">Three instruments, running live.</h2>
   </div>
+</section>
 
-  <div class="preview-strip">
-    <div class="preview-panels">
+<!-- ── Plate I — Wheel Strength Lab ──────────────────────────────
+     Radial. The one panel that genuinely needs three dimensions:
+     bracing angle is invisible head-on, which is the whole point.
+──────────────────────────────────────────────────────────────── -->
+<section class="plate plate-wheel" id="plate-wheel" data-scale="9 mm" data-unit="hub spacing">
+  <div class="plate-grid">
+    <div>
+      <span class="plate-tag">Fig. 1 &middot; Wheel mechanics</span>
+      <h3 class="plate-h">148 vs. 157 &mdash; you can&rsquo;t see it from the front.</h3>
+      <p class="plate-p">
+        Head-on, a Boost wheel and a Super Boost wheel are the same picture. Bracing
+        angle is an angle in space. Spread the hub and turn the wheel to find the
+        nine millimetres.
+      </p>
 
-      <!-- ─────────────────────────────────────────────────────────
-           PANEL 0 — Wheel Strength Lab
-           To add a subtitle back, un-comment the .preview-desc line.
-      ────────────────────────────────────────────────────────── -->
-      <a href="/wheel-lab/" class="preview-panel active" aria-label="Open Wheel Strength Lab">
-        <div class="preview-copy">
-          <div class="tool-tag">Wheel mechanics</div>
-          <div class="wheel-headline-wrap">
-            <span class="preview-headline wheel-h wheel-h1 active">148 vs. 157 — the angle changes more than you'd think.</span>
-            <span class="preview-headline wheel-h wheel-h2">148 vs. 157 — what a difference 9 millimeters makes.</span>
-            <span class="preview-headline wheel-h wheel-h3">148 vs. 157 — welcome to the no-broscience zone.</span>
-          </div>
-          <!-- SUBTITLE PLACEHOLDER — un-comment and edit to bring one back:
-          <p class="preview-desc">Your subtitle text here.</p>
-          -->
-          <span class="preview-cta">Open Wheel Strength Lab
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </span>
+      <div class="wheel-readouts">
+        <div>
+          <span class="ro-k">Drive-side bracing</span>
+          <span class="ro-v accent" id="w-theta">4.04<span class="u">deg</span></span>
         </div>
-        <div class="preview-visual">
-          <div class="shot-frame shot-rise">
-            <img src="/images/preview-wheel-lab.png" alt="Wheel Strength Lab comparing a 148mm Boost and 157mm Super Boost wheel build" width="1000" height="788" loading="lazy" decoding="async">
-          </div>
+        <div>
+          <span class="ro-k">Lateral index</span>
+          <span class="ro-v" id="w-stiff">100</span>
         </div>
+        <div>
+          <span class="ro-k">Spacing</span>
+          <span class="ro-v" id="w-mm">148<span class="u">mm</span></span>
+        </div>
+      </div>
+
+      <div class="wheel-detents" id="w-detents">
+        <button type="button" class="detent" data-v="142" aria-pressed="false">142 QR</button>
+        <button type="button" class="detent" data-v="148" aria-pressed="true">148 Boost</button>
+        <button type="button" class="detent" data-v="157" aria-pressed="false">157 Super</button>
+      </div>
+
+      <p class="wheel-hint">Drag the wheel sideways to spread the hub &middot; scroll to orbit it</p>
+
+      <a class="plate-cta" id="w-cta" href="/wheel-lab/?spacing=148">
+        Run your own build <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </a>
-
-      <!-- ─────────────────────────────────────────────────────────
-           PANEL 1 — Sports Popularity Over Time
-           Uses .shot-wipe: a left-to-right reveal that replays each
-           time the panel comes around, standing in for the chart
-           drawing itself in.
-      ────────────────────────────────────────────────────────── -->
-      <a href="/sports-popularity/" class="preview-panel" aria-label="Open Sports Popularity Over Time">
-        <div class="preview-copy">
-          <div class="tool-tag">Data visualization</div>
-          <div class="preview-headline">Which sports are actually growing?</div>
-          <!-- SUBTITLE PLACEHOLDER — un-comment and edit to bring one back:
-          <p class="preview-desc">Your subtitle text here.</p>
-          -->
-          <span class="preview-cta">Open Sports Popularity
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </span>
-        </div>
-        <div class="preview-visual">
-          <div class="shot-frame shot-wipe">
-            <img src="/images/preview-sports-popularity.png" alt="Sports Popularity Over Time line chart with mountain biking, racquetball, and pickleball plotted" width="1000" height="740" loading="lazy" decoding="async">
-          </div>
-        </div>
-      </a>
-
-      <!-- ─────────────────────────────────────────────────────────
-           PANEL 2 — MTB Patent Atlas
-      ────────────────────────────────────────────────────────── -->
-      <a href="/atlas/" class="preview-panel" aria-label="Open MTB Patent Atlas">
-        <div class="preview-copy">
-          <div class="tool-tag">IP research</div>
-          <div class="preview-headline">You've heard "Horst Link." Here's the actual patent.</div>
-          <p class="preview-desc">Search your bike and favorite brands.</p>
-          <span class="preview-cta">Open Patent Atlas
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </span>
-        </div>
-        <div class="preview-visual">
-          <div class="shot-frame shot-rise">
-            <img src="/images/preview-patent-atlas.png" alt="MTB Patent Atlas search results for a Fox Factory damping cartridge patent" width="1000" height="852" loading="lazy" decoding="async">
-          </div>
-        </div>
-      </a>
-
-      <!-- ═════════════════════════════════════════════════════════
-           ADDING A PANEL — copy one of the blocks above and edit it.
-           That is the whole job. The rotation script counts panels
-           from the DOM and now builds the navigation dots to match,
-           so there is nothing to keep in sync by hand.
-
-           The dot's label is taken from the panel's aria-label, which
-           must read "Open <Tool Name>" for that to come out right.
-
-           FOR A VIDEO PANEL, swap the <img> for this — same frame,
-           same sizing, no other changes needed:
-
-           <div class="preview-visual">
-             <div class="shot-frame">
-               <video class="shot-video" width="1000" height="800"
-                      autoplay muted loop playsinline preload="metadata"
-                      poster="/images/preview-NAME-poster.jpg">
-                 <source src="/images/preview-NAME.mp4" type="video/mp4">
-               </video>
-             </div>
-           </div>
-
-           Notes for video:
-           · muted + playsinline are required or phones won't autoplay.
-           · The frame is 5:4 and the video is object-fit: contain, so
-             nothing is ever cropped — but anything that isn't 5:4 will
-             letterbox. Export at 1000x800 to fill it exactly.
-           · The rotation script already restarts the clip from 0:00
-             each time the panel comes around, and already skips that
-             for visitors on reduced-motion settings. Nothing to add.
-           · Keep clips short and silent — this is a background loop,
-             not something anyone will sit and watch.
-           · The poster image shows before the file loads and is what
-             reduced-motion visitors see instead, so it's worth setting.
-           · .preview-panels has min-height: 495px, sized to the 5:4
-             frame. A taller panel needs that raised or it will clip.
-        ══════════════════════════════════════════════════════════ -->
-
     </div>
 
-    <!-- Filled in by the rotation script from however many panels exist.
-         Do not hand-write dots here — they would be wiped on load. -->
-    <div class="preview-dots"></div>
+    <div class="wheel-stage">
+      <canvas id="w-canvas" aria-label="Wireframe mountain bike wheel. Dragging sideways spreads the hub flanges apart, which changes the spoke bracing angle."></canvas>
+      <noscript>
+        <img src="/images/preview-wheel-lab.png" alt="Wheel Strength Lab comparing a 148mm Boost and 157mm Super Boost wheel build" width="1000" height="788">
+      </noscript>
+    </div>
+  </div>
+</section>
+
+<!-- ── Plate II — Sports Popularity ──────────────────────────────
+     Horizontal, and time-driven. Scrolling the plate advances the
+     year; the scrubber does the same thing by hand. Crossover flags
+     are found in the data at load, never hand-placed.
+──────────────────────────────────────────────────────────────── -->
+<section class="plate plate-chart" id="plate-chart" data-scale="44 yr" data-unit="participation">
+  <div class="chart-head">
+    <div>
+      <span class="plate-tag">Fig. 2 &middot; Data visualization</span>
+      <h3 class="plate-h">Which sports are actually growing?</h3>
+    </div>
+    <p class="plate-p">
+      Participants in millions, 1980&ndash;2024. Scroll the plate, or drag the scrubber,
+      and the lines draw forward through time.
+    </p>
+  </div>
+
+  <div class="chart-stage">
+    <svg id="c-svg" viewBox="0 0 900 320" role="img"
+         aria-label="Participation in millions from 1980 to 2024 for mountain biking, pickleball and racquetball.">
+      <g id="c-grid"></g>
+      <g id="c-lines"></g>
+      <g id="c-flags"></g>
+      <g id="c-hair"></g>
+    </svg>
+    <noscript>
+      <img src="/images/preview-sports-popularity.png" alt="Sports Popularity Over Time line chart with mountain biking, racquetball, and pickleball plotted" width="1000" height="740">
+    </noscript>
+  </div>
+
+  <div class="chart-legend">
+    <span class="cl-i"><span class="cl-sw" style="background: var(--accent);"></span>Mountain bike <span class="cl-v" id="c-mtb">&mdash;</span></span>
+    <span class="cl-i"><span class="cl-sw" style="background: var(--gold);"></span>Pickleball <span class="cl-v" id="c-pick">&mdash;</span></span>
+    <span class="cl-i"><span class="cl-sw" style="background: var(--text-muted);"></span>Racquetball <span class="cl-v" id="c-racq">&mdash;</span></span>
+  </div>
+
+  <div class="chart-scrub">
+    <label for="c-range"><span>Scrub the timeline</span><span class="yr" id="c-yr">2024</span></label>
+    <input type="range" class="pmr-range" id="c-range" min="1980" max="2024" step="1" value="2024">
+  </div>
+
+  <a class="plate-cta" id="c-cta" href="/sports-popularity/">
+    Open the full series <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </a>
+</section>
+
+<!-- ── Plate III — MTB Patent Atlas ──────────────────────────────
+     Depth. Eighteen real entries from the Atlas, 1913 to 2024.
+     Always dark: an archive is a different room, and the spine
+     script drifts the rest of the page down to meet it.
+──────────────────────────────────────────────────────────────── -->
+<section class="plate plate-archive" id="plate-archive" data-scale="111 yr" data-unit="prior art">
+  <div class="plate-inner">
+    <span class="plate-tag">Fig. 3 &middot; IP research</span>
+    <h3 class="plate-h">You&rsquo;ve heard &ldquo;Horst Link.&rdquo; Here&rsquo;s the actual paper.</h3>
+    <p class="plate-p">
+      Eighteen real filings from the Atlas, 1913 to 2024. Fly through the stack,
+      then type to filter it in place &mdash; forty years of prior art thins to
+      three sheets as you narrow.
+    </p>
+
+    <div class="stack-stage" id="s-stage"></div>
+
+    <div class="stack-ctl">
+      <input type="search" id="s-q" placeholder="search your bike &mdash; try: horst, fox, wheel, 1913" aria-label="Filter the patent stack">
+      <input type="range" id="s-z" min="0" max="100" value="0" aria-label="Fly through the stack">
+    </div>
+    <p class="stack-meta"><b id="s-n">18</b> of 18 sheets &middot; drag the right-hand slider to fly through &middot; click a sheet to read it</p>
+    <p class="stack-detail" id="s-detail">Click any sheet to read its filing.</p>
+
+    <noscript>
+      <img src="/images/preview-patent-atlas.png" alt="MTB Patent Atlas search results for a Fox Factory damping cartridge patent" width="1000" height="852">
+    </noscript>
+
+    <a class="plate-cta" id="s-cta" href="/atlas/">
+      Search the full atlas <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
   </div>
 </section>
 
@@ -1483,79 +1609,585 @@
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     PREVIEW STRIP  —  panel rotation, wheel headline rotation, and
-     restarting any video panel when it comes into view.
-     Panel count is read from the DOM: to add a 4th/5th panel, add
-     the markup and a matching dot — no change needed in here.
+     PLATE I  —  the wheel
+
+     A wireframe wheel drawn on a canvas with no library: 32 spokes,
+     two flanges and a rim, rotated by a plain 3x3 and projected. It
+     is line geometry only, deliberately — this should read as a
+     patent figure that happens to be running, not a product render.
+
+     The only fact the plate exists to communicate is that bracing
+     angle is an angle IN SPACE: head-on, 148 and 157 are the same
+     picture. So scroll drives the camera and drag drives the hub,
+     and those two axes never touch each other — the visitor is never
+     fighting the page for control of the same value.
+
+     Model (matches /wheel-lab/'s simplified radial case):
+       rim radius 298 (ERD 596), flange radius 29 (PCD 58)
+       in-plane run = 298 - 29 = 269
+       bracing angle t = atan(flange offset / run)
 ═══════════════════════════════════════════════════════════════ -->
 <script>
 (function () {
-  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var cv = document.getElementById('w-canvas');
+  if (!cv || !cv.getContext) return;
+  var ctx = cv.getContext('2d');
 
-  // Panel count is read from the DOM, so adding a 4th/5th panel needs
-  // no change here — just add the panel markup and a matching dot.
-  var panels = document.querySelectorAll('.preview-panel');
-  var wheelHeadlines = document.querySelectorAll('.wheel-h');
+  var R = 298, FR = 29, RUN = R - FR;
+  var OFF148 = 19, NDS_RATIO = 1.63, NSPOKE = 32, LACE = 0.85;
+  var mm = 148, yaw = 0.12, W = 0, H = 0;
 
-  // Build one dot per panel. This used to be hand-written markup that
-  // had to be kept in step with the panels by hand — add a panel and
-  // forget the dot, and you got a slide nobody could navigate to, with
-  // nothing to warn you. Now the two cannot disagree.
-  //
-  // Each panel's aria-label reads "Open <Tool Name>", so the tool name
-  // is already there to reuse for the dot's label.
-  var dotsWrap = document.querySelector('.preview-dots');
-  if (dotsWrap) {
-    dotsWrap.innerHTML = '';
-    panels.forEach(function (panel, idx) {
-      var toolName = (panel.getAttribute('aria-label') || '').replace(/^Open /, '');
-      var dot = document.createElement('button');
-      dot.type = 'button';
-      dot.className = 'preview-dot' + (idx === 0 ? ' active' : '');
-      dot.setAttribute('aria-label', 'Show ' + toolName + ' preview');
-      dotsWrap.appendChild(dot);
-    });
+  var elT = document.getElementById('w-theta'),
+      elS = document.getElementById('w-stiff'),
+      elM = document.getElementById('w-mm'),
+      elC = document.getElementById('w-cta'),
+      dets = document.getElementById('w-detents');
+
+  function offsetFor(v) { return OFF148 + (v - 148) * 0.5; }
+  function theta(v) { return Math.atan(offsetFor(v) / RUN) * 180 / Math.PI; }
+  var BASE_SIN = Math.sin(theta(148) * Math.PI / 180);
+
+  // Read the live theme colours each frame so the wheel re-paints
+  // correctly through a theme change and through the palette drift.
+  function tok(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+  function fit() {
+    var r = cv.getBoundingClientRect();
+    if (!r.width) return;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(r.width * dpr);
+    cv.height = Math.round(r.height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    W = r.width; H = r.height;
   }
-  var dots = document.querySelectorAll('.preview-dot');
-  var current = 0;
-  var timer = null;
-  var AUTO_MS = 6000;
-  var wheelVisits = 0;
 
-  function show(i) {
-    // Wheel panel rotates through its three headlines on each visit
-    if (i === 0 && i !== current) {
-      wheelVisits++;
-      // Modulo the actual number of headlines, not a hard-coded 3 —
-      // add a fourth .wheel-h span and it joins the rotation on its own.
-      var activeHeadline = wheelVisits % wheelHeadlines.length;
-      wheelHeadlines.forEach(function (h, idx) { h.classList.toggle('active', idx === activeHeadline); });
+  // Rotate about Y (the yaw that brings the lateral offset into view),
+  // add a small fixed pitch so the wheel never reads as a flat disc,
+  // then project. D is the viewing distance in model units.
+  function proj(x, y, z) {
+    var cy = Math.cos(yaw), sy = Math.sin(yaw);
+    var x1 = x * cy + z * sy, z1 = -x * sy + z * cy;
+    var pitch = 0.16;
+    var cp = Math.cos(pitch), sp = Math.sin(pitch);
+    var y2 = y * cp - z1 * sp, z2 = y * sp + z1 * cp;
+    var D = 1500, f = D / (D + z2);
+    var sc = Math.min(W, H) * 0.42 / R;
+    return [W / 2 + x1 * f * sc, H / 2 - y2 * f * sc];
+  }
+
+  function ring(radius, z, n) {
+    var pts = [];
+    for (var i = 0; i <= n; i++) {
+      var a = i / n * Math.PI * 2;
+      pts.push(proj(radius * Math.cos(a), radius * Math.sin(a), z));
     }
-    panels.forEach(function (p, idx) { p.classList.toggle('active', idx === i); });
-    dots.forEach(function (d, idx) { d.classList.toggle('active', idx === i); });
-
-    // Restart any video in the newly shown panel from the top
-    var vid = panels[i] ? panels[i].querySelector('.shot-video') : null;
-    if (vid && !reduceMotion) { try { vid.currentTime = 0; vid.play(); } catch (e) {} }
-
-    current = i;
+    return pts;
   }
-  function next() { show((current + 1) % panels.length); }
-  function start() { if (reduceMotion) return; stop(); timer = setInterval(next, AUTO_MS); }
-  function stop() { if (timer) clearInterval(timer); }
+  function stroke(pts, color, width, alpha) {
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for (var i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+    ctx.strokeStyle = color; ctx.lineWidth = width;
+    ctx.globalAlpha = alpha === undefined ? 1 : alpha;
+    ctx.stroke(); ctx.globalAlpha = 1;
+  }
 
-  dots.forEach(function (dot, idx) {
-    dot.addEventListener('click', function (e) { e.preventDefault(); show(idx); start(); });
+  function draw() {
+    if (!W) fit();
+    if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+
+    var ink = tok('--text') || '#1A1814';
+    var accent = tok('--accent') || '#7A3828';
+    var off = offsetFor(mm), ds = off, nds = off * NDS_RATIO;
+
+    // spokes first, so the rim and flanges sit on top of them
+    for (var i = 0; i < NSPOKE; i++) {
+      var a = i / NSPOKE * Math.PI * 2;
+      var half = (i % 2 === 0) ? 1 : -1;
+      var zf = half > 0 ? ds : -nds;
+      var lace = half > 0 ? LACE : -LACE;
+      var p1 = proj(FR * Math.cos(a), FR * Math.sin(a), zf);
+      var p2 = proj(R * Math.cos(a + lace), R * Math.sin(a + lace), 0);
+      stroke([p1, p2], half > 0 ? accent : ink, 1, half > 0 ? 0.62 : 0.26);
+    }
+
+    stroke(ring(R, 0, 72), ink, 2, 0.9);                 // rim
+    stroke(ring(FR, ds, 28), accent, 1.4, 0.85);         // drive-side flange
+    stroke(ring(FR, -nds, 28), ink, 1.4, 0.5);           // non-drive flange
+    stroke([proj(0, 0, ds), proj(0, 0, -nds)], ink, 3, 0.4);  // hub shell
+
+    // The angle only means anything once the wheel has turned enough
+    // to actually show it, so the annotation fades in with the yaw.
+    var reveal = Math.max(0, Math.min(1, (yaw - 0.25) / 0.4));
+    if (reveal > 0.01) {
+      var f0 = proj(0, FR, ds), r0 = proj(0, R, 0), v0 = proj(0, R, ds);
+      ctx.globalAlpha = reveal * 0.75;
+      ctx.setLineDash([3, 4]);
+      stroke([f0, v0], accent, 1, reveal * 0.7);
+      ctx.setLineDash([]);
+      stroke([f0, r0], accent, 2.2, reveal);
+      ctx.globalAlpha = 1;
+
+      ctx.fillStyle = accent;
+      ctx.font = '700 13px ui-monospace, Menlo, monospace';
+      ctx.globalAlpha = reveal;
+      ctx.fillText(theta(mm).toFixed(2) + '°', f0[0] + 10, f0[1] - 8);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function sync() {
+    var th = theta(mm);
+    elT.innerHTML = th.toFixed(2) + '<span class="u">deg</span>';
+    elS.textContent = Math.round(Math.sin(th * Math.PI / 180) / BASE_SIN * 100);
+    elM.innerHTML = mm + '<span class="u">mm</span>';
+    // The call to action carries the visitor's own number into the
+    // real tool, so /wheel-lab/ opens already set to what they dialled.
+    elC.setAttribute('href', '/wheel-lab/?spacing=' + mm);
+    var bs = dets.querySelectorAll('.detent');
+    for (var i = 0; i < bs.length; i++) {
+      bs[i].setAttribute('aria-pressed', (+bs[i].dataset.v === mm) ? 'true' : 'false');
+    }
+    draw();
+  }
+
+  // ── drag = spacing ────────────────────────────────────────────
+  // A fractional accumulator, rounded only for display. Rounding the
+  // running value instead would swallow any drag slower than ~4px a
+  // frame, which is exactly the speed someone uses when they are
+  // trying to land on a specific number.
+  var dragging = false, lastX = 0, mmF = 148;
+  function down(x) { dragging = true; lastX = x; }
+  function move(x) {
+    if (!dragging) return;
+    mmF = Math.max(135, Math.min(160, mmF + (x - lastX) * 0.14));
+    lastX = x;
+    var r = Math.round(mmF);
+    if (r !== mm) { mm = r; sync(); }
+  }
+  function up() { dragging = false; }
+
+  cv.addEventListener('mousedown', function (e) { e.preventDefault(); down(e.clientX); });
+  window.addEventListener('mousemove', function (e) { move(e.clientX); });
+  window.addEventListener('mouseup', up);
+  cv.addEventListener('touchstart', function (e) { down(e.touches[0].clientX); }, { passive: true });
+  cv.addEventListener('touchmove', function (e) { move(e.touches[0].clientX); }, { passive: true });
+  cv.addEventListener('touchend', up);
+
+  dets.addEventListener('click', function (e) {
+    var b = e.target.closest('.detent');
+    if (!b) return;
+    mm = mmF = +b.dataset.v; sync();
   });
 
-  var strip = document.querySelector('.preview-strip');
-  if (strip) {
-    strip.addEventListener('mouseenter', stop);
-    strip.addEventListener('mouseleave', start);
+  // ── scroll = camera ───────────────────────────────────────────
+  var plate = document.getElementById('plate-wheel');
+  function orbit() {
+    var r = plate.getBoundingClientRect(), vh = window.innerHeight;
+    // 0 as the plate enters from below, 1 as it leaves past the top
+    var p = 1 - (r.top + r.height / 2) / (vh + r.height / 2);
+    p = Math.max(0, Math.min(1, p));
+    yaw = 0.10 + p * 0.85;
+    draw();
   }
 
-  start();
+  window.addEventListener('resize', function () { fit(); draw(); });
+  window.addEventListener('scroll', orbit, { passive: true });
+  window.addEventListener('pmr:themechange', draw);
 
+  fit(); sync(); orbit();
+}());
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PLATE II  —  the participation chart
+
+     Real series lifted from /sports-popularity/: participants in
+     millions at five-year marks, 1980-2024, interpolated between.
+     Scroll advances the year; the scrubber does the same by hand and
+     takes over the moment the visitor touches it.
+
+     The crossover flags are FOUND in the data at load, not placed by
+     hand — so if the series is ever updated the annotations follow it
+     instead of quietly going wrong.
+═══════════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  var svg = document.getElementById('c-svg');
+  if (!svg) return;
+
+  var YRS = [1980, 1985, 1990, 1995, 2000, 2005, 2010, 2015, 2020, 2024];
+  var S = {
+    mtb:  [0.2, 1.5, 5, 8.5, 8.2, 7.5, 7, 8, 10.5, 9.5],
+    pick: [0, 0, 0, 0, 0, 0.05, 0.1, 2.5, 4.2, 19.8],
+    racq: [12, 12, 10, 7, 5.5, 4.5, 4, 3.5, 3.5, 3.5]
+  };
+  var NAME = { mtb: 'Mountain bike', pick: 'Pickleball', racq: 'Racquetball' };
+  var W = 900, H = 320, PL = 58, PR = 20, PT = 24, PB = 38, YMAX = 20;
+
+  var gGrid = document.getElementById('c-grid'), gLines = document.getElementById('c-lines'),
+      gFlags = document.getElementById('c-flags'), gHair = document.getElementById('c-hair'),
+      rng = document.getElementById('c-range'), yrEl = document.getElementById('c-yr'),
+      cta = document.getElementById('c-cta'), plate = document.getElementById('plate-chart');
+
+  function X(y) { return PL + (y - 1980) / 44 * (W - PL - PR); }
+  function Y(v) { return H - PB - (v / YMAX) * (H - PT - PB); }
+  function at(k, y) {
+    var a = S[k];
+    if (y <= YRS[0]) return a[0];
+    if (y >= YRS[YRS.length - 1]) return a[a.length - 1];
+    for (var i = 0; i < YRS.length - 1; i++) {
+      if (y >= YRS[i] && y <= YRS[i + 1]) {
+        return a[i] + (a[i + 1] - a[i]) * ((y - YRS[i]) / (YRS[i + 1] - YRS[i]));
+      }
+    }
+    return a[a.length - 1];
+  }
+
+  var XO = [];
+  [['pick', 'racq'], ['pick', 'mtb'], ['mtb', 'racq']].forEach(function (pr) {
+    var prev = at(pr[0], 1980) - at(pr[1], 1980);
+    for (var y = 1981; y <= 2024; y++) {
+      var d = at(pr[0], y) - at(pr[1], y);
+      if (prev < 0 && d >= 0) { XO.push({ y: y, a: pr[0], b: pr[1] }); return; }
+      prev = d;
+    }
+  });
+
+  var grid = '';
+  for (var v = 0; v <= YMAX; v += 5) {
+    grid += '<line x1="' + PL + '" y1="' + Y(v) + '" x2="' + (W - PR) + '" y2="' + Y(v) +
+            '" stroke="currentColor" stroke-width="1" opacity="' + (v === 0 ? 0.45 : 0.12) + '"/>' +
+            '<text x="' + (PL - 10) + '" y="' + (Y(v) + 4) + '" text-anchor="end" font-family="ui-monospace, Menlo, monospace" font-size="10" fill="currentColor" opacity="0.5">' + v + '</text>';
+  }
+  grid += '<text x="' + (PL - 10) + '" y="' + (PT - 9) + '" text-anchor="end" font-family="ui-monospace, Menlo, monospace" font-size="9" letter-spacing="1" fill="currentColor" opacity="0.45">MILLIONS</text>';
+  [1980, 1990, 2000, 2010, 2020, 2024].forEach(function (y) {
+    grid += '<line x1="' + X(y) + '" y1="' + (H - PB) + '" x2="' + X(y) + '" y2="' + (H - PB + 5) + '" stroke="currentColor" stroke-width="1" opacity="0.4"/>' +
+            '<text x="' + X(y) + '" y="' + (H - PB + 20) + '" text-anchor="middle" font-family="ui-monospace, Menlo, monospace" font-size="10" fill="currentColor" opacity="0.55">' + y + '</text>';
+  });
+  gGrid.innerHTML = grid;
+
+  function render(to) {
+    yrEl.textContent = to;
+    var out = '';
+    ['racq', 'mtb', 'pick'].forEach(function (k) {
+      var d = '';
+      for (var y = 1980; y <= to + 0.001; y += 0.5) {
+        var yy = Math.min(y, to);
+        d += (d ? 'L' : 'M') + X(yy).toFixed(1) + ' ' + Y(at(k, yy)).toFixed(1) + ' ';
+      }
+      out += '<path d="' + d + '" fill="none" class="s-' + k + '" stroke-width="' + (k === 'racq' ? 1.6 : 2.3) +
+             '" stroke-linejoin="round" stroke-linecap="round"' + (k === 'racq' ? ' opacity="0.85"' : '') + '/>' +
+             '<circle cx="' + X(to).toFixed(1) + '" cy="' + Y(at(k, to)).toFixed(1) + '" r="3.6" class="f-' + k + '"/>';
+      document.getElementById('c-' + k).textContent = at(k, to).toFixed(1) + 'M';
+    });
+    gLines.innerHTML = out;
+
+    var fl = '';
+    XO.forEach(function (x, xi) {
+      if (to < x.y) return;
+      var px = X(x.y), vy = Y(at(x.a, x.y)), ly = PT + 6 + xi * 14, right = px > W * 0.55;
+      fl += '<line x1="' + px + '" y1="' + vy + '" x2="' + px + '" y2="' + (ly + 4) + '" stroke="currentColor" stroke-width="1" stroke-dasharray="2 3" opacity="0.38"/>' +
+            '<circle cx="' + px + '" cy="' + vy + '" r="4.5" fill="none" stroke="currentColor" stroke-width="1" opacity="0.5"/>' +
+            '<text x="' + (right ? px - 6 : px + 6) + '" y="' + ly + '" text-anchor="' + (right ? 'end' : 'start') +
+            '" font-family="ui-monospace, Menlo, monospace" font-size="9" letter-spacing="0.5" fill="currentColor" opacity="0.75">' +
+            x.y + ' · ' + NAME[x.a].toUpperCase() + ' &#62; ' + NAME[x.b].toUpperCase() + '</text>';
+    });
+    gFlags.innerHTML = fl;
+    gHair.innerHTML = '<line x1="' + X(to) + '" y1="' + PT + '" x2="' + X(to) + '" y2="' + (H - PB) + '" stroke="currentColor" stroke-width="1" opacity="0.28"/>';
+
+    // The call to action is earned: it does not appear until the
+    // visitor has actually run the timeline out to the present.
+    cta.style.opacity = to >= 2023 ? '1' : '0';
+    cta.style.pointerEvents = to >= 2023 ? 'auto' : 'none';
+  }
+
+  // Scroll drives time, until the visitor grabs the scrubber; then
+  // they own it until the plate has left the viewport entirely.
+  var held = false;
+  rng.addEventListener('input', function () { held = true; render(+rng.value); });
+
+  function onScroll() {
+    var r = plate.getBoundingClientRect(), vh = window.innerHeight;
+    if (r.bottom < 0 || r.top > vh) { held = false; return; }
+    if (held) return;
+    var p = 1 - (r.top + r.height * 0.25) / vh;
+    p = Math.max(0, Math.min(1, p));
+    var yr = Math.round(1980 + p * 44);
+    rng.value = yr;
+    render(yr);
+  }
+
+  cta.style.transition = 'opacity 0.4s ease';
+  window.addEventListener('scroll', onScroll, { passive: true });
+  render(+rng.value);
+  onScroll();
+}());
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PLATE III  —  the patent stack
+
+     Eighteen real entries from /atlas/, spanning 1913 to 2024, laid
+     out in true perspective with CSS 3D — no renderer, because the
+     mechanic is worth proving before anything heavier gets committed
+     to. Scroll flies the camera; the search field filters the stack
+     in place, so forty years of prior art visibly thins as you narrow.
+═══════════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  var stage = document.getElementById('s-stage');
+  if (!stage) return;
+
+  var D = [{"y": 1913, "n": "1129585", "t": "Valve for Pneumatic Tires (US 1,129,585)", "a": "Joseph N. Newsom → St. Louis Pneumatic Valve Co.", "c": "Wheels & Tires", "s": "expired"}, {"y": 1968, "n": "3514091", "t": "Park Tool repair stand clamp (US 3,514,091)", "a": "Park Tool Co. (St. Paul, MN)", "c": "Components", "s": "expired"}, {"y": 1988, "n": "7712566", "t": "Schlumpf planetary crank drive → SRAM HammerSchmidt (US 7,712,566)", "a": "Florian Schlumpf (Switzerland) → Haberstock-Mobility → SRAM (Truvativ)", "c": "Drivetrain", "s": "active"}, {"y": 1994, "n": "5509679", "t": "Horst Link rear suspension (US 5,509,679)", "a": "Horst Leitner / AMP Research → Specialized", "c": "Rear Suspension", "s": "expired"}, {"y": 1995, "n": "5833074", "t": "QuikRack — Fast-loading protective bicycle rack (US 5,833,074)", "a": "Cal M. Phillips (licensed to 1UP USA)", "c": "Bike Transport", "s": "expired"}, {"y": 1997, "n": "5964332", "t": "RingDrive hub engagement (US 5,964,332)", "a": "Christopher D. King / Chris King", "c": "Wheels & Tires", "s": "expired"}, {"y": 2002, "n": "6843494", "t": "Rocky Mountain rear suspension system (US 6,843,494)", "a": "Duhane Lam → Rocky Mountain Bicycles", "c": "Rear Suspension", "s": "expired"}, {"y": 2006, "n": "7717212", "t": "Split Pivot (US 7,717,212)", "a": "Dave Weagle → Devinci, Salsa, Morewood", "c": "Rear Suspension", "s": "expired"}, {"y": 2006, "n": "7555838", "t": "Bill Shook lightweight rim extrusion method (US 7,555,838)", "a": "William B. Shook / American Classic", "c": "Wheels & Tires", "s": "active"}, {"y": 2011, "n": "8894083", "t": "Trek DRCV dual-chamber air shock (US 8,894,083)", "a": "Trek Bicycle (with Fox)", "c": "Forks & Damping", "s": "active"}, {"y": 2012, "n": "8757341", "t": "Star Ratchet EXP (US 8,757,341)", "a": "Jo Klieber / Syntace GmbH → DT Swiss AG", "c": "Wheels & Tires", "s": "active"}, {"y": 2013, "n": "10746250", "t": "Bleed valve patent + Fox v. SRAM (US 10,746,250)", "a": "Fox Factory", "c": "Forks & Damping", "s": "active"}, {"y": 2014, "n": "12167211", "t": "Hardware, form factor & acoustics — HERO design + mounts (bundle)", "a": "GoPro", "c": "Components", "s": "active"}, {"y": 2017, "n": "10578184", "t": "GRIP2 damper (US 10,578,184)", "a": "Fox Factory", "c": "Forks & Damping", "s": "active"}, {"y": 2018, "n": "10733795", "t": "Rim shape determination method (US 10,733,795)", "a": "Trek Bicycle", "c": "Frame & Standards", "s": "active"}, {"y": 2019, "n": "11242110", "t": "Trek Supercaliber IsoStrut (US 11,242,110)", "a": "Trek Bicycle", "c": "Rear Suspension", "s": "active"}, {"y": 2023, "n": "11866114", "t": "Shimano AI-assisted suspension & dropper learning model (US 11,866,114)", "a": "Shimano", "c": "Rear Suspension", "s": "active"}, {"y": 2024, "n": "12491966", "t": "Wheel motor-brake unit (US 12,491,966)", "a": "Mikel Fauri / Porsche AG", "c": "E-MTB & Electronics", "s": "active"}];
+  var q = document.getElementById('s-q'), z = document.getElementById('s-z'),
+      nEl = document.getElementById('s-n'), dEl = document.getElementById('s-detail'),
+      cta = document.getElementById('s-cta'), GAP = 120, TRAVEL = 0.45, els = [];
+
+  D.forEach(function (d, i) {
+    var el = document.createElement('div');
+    el.className = 'sheet';
+    el.innerHTML =
+      '<span class="sheet-n">US ' + d.n + '</span>' +
+      '<span class="sheet-t">' + d.t.replace(/\s*\(US[^)]*\)/, '') + '</span>' +
+      '<span class="sheet-a">' + d.a + '</span>' +
+      '<span class="sheet-y">' + d.y + '</span>' +
+      '<svg class="sheet-fig" width="34" height="30" viewBox="0 0 34 30" aria-hidden="true">' +
+        '<circle cx="11" cy="19" r="8" fill="none" stroke="#C8912F" stroke-width="1"/>' +
+        '<circle cx="27" cy="19" r="5" fill="none" stroke="#C8912F" stroke-width="1"/>' +
+        '<path d="M11 19 L18 7 L27 19" fill="none" stroke="#C8912F" stroke-width="1"/>' +
+      '</svg>';
+    el.addEventListener('click', function () {
+      dEl.innerHTML = '<b>' + d.t + '</b><br>' + d.a + ' &middot; filed ' + d.y +
+        ' &middot; <span class="num">US ' + d.n + '</span> &middot; ' + d.c + ' &middot; ' + d.s;
+      els.forEach(function (e) { e.classList.remove('hit'); });
+      el.classList.add('hit');
+      cta.setAttribute('href', '/atlas/?q=' + encodeURIComponent(d.n));
+    });
+    stage.appendChild(el);
+    els.push(el);
+  });
+
+  function layout() {
+    // Only traverse part of the stack: flying the camera all the way to
+    // the back leaves nothing in front of it, and an archive that looks
+    // empty is the opposite of the point.
+    var cam = (+z.value) / 100 * (D.length - 1) * GAP * TRAVEL;
+    var term = q.value.trim().toLowerCase(), shown = 0;
+    var DEPTH = GAP * D.length;
+    els.forEach(function (el, i) {
+      var d = D[i];
+      var hay = (d.t + ' ' + d.a + ' ' + d.c + ' ' + d.n + ' ' + d.y + ' ' + d.s).toLowerCase();
+      var match = !term || hay.indexOf(term) > -1;
+      if (match) shown++;
+      var zz = -i * GAP + cam;
+      if (zz > 220) { el.style.display = 'none'; return; }
+      el.style.display = 'block';
+      // Fan the sheets well off-axis. Stacked near-concentrically they
+      // just read as two overlapping cards; spread out, the recession
+      // itself becomes legible and the stage reads as an archive.
+      var jx = ((i * 37) % 17 - 8) * 11, jy = ((i * 53) % 13 - 6) * 8;
+      // fade with distance behind, and again as a sheet reaches the lens
+      var far = Math.max(0, Math.min(1, 1 - (-zz) / (DEPTH * 1.25)));
+      var near = zz > 0 ? Math.max(0, 1 - zz / 220) : 1;
+      el.style.transform = 'translate3d(' + jx + 'px,' + jy + 'px,' + zz.toFixed(1) + 'px)';
+      el.style.opacity = ((0.22 + far * 0.78) * near).toFixed(3);
+      el.style.zIndex = String(1000 + Math.round(zz));
+      el.classList.toggle('dim', !match);
+    });
+    nEl.textContent = shown;
+    if (term) cta.setAttribute('href', '/atlas/?q=' + encodeURIComponent(term));
+  }
+
+  q.addEventListener('input', layout);
+  z.addEventListener('input', layout);
+
+  // Scroll also flies the stack, so the plate does something even for
+  // a visitor who never touches a control.
+  var plate = document.getElementById('plate-archive');
+  window.addEventListener('scroll', function () {
+    if (document.activeElement === z) return;
+    var r = plate.getBoundingClientRect(), vh = window.innerHeight;
+    if (r.bottom < 0 || r.top > vh) return;
+    var p = 1 - (r.top + r.height * 0.3) / vh;
+    z.value = Math.max(0, Math.min(100, Math.round(p * 100)));
+    layout();
+  }, { passive: true });
+
+  layout();
+}());
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE SPINE  —  caliper rail + palette drift
+
+     Two jobs, one script, because they are the same idea: making the
+     page read as one continuous descent rather than a stack of
+     separate blocks.
+
+     1. THE CALIPER. A hairline rail pinned to the left margin, whose
+        jaws open as the subject grows and whose readout re-labels per
+        section: 9 mm of hub spacing at the top, ~2M annual visitors
+        at the bottom. One instrument measuring progressively larger
+        things — the "machine beneath them, land beneath the machine"
+        line from the hero, made literal.
+
+     2. THE DRIFT. The four seasonal palettes and 2049 already exist
+        as custom properties. Rather than leave 2049 as a manual-only
+        curiosity, the page interpolates the ACTIVE theme toward the
+        archive palette as Plate III approaches, and back to daylight
+        as it leaves. Sections stop needing borders to separate them,
+        because the light itself changes between them.
+
+        Base colours are read from an off-screen probe carrying the
+        current data-theme, so the drift never reads back its own
+        overrides, and the theme system stays authoritative: the
+        moment the drift returns to zero the inline props are removed.
+═══════════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  // ── colour helpers ────────────────────────────────────────────
+  function parse(c) {
+    c = (c || '').trim();
+    if (c.charAt(0) === '#') {
+      if (c.length === 4) c = '#' + c[1] + c[1] + c[2] + c[2] + c[3] + c[3];
+      return [parseInt(c.substr(1, 2), 16), parseInt(c.substr(3, 2), 16), parseInt(c.substr(5, 2), 16), 1];
+    }
+    var m = c.match(/rgba?\(([^)]+)\)/);
+    if (!m) return null;
+    var v = m[1].split(',').map(function (n) { return parseFloat(n); });
+    return [v[0], v[1], v[2], v.length > 3 ? v[3] : 1];
+  }
+  function mix(a, b, t) {
+    return 'rgba(' + Math.round(a[0] + (b[0] - a[0]) * t) + ',' +
+                     Math.round(a[1] + (b[1] - a[1]) * t) + ',' +
+                     Math.round(a[2] + (b[2] - a[2]) * t) + ',' +
+                     (a[3] + (b[3] - a[3]) * t).toFixed(3) + ')';
+  }
+
+  var root = document.documentElement;
+  var archive = document.getElementById('plate-archive');
+  var DRIFT = ['--bg', '--bg-card', '--bg-rule', '--text', '--text-muted', '--accent', '--nav-bg', '--castle-fill'];
+
+  var base = {}, target = {};
+  function readTargets() {
+    var pc = getComputedStyle(archive);
+    var bg = pc.getPropertyValue('--pl-bg').trim() || '#14120D';
+    var ink = pc.getPropertyValue('--pl-ink').trim() || '#D9CFBC';
+    var dim = pc.getPropertyValue('--pl-dim').trim() || '#8C8371';
+    var rule = pc.getPropertyValue('--pl-rule').trim() || '#342D1E';
+    var amber = pc.getPropertyValue('--pl-amber').trim() || '#C8912F';
+    var bgv = parse(bg);
+    target['--bg'] = bgv;
+    target['--bg-card'] = parse('#1C1913');
+    target['--bg-rule'] = parse(rule);
+    target['--text'] = parse(ink);
+    target['--text-muted'] = parse(dim);
+    target['--accent'] = parse(amber);
+    target['--nav-bg'] = [bgv[0], bgv[1], bgv[2], 0.93];
+    target['--castle-fill'] = parse(ink);
+  }
+  // Read the ACTIVE theme's real token values. Our own inline overrides
+  // are stripped first — otherwise this reads back the drifted colour it
+  // just wrote and the interpolation compounds toward black on every
+  // scroll frame. The day theme is defined on :root rather than on a
+  // [data-theme] block, so reading :root is also the only approach that
+  // works for all five themes.
+  function readBase() {
+    DRIFT.forEach(function (k) { root.style.removeProperty(k); });
+    var cs = getComputedStyle(root);
+    DRIFT.forEach(function (k) { base[k] = parse(cs.getPropertyValue(k)); });
+  }
+  readTargets(); readBase();
+  window.addEventListener('pmr:themechange', function () {
+    var t = lastT; readBase(); lastT = -1; apply(Math.max(0, t), true);
+  });
+
+  var lastT = -1;
+  function apply(t, force) {
+    if (!force && Math.abs(t - lastT) < 0.004) return;
+    lastT = t;
+    if (t < 0.004) {
+      DRIFT.forEach(function (k) { root.style.removeProperty(k); });
+      return;
+    }
+    DRIFT.forEach(function (k) {
+      if (base[k] && target[k]) root.style.setProperty(k, mix(base[k], target[k], t));
+    });
+  }
+
+  // ── caliper ───────────────────────────────────────────────────
+  var spine = document.createElement('div');
+  spine.className = 'spine';
+  spine.setAttribute('aria-hidden', 'true');
+  spine.innerHTML =
+    '<div class="spine-rule"></div>' +
+    '<div class="spine-jaw a"></div>' +
+    '<div class="spine-jaw b"></div>' +
+    '<div class="spine-read"></div>' +
+    '<div class="spine-unit"></div>';
+  document.body.appendChild(spine);
+  var jawA = spine.querySelector('.spine-jaw.a'),
+      jawB = spine.querySelector('.spine-jaw.b'),
+      read = spine.querySelector('.spine-read'),
+      unit = spine.querySelector('.spine-unit');
+
+  // The hero, tools, about and advocacy sections carry no scale of
+  // their own in the markup, so they are labelled here rather than
+  // sprinkling presentational data attributes through the document.
+  var EXTRA = [
+    ['.hero', 'rider', 'the machine'],
+    ['#tools', '19', 'instruments'],
+    ['#about', '80109', 'castle rock'],
+    ['#advocacy', '~2M', 'annual visitors']
+  ];
+  EXTRA.forEach(function (e) {
+    var el = document.querySelector(e[0]);
+    if (el && !el.getAttribute('data-scale')) {
+      el.setAttribute('data-scale', e[1]);
+      el.setAttribute('data-unit', e[2]);
+    }
+  });
+  var stops = Array.prototype.slice.call(document.querySelectorAll('[data-scale]'));
+
+  function frame() {
+    var vh = window.innerHeight, mid = vh / 2;
+
+    // active stop = the one whose box contains the viewport centre,
+    // else the nearest one above it
+    var active = null, bestD = Infinity;
+    stops.forEach(function (el, i) {
+      var r = el.getBoundingClientRect();
+      var d = (mid >= r.top && mid <= r.bottom) ? 0 : Math.min(Math.abs(r.top - mid), Math.abs(r.bottom - mid));
+      if (d < bestD) { bestD = d; active = { el: el, i: i }; }
+    });
+    if (active) {
+      read.textContent = active.el.getAttribute('data-scale');
+      unit.textContent = active.el.getAttribute('data-unit');
+      var frac = stops.length > 1 ? active.i / (stops.length - 1) : 0;
+      var open = 12 + frac * 190;
+      var top = vh * 0.38;
+      jawA.style.top = top + 'px';
+      jawB.style.top = (top + open) + 'px';
+      read.style.top = (top + open / 2 - 6) + 'px';
+    }
+
+    // drift: 1 whenever the viewport centre is inside the archive
+    // plate, ramping over three-quarters of a viewport either side
+    var ar = archive.getBoundingClientRect();
+    var dist = Math.max(0, ar.top - mid, mid - ar.bottom);
+    apply(Math.max(0, Math.min(1, 1 - dist / (vh * 0.45))));
+  }
+
+  var ticking = false;
+  window.addEventListener('scroll', function () {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () { frame(); ticking = false; });
+  }, { passive: true });
+  window.addEventListener('resize', frame);
+  frame();
 }());
 </script>
 
