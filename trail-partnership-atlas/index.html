@@ -27,5 +27,10 @@
 </head>
 <body>
   <iframe src="https://postmillennium-mtb.github.io/trail-partnership-atlas/" title="Trail Partnership Atlas" allowfullscreen></iframe>
+  <script>
+    document.querySelectorAll('iframe[src*="postmillennium-mtb.github.io"]').forEach(f => {
+      if (window.location.hash) f.src += window.location.hash;
+    });
+  </script>
 </body>
 </html>
