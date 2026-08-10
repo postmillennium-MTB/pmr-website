@@ -60,7 +60,7 @@
     --text-muted:  #506050;
     --accent:      #3A6830;
     --blue:        #467A68;
-    --gold:        #7A9830;
+    --gold:        #5E7525;
     --nav-bg:      rgba(230,235,228,0.93);
     --castle-fill: #2A3A28;
     --paint-filter: brightness(1.04) saturate(1.18) hue-rotate(8deg);
@@ -77,7 +77,7 @@
     --text-muted:  #6A5840;
     --accent:      #904820;
     --blue:        #5A6840;
-    --gold:        #C08818;
+    --gold:        #8E6512;
     --nav-bg:      rgba(237,230,218,0.93);
     --castle-fill: #3A2810;
     --paint-filter: sepia(0.28) saturate(1.5) brightness(1.0) hue-rotate(-6deg);
@@ -91,10 +91,10 @@
     --bg-card:     #1E2430;
     --bg-rule:     #2A3040;
     --text:        #C4CCD4;
-    --text-muted:  #606870;
-    --accent:      #5A7A8E;
+    --text-muted:  #858E96;
+    --accent:      #66889E;
     --blue:        #4A7898;
-    --gold:        #6880A0;
+    --gold:        #798EAA;
     --nav-bg:      rgba(24,28,34,0.93);
     --castle-fill: #7A8898;
     --paint-filter: brightness(0.42) saturate(0.22) hue-rotate(198deg);
@@ -369,6 +369,14 @@
   .hero-cta:hover { background: var(--blue); transform: translateY(-1px); }
   .hero-cta svg { transition: transform 0.2s; }
   .hero-cta:hover svg { transform: translateX(4px); }
+  /* 2049 and Winter both pair a light --accent with white button text,
+     which reads fine for links/labels but falls under 4.5:1 for a solid
+     fill under white. Dedicated background here instead of darkening
+     --accent globally, so borders/hovers/labels elsewhere don't shift. */
+  [data-theme="2049"] .hero-cta { background: #8E731C; }
+  [data-theme="2049"] .hero-cta:hover { background: #A58521; }
+  [data-theme="winter"] .hero-cta { background: #59798D; }
+  [data-theme="winter"] .hero-cta:hover { background: #6C8EA3; }
 
   @keyframes slideUp {
     from { opacity: 0; transform: translateY(14px); }
@@ -458,6 +466,21 @@
     color: #ff10f0; margin-top: 1rem; text-transform: uppercase;
     transition: color 0.5s ease;
     text-shadow: 0 0 6px #ff10f0, 0 0 14px rgba(255, 16, 240, 0.6);
+  }
+  /* Day/Spring/Autumn sit the hint on a light pink backdrop where the
+     neon magenta above drops to ~1.9:1 — darkened (same hue) to clear
+     4.5:1. Winter's backdrop is a dark purple where the original color
+     already read fine at high brightness, so it gets its own, lighter
+     fix instead of reusing this one. 2049 wasn't affected. */
+  [data-theme="day"] .wheel-hint,
+  [data-theme="spring"] .wheel-hint,
+  [data-theme="autumn"] .wheel-hint {
+    color: #9A0091;
+    text-shadow: 0 0 6px rgba(154,0,145,0.5), 0 0 14px rgba(154,0,145,0.35);
+  }
+  [data-theme="winter"] .wheel-hint {
+    color: #FF3BF3;
+    text-shadow: 0 0 6px rgba(255,59,243,0.5), 0 0 14px rgba(255,59,243,0.35);
   }
 
   /* ── Plate II — chart ────────────────────────────────────────── */
@@ -549,7 +572,7 @@
   .stack-ctl input[type="range"] { flex: 1 1 180px; accent-color: var(--pl-amber); }
   .stack-meta {
     font-family: var(--ff-mono); font-size: 0.58rem; letter-spacing: 0.1em;
-    color: #7E7561; margin-top: 0.9rem;
+    color: #867D67; margin-top: 0.9rem;
   }
   .stack-meta b { color: var(--pl-amber); font-weight: 700; }
   .stack-detail {
