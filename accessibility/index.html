@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<!-- data-theme is the no-JavaScript fallback only. The bootstrap script
+     at the end of <head> overwrites it before the page paints. -->
+<html lang="en" data-theme="day">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" href="/favicon-32x32.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <title>Accessibility Statement — Post Millennium Renaissance</title>
+  <meta name="description" content="How postmillenniumrenaissance.com tests for and addresses accessibility, what's been fixed, what's known and outstanding, and how to report a barrier.">
+  <meta name="robots" content="noindex">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;1,400&family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500&family=Space+Mono&display=swap" rel="stylesheet">
+
+  <style>
+  /* ═══════════════════════════════════════════════════════════════
+     TOKENS — identical to the home page's five themes, so this page
+     matches whatever theme the visitor already has active.
+  ═══════════════════════════════════════════════════════════════ */
+  :root {
+    --bg:          #ECEAE4;
+    --bg-card:     #F4F1EC;
+    --bg-rule:     #CECCCA;
+    --text:        #1A1814;
+    --text-muted:  #5C574E;
+    --accent:      #7A3828;
+    --blue:        #3A5C6E;
+    --gold:        #786030;
+    --nav-bg:      rgba(236,234,228,0.93);
+    --castle-fill: #2E2416;
+    --pass:        #3A6830;
+    --ff-serif:    'EB Garamond', Georgia, serif;
+    --ff-sans:     'Space Grotesk', sans-serif;
+    --ff-body:     'Inter', sans-serif;
+    --ff-mono:     'Space Mono', monospace;
+  }
+  [data-theme="spring"] {
+    --bg: #E6EBE4; --bg-card: #EEF2EC; --bg-rule: #C2CAB8;
+    --text: #181E18; --text-muted: #506050; --accent: #3A6830;
+    --blue: #467A68; --gold: #5E7525; --nav-bg: rgba(230,235,228,0.93);
+    --castle-fill: #2A3A28; --pass: #3A6830;
+  }
+  [data-theme="autumn"] {
+    --bg: #EDE6DA; --bg-card: #F5EEE2; --bg-rule: #D0BEA8;
+    --text: #201810; --text-muted: #6A5840; --accent: #904820;
+    --blue: #5A6840; --gold: #8E6512; --nav-bg: rgba(237,230,218,0.93);
+    --castle-fill: #3A2810; --pass: #5A6840;
+  }
+  [data-theme="winter"] {
+    --bg: #181C22; --bg-card: #1E2430; --bg-rule: #2A3040;
+    --text: #C4CCD4; --text-muted: #858E96; --accent: #7190A5;
+    --blue: #4A7898; --gold: #798EAA; --nav-bg: rgba(24,28,34,0.93);
+    --castle-fill: #7A8898; --pass: #7FC79A;
+  }
+  [data-theme="2049"] {
+    --bg: #0B0A08; --bg-card: #1A1815; --bg-rule: #3A3126;
+    --text: #E8E2D4; --text-muted: #8A8272; --accent: #C9A227;
+    --blue: #8C3A1E; --gold: #B8901E; --nav-bg: rgba(11,10,8,0.93);
+    --castle-fill: #C9A227; --pass: #C9A227;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg); color: var(--text);
+    font-family: var(--ff-body); font-size: 16px; line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.5s ease, color 0.5s ease;
+  }
+
+  /* ── Nav (trimmed copy of the home page's) ─────────────────────── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 2.5rem; border-bottom: 1px solid var(--bg-rule);
+    background: var(--nav-bg);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    transition: background-color 0.5s ease, border-color 0.5s ease;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 0.625rem; text-decoration: none; color: var(--text); }
+  .nav-mark { height: 28px; width: auto; display: block; }
+  .nav-mark .castle-fill { fill: var(--castle-fill); transition: fill 0.5s ease; }
+  .nav-wordmark {
+    font-family: var(--ff-sans); font-weight: 700; font-size: 0.875rem;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--text);
+    transition: color 0.5s ease;
+  }
+  .nav-wordmark em { color: var(--accent); font-style: normal; }
+  .nav-right { display: flex; align-items: center; gap: 2rem; }
+  .nav-back {
+    font-size: 0.8rem; font-weight: 500; letter-spacing: 0.06em;
+    color: var(--text-muted); text-decoration: none; text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-back:hover { color: var(--accent); }
+  .theme-btn {
+    display: flex; align-items: center; gap: 0.4rem;
+    background: none; border: 1px solid var(--bg-rule); color: var(--text-muted);
+    cursor: pointer; font-family: var(--ff-mono); font-size: 0.65rem;
+    letter-spacing: 0.14em; padding: 0.375rem 0.625rem; border-radius: 2px;
+    transition: color 0.2s, border-color 0.2s, background-color 0.2s;
+  }
+  .theme-btn:hover { color: var(--text); border-color: var(--text-muted); }
+  .theme-btn svg { width: 13px; height: 13px; }
+
+  /* ── Article ─────────────────────────────────────────────────── */
+  main { max-width: 720px; margin: 0 auto; padding: 8.5rem 2.5rem 6rem; }
+
+  .eyebrow {
+    font-family: var(--ff-mono); font-size: 0.7rem; letter-spacing: 0.22em;
+    color: var(--accent); text-transform: uppercase; margin-bottom: 1.25rem;
+    transition: color 0.5s ease;
+  }
+  h1 {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-weight: 200; font-size: clamp(2rem, 5vw, 3rem);
+    letter-spacing: -0.02em; text-transform: uppercase; line-height: 1.05;
+    color: var(--text); margin: 0 0 1.5rem; transition: color 0.5s ease;
+    text-wrap: balance;
+  }
+  .dek {
+    font-size: 1.05rem; color: var(--text-muted); line-height: 1.8;
+    max-width: 56ch; margin: 0 0 3rem; transition: color 0.5s ease;
+  }
+
+  .status-strip {
+    display: flex; gap: 1px; background: var(--bg-rule); border: 1px solid var(--bg-rule);
+    margin-bottom: 3rem; border-radius: 6px; overflow: hidden;
+    transition: background-color 0.5s ease, border-color 0.5s ease;
+  }
+  .status-cell { background: var(--bg-card); padding: 1rem 1.1rem; flex: 1; transition: background-color 0.5s ease; }
+  .status-cell .n {
+    font-family: var(--ff-mono); font-weight: 700; font-size: 1.4rem;
+    color: var(--pass); font-variant-numeric: tabular-nums; line-height: 1;
+    transition: color 0.5s ease;
+  }
+  .status-cell .l {
+    font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-muted); margin-top: 0.4rem; transition: color 0.5s ease;
+  }
+
+  section.block { padding-top: 2.75rem; border-top: 1px solid var(--bg-rule); margin-top: 2.75rem; transition: border-color 0.5s ease; }
+  section.block:first-of-type { padding-top: 0; border-top: none; margin-top: 0; }
+
+  h2 {
+    font-family: var(--ff-mono); font-size: 0.66rem; letter-spacing: 0.22em;
+    color: var(--accent); text-transform: uppercase; margin: 0 0 1.25rem;
+    transition: color 0.5s ease;
+  }
+  p { font-size: 0.98rem; line-height: 1.85; color: var(--text); margin: 0 0 1.1rem; max-width: 62ch; }
+  p:last-child { margin-bottom: 0; }
+  p em { font-family: var(--ff-serif); font-style: italic; color: var(--text); }
+
+  ul.plain { margin: 0 0 1.1rem; padding-left: 1.2rem; max-width: 62ch; }
+  ul.plain li { font-size: 0.98rem; line-height: 1.85; color: var(--text); margin-bottom: 0.4rem; }
+  ul.plain li:last-child { margin-bottom: 0; }
+  ul.plain b { color: var(--text); }
+
+  .limitation {
+    padding: 1rem 1.25rem; background: var(--bg-card); border-radius: 8px;
+    margin-bottom: 0.9rem; transition: background-color 0.5s ease;
+  }
+  .limitation:last-child { margin-bottom: 0; }
+  .limitation .k {
+    font-family: var(--ff-mono); font-size: 0.68rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 0.35rem;
+    transition: color 0.5s ease;
+  }
+  .limitation p { margin: 0; font-size: 0.92rem; }
+
+  .contact-card {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.6rem 1rem;
+    padding: 1.1rem 1.4rem; background: var(--bg-card); border-radius: 8px;
+    transition: background-color 0.5s ease;
+  }
+  .contact-card a { color: var(--accent); text-decoration: none; font-family: var(--ff-mono); font-size: 0.95rem; transition: color 0.5s ease; }
+  .contact-card a:hover { text-decoration: underline; }
+  .contact-card span { color: var(--text-muted); font-size: 0.85rem; transition: color 0.5s ease; }
+
+  .reviewed {
+    margin-top: 3.5rem; font-family: var(--ff-mono); font-size: 0.72rem;
+    letter-spacing: 0.08em; color: var(--text-muted); transition: color 0.5s ease;
+  }
+
+  /* ── Footer (identical to the home page's) ──────────────────────── */
+  .footer-rule { border-top: 1px solid var(--bg-rule); transition: border-color 0.5s ease; }
+  footer {
+    max-width: 1200px; margin: 0 auto; padding: 2rem 2.5rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .footer-brand {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-style: normal; font-weight: 200; font-size: 0.95rem;
+    letter-spacing: -0.02em; text-transform: uppercase;
+    color: transparent; -webkit-text-stroke: 0.6px var(--accent);
+    transition: -webkit-text-stroke-color 0.5s ease;
+  }
+  .footer-meta {
+    font-family: var(--ff-mono); font-size: 0.66rem; color: var(--text-muted);
+    letter-spacing: 0.1em; transition: color 0.5s ease;
+  }
+
+  @media (max-width: 640px) {
+    main { padding: 7.5rem 1.25rem 4rem; }
+    .status-strip { flex-wrap: wrap; }
+    .status-cell { flex: 1 1 45%; }
+    footer { flex-direction: column; gap: 0.625rem; text-align: center; }
+  }
+
+  </style>
+
+  <script>
+  window.PMR_THEME = (function () {
+    var THEMES = ['day', 'spring', 'autumn', 'winter', '2049'];
+    var LABELS = { day:'Day', spring:'Spring', autumn:'Autumn', winter:'Winter', '2049':'2049' };
+    var DAY_MAP = { 0:'winter', 1:'day', 2:'day', 3:'spring', 4:'spring', 5:'autumn', 6:'autumn' };
+    var STORAGE_KEY = 'pmr-theme';
+    function todayStamp() { return new Date().toDateString(); }
+    function apply(theme, remember) {
+      if (THEMES.indexOf(theme) === -1) return;
+      document.documentElement.setAttribute('data-theme', theme);
+      var label = document.getElementById('theme-label');
+      if (label) label.textContent = LABELS[theme];
+      if (remember) {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ theme: theme, date: todayStamp() })); }
+        catch (e) {}
+      }
+    }
+    function current() { return document.documentElement.getAttribute('data-theme'); }
+    function cycle() {
+      var i = THEMES.indexOf(current());
+      apply(THEMES[(i + 1) % THEMES.length], true);
+    }
+    function initialTheme() {
+      try {
+        var saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+        if (saved && saved.date === todayStamp() && THEMES.indexOf(saved.theme) !== -1) return saved.theme;
+      } catch (e) {}
+      return DAY_MAP[new Date().getDay()];
+    }
+    apply(initialTheme(), false);
+    return { THEMES: THEMES, LABELS: LABELS, apply: apply, cycle: cycle, current: current };
+  }());
+  </script>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo" aria-label="Post Millennium Renaissance MTB — home">
+    <svg class="nav-mark" viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path class="castle-fill" d="M 10 230 A 190 190 0 0 1 390 230
+        L 382 222 L 372 215 L 358 219 L 344 210 L 330 203 L 318 208
+        L 304 199 L 290 192 L 276 187 L 262 183 L 247 180 L 232 176
+        L 218 172 L 206 168 L 196 161 L 186 154 L 177 149 L 168 145
+        L 158 143 L 148 143 L 138 146 L 128 155 L 119 164 L 110 173
+        L 100 179 L 89 184 L 78 189 L 67 195 L 56 202 L 45 210
+        L 33 218 L 20 225 L 10 230 Z"/>
+    </svg>
+    <span class="nav-wordmark">PMR<em>.</em></span>
+  </a>
+  <div class="nav-right">
+    <a href="/" class="nav-back">&larr; Home</a>
+    <button class="theme-btn" id="theme-btn" aria-label="Cycle color scheme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="1 4 1 10 7 10"/>
+        <path d="M3.51 15a9 9 0 1 0 .49-3.36"/>
+      </svg>
+      <span id="theme-label">Day</span>
+    </button>
+  </div>
+</nav>
+
+<main>
+  <div class="eyebrow">Castle Rock, Colorado</div>
+  <h1>Accessibility Statement</h1>
+  <p class="dek">Post Millennium Renaissance is committed to ensuring digital accessibility for people of all abilities. This page describes how we test for it, what we've fixed, and what's still open.</p>
+
+  <div class="status-strip">
+    <div class="status-cell"><div class="n">0</div><div class="l">Open contrast issues, home page</div></div>
+    <div class="status-cell"><div class="n">5</div><div class="l">Themes tested</div></div>
+    <div class="status-cell"><div class="n">24</div><div class="l">Pages scanned</div></div>
+    <div class="status-cell"><div class="n">1</div><div class="l">Page with a known issue</div></div>
+  </div>
+
+  <section class="block">
+    <h2>Conformance status</h2>
+    <p>This site targets the <a href="https://www.w3.org/TR/WCAG21/" style="color:var(--accent)">Web Content Accessibility Guidelines (WCAG) 2.1</a>, Level AA. We test against it with automated tooling (axe-core) across every page and every seasonal theme — Day, Spring, Autumn, Winter, and 2049.</p>
+    <p>As of August 10, 2026, that automated testing passes across the site: no missing text alternatives, no label, heading-order, or ARIA issues, and no color-contrast failures — including a round of fixes that brought all five themes' text and button colors up to the required 4.5:1 ratio. One page, the stickers gallery, still has a known, unresolved contrast issue.</p>
+    <p>Automated testing verifies a meaningful slice of WCAG &mdash; contrast, semantics, labels, structure &mdash; but not everything the standard covers. We haven't yet completed a full manual pass (keyboard-only navigation, screen reader testing) on the site's interactive tools, so our status is <em>automated AA testing passing, manual verification in progress</em>, rather than a complete AA conformance claim.</p>
+  </section>
+
+  <section class="block">
+    <h2>Measures we've taken</h2>
+    <ul class="plain">
+      <li>Automated WCAG 2.1 A/AA scanning across all pages and themes, with issues found and fixed</li>
+      <li>Semantic HTML structure and landmark regions</li>
+      <li>Text alternatives for meaningful images</li>
+      <li>Color contrast verified at 4.5:1 or better across all five themes</li>
+      <li>Keyboard-navigable interface elements</li>
+      <li>Responsive layouts that support zoom and reflow</li>
+    </ul>
+  </section>
+
+  <section class="block">
+    <h2>Known limitations</h2>
+    <div class="limitation">
+      <span class="k">Stickers page</span>
+      <p>A color-contrast issue affecting ledger and pricing text has been identified and is not yet fixed.</p>
+    </div>
+    <div class="limitation">
+      <span class="k">Interactive tools</span>
+      <p>The wheel visualizer, patent-stack browser, tire simulator, and comparison widgets haven't yet had a manual keyboard-navigation or screen-reader pass. Automated testing found no issues on them, but that doesn't guarantee they're fully usable that way — we're working through this.</p>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Feedback</h2>
+    <p>We welcome your feedback on the accessibility of this site. If you encounter a barrier, please let us know:</p>
+    <div class="contact-card">
+      <a href="mailto:WCAG@pmr.bike">WCAG@pmr.bike</a>
+      <span>postmillenniumrenaissance.com</span>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Technical specifications</h2>
+    <p>Accessibility of this site relies on HTML, CSS, and JavaScript, and is tested with axe-core against WCAG 2.1 A and AA success criteria.</p>
+  </section>
+
+  <p class="reviewed">Last reviewed: August 10, 2026</p>
+</main>
+
+<div class="footer-rule"></div>
+<footer>
+  <div class="footer-brand">Post Millennium Renaissance</div>
+  <div class="footer-meta">postmillenniumrenaissance.com &nbsp;&middot;&nbsp; Castle Rock, CO &nbsp;&middot;&nbsp; &copy; 2026</div>
+</footer>
+
+<script>
+(function () {
+  var T = window.PMR_THEME;
+  if (!T) return;
+  var btn = document.getElementById('theme-btn');
+  var label = document.getElementById('theme-label');
+  if (!btn || !label) return;
+  label.textContent = T.LABELS[T.current()];
+  btn.addEventListener('click', T.cycle);
+}());
+</script>
+
+</body>
+</html>
