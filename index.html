@@ -245,7 +245,7 @@
     color: var(--text-muted); cursor: pointer;
     font-family: var(--ff-mono); font-size: 0.65rem;
     letter-spacing: 0.14em; padding: 0.375rem 0.625rem;
-    border-radius: 2px;
+    border-radius: 2px; text-decoration: none;
     transition: color 0.2s, border-color 0.2s, background-color 0.2s;
   }
   .theme-btn:hover { color: var(--text); border-color: var(--text-muted); }
@@ -455,9 +455,8 @@
   .detent[aria-pressed="true"] { border-color: var(--accent); background: var(--accent); color: var(--bg); }
   .wheel-hint {
     font-family: var(--ff-mono); font-size: 0.58rem; letter-spacing: 0.1em;
-    color: #ff10f0; margin-top: 1rem; text-transform: uppercase;
+    color: var(--text-muted); margin-top: 1rem; text-transform: uppercase;
     transition: color 0.5s ease;
-    text-shadow: 0 0 6px #ff10f0, 0 0 14px rgba(255, 16, 240, 0.6);
   }
 
   /* ── Plate II — chart ────────────────────────────────────────── */
@@ -1038,6 +1037,14 @@
       <li><a href="https://www.pinkbike.com/u/redfoxrun/blog/" target="_blank" rel="noopener">Pinkbike ↗</a></li>
     </ul>
 
+    <a class="theme-btn" href="/metric-clock/" aria-label="Metric time — analogue decimal clock">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+      </svg>
+      <span>Metric time</span>
+    </a>
+
     <button class="theme-btn" id="theme-btn" aria-label="Cycle color scheme">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1157,7 +1164,7 @@
       <p class="wheel-hint">Drag the wheel sideways to spread the hub &middot; scroll to orbit it</p>
 
       <a class="plate-cta" id="w-cta" href="/wheel-lab/?spacing=148">
-        Run your own build <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        Interactive MTB wheel strength comparison <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </a>
     </div>
 
@@ -1343,6 +1350,10 @@
       tag:  "Suspension physics",
       name: "The Viscosity Ledger",
       desc: "Two 10wt fork oils can read identical on the bottle and sit nearly 2× apart at 0 °C. Set a baseline, build two comparison setups, and watch oil choice and heat build reshape the damping curve." },
+    { path: "/metric-clock/",
+      tag:  "Time & measurement",
+      name: "Analogue Metric Clock",
+      desc: "A live analogue face for decimal time — 10 metric hours and 100 metric minutes a day, sweeping in sync with the real clock, second by second." },
   ];
 
   (function () {
