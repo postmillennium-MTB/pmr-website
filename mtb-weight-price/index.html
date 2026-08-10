@@ -27,5 +27,10 @@
        GitHub Pages repo, like Canada-mtb-parks, or a raw path within
        pmr-website if you're serving it directly from this repo). -->
   <iframe src="https://postmillennium-mtb.github.io/mtb-weight-price/" title="Weight vs. Price MTB Scatterplot" allowfullscreen></iframe>
+  <script>
+    document.querySelectorAll('iframe[src*="postmillennium-mtb.github.io"]').forEach(f => {
+      if (window.location.hash) f.src += window.location.hash;
+    });
+  </script>
 </body>
 </html>

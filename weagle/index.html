@@ -27,5 +27,10 @@
 </head>
 <body>
   <iframe src="https://postmillennium-mtb.github.io/Weagle-Patents/" title="Dave Weagle Patent Widget" allowfullscreen></iframe>
+  <script>
+    document.querySelectorAll('iframe[src*="postmillennium-mtb.github.io"]').forEach(f => {
+      if (window.location.hash) f.src += window.location.hash;
+    });
+  </script>
 </body>
 </html>
