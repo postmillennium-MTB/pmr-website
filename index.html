@@ -455,8 +455,9 @@
   .detent[aria-pressed="true"] { border-color: var(--accent); background: var(--accent); color: var(--bg); }
   .wheel-hint {
     font-family: var(--ff-mono); font-size: 0.58rem; letter-spacing: 0.1em;
-    color: var(--text-muted); margin-top: 1rem; text-transform: uppercase;
+    color: #ff10f0; margin-top: 1rem; text-transform: uppercase;
     transition: color 0.5s ease;
+    text-shadow: 0 0 6px #ff10f0, 0 0 14px rgba(255, 16, 240, 0.6);
   }
 
   /* ── Plate II — chart ────────────────────────────────────────── */
@@ -1128,12 +1129,7 @@
   <div class="plate-grid">
     <div>
       <span class="plate-tag">Fig. 1 &middot; Wheel mechanics</span>
-      <h3 class="plate-h">148 vs. 157 &mdash; you can&rsquo;t see it from the front.</h3>
-      <p class="plate-p">
-        Head-on, a Boost wheel and a Super Boost wheel are the same picture. Bracing
-        angle is an angle in space. Spread the hub and turn the wheel to find the
-        nine millimetres.
-      </p>
+      <h3 class="plate-h">148 vs. 157 &mdash; symmetry equals strength.</h3>
 
       <div class="wheel-readouts">
         <div>
@@ -1141,7 +1137,7 @@
           <span class="ro-v accent" id="w-theta">4.04<span class="u">deg</span></span>
         </div>
         <div>
-          <span class="ro-k">Lateral index</span>
+          <span class="ro-k">Lateral strength</span>
           <span class="ro-v" id="w-stiff">100</span>
         </div>
         <div>
@@ -1216,40 +1212,6 @@
   <a class="plate-cta" id="c-cta" href="/sports-popularity/">
     Open the full series <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
   </a>
-</section>
-
-<!-- ── Plate III — MTB Patent Atlas ──────────────────────────────
-     Depth. Eighteen real entries from the Atlas, 1913 to 2024.
-     Always dark: an archive is a different room, and the spine
-     script drifts the rest of the page down to meet it.
-──────────────────────────────────────────────────────────────── -->
-<section class="plate plate-archive" id="plate-archive" data-scale="111 yr" data-unit="prior art">
-  <div class="plate-inner">
-    <span class="plate-tag">Fig. 3 &middot; IP research</span>
-    <h3 class="plate-h">You&rsquo;ve heard &ldquo;Horst Link.&rdquo; Here&rsquo;s the actual paper.</h3>
-    <p class="plate-p">
-      Eighteen real filings from the Atlas, 1913 to 2024. Fly through the stack,
-      then type to filter it in place &mdash; forty years of prior art thins to
-      three sheets as you narrow.
-    </p>
-
-    <div class="stack-stage" id="s-stage"></div>
-
-    <div class="stack-ctl">
-      <input type="search" id="s-q" placeholder="search your bike &mdash; try: horst, fox, wheel, 1913" aria-label="Filter the patent stack">
-      <input type="range" id="s-z" min="0" max="100" value="0" aria-label="Fly through the stack">
-    </div>
-    <p class="stack-meta"><b id="s-n">18</b> of 18 sheets &middot; drag the right-hand slider to fly through &middot; click a sheet to read it</p>
-    <p class="stack-detail" id="s-detail">Click any sheet to read its filing.</p>
-
-    <noscript>
-      <img src="/images/preview-patent-atlas.png" alt="MTB Patent Atlas search results for a Fox Factory damping cartridge patent" width="1000" height="852">
-    </noscript>
-
-    <a class="plate-cta" id="s-cta" href="/atlas/">
-      Search the full atlas <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-    </a>
-  </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════════
@@ -1431,6 +1393,40 @@
 
   <div class="grid-reset-row">
     <button type="button" id="grid-reset-btn" class="grid-reset-btn">Reset tool order</button>
+  </div>
+</section>
+
+<!-- ── Plate III — MTB Patent Atlas ──────────────────────────────
+     Depth. Eighteen real entries from the Atlas, 1913 to 2024.
+     Always dark: an archive is a different room, and the spine
+     script drifts the rest of the page down to meet it.
+──────────────────────────────────────────────────────────────── -->
+<section class="plate plate-archive" id="plate-archive" data-scale="111 yr" data-unit="prior art">
+  <div class="plate-inner">
+    <span class="plate-tag">Fig. 3 &middot; IP research</span>
+    <h3 class="plate-h">You&rsquo;ve heard &ldquo;Horst Link.&rdquo; Here&rsquo;s the actual paper.</h3>
+    <p class="plate-p">
+      Eighteen real filings from the Atlas, 1913 to 2024. Fly through the stack,
+      then type to filter it in place &mdash; forty years of prior art thins to
+      three sheets as you narrow.
+    </p>
+
+    <div class="stack-stage" id="s-stage"></div>
+
+    <div class="stack-ctl">
+      <input type="search" id="s-q" placeholder="search your bike &mdash; try: horst, fox, wheel, 1913" aria-label="Filter the patent stack">
+      <input type="range" id="s-z" min="0" max="100" value="0" aria-label="Fly through the stack">
+    </div>
+    <p class="stack-meta"><b id="s-n">18</b> of 18 sheets &middot; drag the right-hand slider to fly through &middot; click a sheet to read it</p>
+    <p class="stack-detail" id="s-detail">Click any sheet to read its filing.</p>
+
+    <noscript>
+      <img src="/images/preview-patent-atlas.png" alt="MTB Patent Atlas search results for a Fox Factory damping cartridge patent" width="1000" height="852">
+    </noscript>
+
+    <a class="plate-cta" id="s-cta" href="/atlas/">
+      Search the full atlas <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
   </div>
 </section>
 
