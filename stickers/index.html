@@ -448,7 +448,7 @@
     // renderer, so this entry needs no special markup of its own.
     // When it goes on sale: add img, size, price and stripe, and
     // delete the svg field.
-    { name: "All Five Plates",
+    { name: "Soon Cometh",
       alt:  "All five PMR stickers together",
       svg:  '<svg viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="All five PMR stickers together">' +
               '<g stroke="#A0761F" fill="none" stroke-width="2">' +
@@ -458,7 +458,7 @@
               '</g>' +
               '<text x="60" y="92" text-anchor="middle" font-family="serif" font-style="italic" font-size="9" fill="#48566C">all five designs</text>' +
             '</svg>',
-      desc: "The complete set in one envelope — one shipping, best value.",
+      desc: "delightful anticipation",
       size: null,
       price: null,
       stripe: null,
@@ -537,7 +537,7 @@
     var plateNo = 0;
 
     function plateHTML(item) {
-      var heading = item.folio ? 'The Complete Folio' : 'Plate ' + roman(++plateNo);
+      var heading = item.folio ? 'Future Plate' : 'Plate ' + roman(++plateNo);
 
       // One, two or three photographs, in that order, skipping blanks.
       var views = ['img', 'img2', 'img3'].filter(function (key) {
