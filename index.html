@@ -512,9 +512,23 @@
     --pl-bg: #14120D; --pl-ink: #D9CFBC; --pl-dim: #8C8371;
     --pl-rule: #342D1E; --pl-amber: #C8912F;
     background: var(--pl-bg); color: var(--pl-ink);
-    margin-top: 2rem;
+    margin-top: 2rem; position: relative;
   }
-  .plate-archive .plate-inner { max-width: 1200px; margin: 0 auto; padding: 4rem 2.5rem; }
+  /* USD28,278 (Crowe, 1898, expired -> public domain), cropped to its true
+     woven repeat and shipped as an alpha mask -- see images/pmr-carpet-1898-SOURCE.md for the
+     source. Tinted with --pl-amber specifically, NOT the active theme's
+     --accent: this plate is deliberately season-invariant ("an archive is
+     a different room"), so its texture stays the plate's own color rather
+     than drifting with whichever seasonal theme happens to be active. */
+  .plate-archive .carpet-field {
+    position: absolute; inset: 0; pointer-events: none;
+    background-color: var(--pl-amber); opacity: 0.05;
+    -webkit-mask-image: url('/images/pmr-carpet-1898-mask.png');
+    mask-image: url('/images/pmr-carpet-1898-mask.png');
+    -webkit-mask-repeat: repeat; mask-repeat: repeat;
+    -webkit-mask-size: 480px auto; mask-size: 480px auto;
+  }
+  .plate-archive .plate-inner { position: relative; max-width: 1200px; margin: 0 auto; padding: 4rem 2.5rem; }
   .plate-archive .plate-tag { color: var(--pl-amber); }
   .plate-archive .plate-h { color: var(--pl-ink); }
   .plate-archive .plate-p { color: var(--pl-dim); }
@@ -803,7 +817,24 @@
   footer {
     max-width: 1200px; margin: 0 auto; padding: 2rem 2.5rem;
     display: flex; justify-content: space-between; align-items: center;
+    position: relative;
   }
+  /* Same source as the archive plate's texture, but tinted with the
+     ACTIVE theme's own --accent -- this is the one placement on the page
+     where the carpet visibly changes color as the theme cycles, since
+     the footer (unlike the archive plate) isn't meant to hold one fixed
+     identity across seasons. */
+  .footer-carpet {
+    position: absolute; inset: 0; pointer-events: none;
+    background-color: var(--accent); opacity: 0.05;
+    -webkit-mask-image: url('/images/pmr-carpet-1898-mask.png');
+    mask-image: url('/images/pmr-carpet-1898-mask.png');
+    -webkit-mask-repeat: repeat; mask-repeat: repeat;
+    -webkit-mask-size: 300px auto; mask-size: 300px auto;
+    -webkit-mask-position: center; mask-position: center;
+    transition: opacity 0.5s ease;
+  }
+  footer > * { position: relative; }
   /* Same Helvetica Neue / hollow-outline treatment as the hero title
      and section titles, sized down further still — smallest instance
      of the mark on the page. */
@@ -1424,6 +1455,7 @@
      script drifts the rest of the page down to meet it.
 ──────────────────────────────────────────────────────────────── -->
 <section class="plate plate-archive" id="plate-archive" data-scale="111 yr" data-unit="prior art">
+  <div class="carpet-field" aria-hidden="true"></div>
   <div class="plate-inner">
     <span class="plate-tag">Fig. 3 &middot; IP research</span>
     <h3 class="plate-h">You&rsquo;ve heard &ldquo;Horst Link.&rdquo; Here&rsquo;s the actual paper.</h3>
@@ -1545,6 +1577,7 @@
 ═══════════════════════════════════════════════════════════════ -->
 <div class="footer-rule"></div>
 <footer>
+  <div class="footer-carpet" aria-hidden="true"></div>
   <div class="footer-brand">Post Millennium Renaissance</div>
   <div class="footer-meta">postmillenniumrenaissance.com &nbsp;·&nbsp; Castle Rock, CO &nbsp;·&nbsp; © 2026 &nbsp;·&nbsp; <a href="/privacy/">Privacy</a></div>
 </footer>
