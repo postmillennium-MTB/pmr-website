@@ -515,18 +515,21 @@
     margin-top: 2rem; position: relative;
   }
   /* USD28,278 (Crowe, 1898, expired -> public domain), cropped to its true
-     woven repeat and shipped as an alpha mask -- see images/pmr-carpet-1898-SOURCE.md for the
-     source. Tinted with --pl-amber specifically, NOT the active theme's
-     --accent: this plate is deliberately season-invariant ("an archive is
-     a different room"), so its texture stays the plate's own color rather
-     than drifting with whichever seasonal theme happens to be active. */
+     woven repeat and shipped as an alpha mask -- see images/pmr-carpet-1898-SOURCE.md
+     for the source. Tinted with the ACTIVE theme's --accent (not a plate-
+     local constant) so this recolors with the season exactly like the
+     footer instance does: slate in winter, amber in 2049, oxide in day,
+     and so on. .plate-archive doesn't redefine --accent itself (it only
+     defines the --pl-* constants used by its tag/CTA chrome), so this
+     inherits the real theme value normally. */
   .plate-archive .carpet-field {
     position: absolute; inset: 0; pointer-events: none;
-    background-color: var(--pl-amber); opacity: 0.05;
+    background-color: var(--accent); opacity: 0.05;
     -webkit-mask-image: url('/images/pmr-carpet-1898-mask.png');
     mask-image: url('/images/pmr-carpet-1898-mask.png');
     -webkit-mask-repeat: repeat; mask-repeat: repeat;
     -webkit-mask-size: 480px auto; mask-size: 480px auto;
+    transition: background-color 0.5s ease;
   }
   .plate-archive .plate-inner { position: relative; max-width: 1200px; margin: 0 auto; padding: 4rem 2.5rem; }
   .plate-archive .plate-tag { color: var(--pl-amber); }
@@ -2156,10 +2159,23 @@
   // scroll frame. The day theme is defined on :root rather than on a
   // [data-theme] block, so reading :root is also the only approach that
   // works for all five themes.
+  // .plate-archive itself gets --accent pinned back to this true base
+  // value every time it's (re)read. Without this, the carpet-field
+  // texture inside the plate -- which deliberately uses the season's
+  // real --accent so it recolors with the theme -- would inherit
+  // whatever drifted value the scroll-linked interpolation below has
+  // written onto :root, and since the drift's target IS the archive's
+  // own amber, that value saturates to amber the moment the plate is
+  // actually scrolled into view: precisely the state where a visitor
+  // would be looking at it. The drift itself still runs normally for
+  // everything OUTSIDE the plate (that's the point of it); this just
+  // stops it leaking into the one place it would silently defeat its
+  // own texture's per-theme tint.
   function readBase() {
     DRIFT.forEach(function (k) { root.style.removeProperty(k); });
     var cs = getComputedStyle(root);
     DRIFT.forEach(function (k) { base[k] = parse(cs.getPropertyValue(k)); });
+    if (base['--accent']) archive.style.setProperty('--accent', mix(base['--accent'], base['--accent'], 0));
   }
   readTargets(); readBase();
   window.addEventListener('pmr:themechange', function () {
