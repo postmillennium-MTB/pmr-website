@@ -16,7 +16,7 @@
   <meta property="og:image" content="https://postmillenniumrenaissance.com/og-image.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;1,400&family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500&family=Space+Mono&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500&family=Space+Mono&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg:         #ECEAE4;
@@ -27,7 +27,7 @@
       --accent:     #7A3828;
       --blue:       #3A5C6E;
       --castle-fill:#2E2416;
-      --ff-serif: 'EB Garamond', Georgia, serif;
+      --ff-display: 'Audiowide', 'Space Grotesk', sans-serif;
       --ff-sans:  'Space Grotesk', sans-serif;
       --ff-body:  'Inter', sans-serif;
       --ff-mono:  'Space Mono', monospace;
@@ -55,8 +55,9 @@
       text-transform: uppercase; color: var(--accent); margin-bottom: 1rem;
     }
     h1 {
-      font-family: var(--ff-serif); font-weight: 500; font-size: clamp(2rem, 5vw, 2.6rem);
-      line-height: 1.15; margin-bottom: 0.75rem;
+      font-family: var(--ff-display); font-weight: 400; text-transform: uppercase;
+      letter-spacing: 0.01em; font-size: clamp(1.6rem, 4vw, 2.1rem);
+      line-height: 1.3; margin-bottom: 0.75rem;
     }
     .updated {
       font-family: var(--ff-mono); font-size: 0.76rem; color: var(--text-muted);
@@ -72,7 +73,8 @@
     section { margin-bottom: 2.5rem; }
     section:last-of-type { margin-bottom: 0; }
     h2 {
-      font-family: var(--ff-serif); font-weight: 500; font-size: 1.35rem;
+      font-family: var(--ff-display); font-weight: 400; text-transform: uppercase;
+      letter-spacing: 0.01em; font-size: 1.05rem;
       margin-bottom: 0.75rem;
     }
     p { font-size: 0.98rem; line-height: 1.75; color: var(--text); margin-bottom: 0.9rem; }
@@ -85,9 +87,12 @@
     li { font-size: 0.98rem; line-height: 1.75; margin-bottom: 0.35rem; }
 
     .disclaimer {
+      /* Full-sentence disclaimer — kept in mixed case, unlike the h1/h2 labels
+         above. An all-caps display face across a whole sentence reads as
+         shouting, not fine print. */
       margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--bg-rule);
-      font-family: var(--ff-serif); font-style: italic; font-size: 0.98rem;
-      color: var(--text-muted); line-height: 1.6;
+      font-family: var(--ff-display); font-size: 0.9rem;
+      color: var(--text-muted); line-height: 1.7;
     }
 
     footer {
