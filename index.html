@@ -1687,6 +1687,13 @@
   var R = 298, FR = 29, RUN = R - FR;
   var OFF148 = 19, NDS_RATIO = 1.63, NSPOKE = 32, LACE = 0.85;
   var mm = 148, yaw = 0.12, W = 0, H = 0;
+  // Purely a drawing exaggeration: the drag still maps 1:1 to real mm
+  // (theta()/sync() below use the unscaled offset, so the angle, %
+  // stiffness and mm readouts stay physically accurate) but the
+  // flanges themselves are pushed further apart on screen than the
+  // true-to-scale geometry would put them, so "spread the hub" reads
+  // as a visibly bigger gesture.
+  var VIS_SPREAD = 1.8;
 
   var elT = document.getElementById('w-theta'),
       elS = document.getElementById('w-stiff'),
@@ -1750,7 +1757,7 @@
 
     var ink = tok('--text') || '#1A1814';
     var accent = tok('--accent') || '#7A3828';
-    var off = offsetFor(mm), ds = off, nds = off * NDS_RATIO;
+    var off = offsetFor(mm) * VIS_SPREAD, ds = off, nds = off * NDS_RATIO;
 
     // spokes first, so the rim and flanges sit on top of them
     for (var i = 0; i < NSPOKE; i++) {
@@ -1839,7 +1846,7 @@
     // 0 as the plate enters from below, 1 as it leaves past the top
     var p = 1 - (r.top + r.height / 2) / (vh + r.height / 2);
     p = Math.max(0, Math.min(1, p));
-    yaw = 0.10 + p * 0.85;
+    yaw = 0.10 + p * 1.15;
     draw();
   }
 
