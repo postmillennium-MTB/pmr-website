@@ -42,6 +42,7 @@
     --gold:        #786030;
     --nav-bg:      rgba(236,234,228,0.93);
     --castle-fill: #2E2416;
+    --carpet-ink:  0.055;
     --paint-filter: none;
     --ff-display:  'Audiowide', 'Space Grotesk', sans-serif;
     --ff-sans:     'Space Grotesk', sans-serif;
@@ -63,6 +64,7 @@
     --gold:        #7A9830;
     --nav-bg:      rgba(230,235,228,0.93);
     --castle-fill: #2A3A28;
+    --carpet-ink:  0.055;
     --paint-filter: brightness(1.04) saturate(1.18) hue-rotate(8deg);
   }
 
@@ -80,6 +82,7 @@
     --gold:        #C08818;
     --nav-bg:      rgba(237,230,218,0.93);
     --castle-fill: #3A2810;
+    --carpet-ink:  0.055;
     --paint-filter: sepia(0.28) saturate(1.5) brightness(1.0) hue-rotate(-6deg);
   }
 
@@ -97,6 +100,7 @@
     --gold:        #6880A0;
     --nav-bg:      rgba(24,28,34,0.93);
     --castle-fill: #7A8898;
+    --carpet-ink:  0.07;
     --paint-filter: brightness(0.42) saturate(0.22) hue-rotate(198deg);
   }
 
@@ -118,6 +122,7 @@
     --gold:        #B8901E;
     --nav-bg:      rgba(11,10,8,0.93);
     --castle-fill: #C9A227;
+    --carpet-ink:  0.065;
     --paint-filter: sepia(0.55) saturate(1.6) brightness(0.62) hue-rotate(-8deg) contrast(1.08);
   }
 
@@ -150,16 +155,54 @@
      BASE
   ═══════════════════════════════════════════════════════════════ */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
+  /* The canvas background lives on <html>, not <body>. .page-carpet is a
+     z-index:-1 child of <body>; if <body> kept its own background it would
+     paint straight over that layer and the texture would never be seen.
+     Moving the color up here is what makes the page-wide carpet visible. */
+  html {
+    scroll-behavior: smooth;
+    background: var(--bg);
+    transition: background-color 0.5s ease;
+  }
 
   body {
-    background: var(--bg);
+    /* No background here on purpose -- see the <html> rule above. */
+    position: relative;
     color: var(--text);
     font-family: var(--ff-body);
     font-size: 16px;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
-    transition: background-color 0.5s ease, color 0.5s ease;
+    transition: color 0.5s ease;
+  }
+
+  /* ── The 1898 Crowe carpet, page-wide ─────────────────────────────
+     USD28,278 (Crowe, 1898, expired -> public domain), cropped to its
+     true woven repeat and shipped as an alpha mask -- see
+     images/pmr-carpet-1898-SOURCE.md for the source.
+
+     Tinted with the ACTIVE theme's --accent, so the paper itself takes
+     on the season: oxide in day, green in spring, slate in winter,
+     amber in 2049. This is the one texture the whole page sits on.
+
+     position:absolute (not fixed) with body{position:relative} spans the
+     full scrollable document, so the weave travels with the content like
+     a printed sheet rather than sitting still behind a moving page.
+
+     Ink strength is a per-theme token, not a constant: a dark accent on
+     light paper and a light accent on a near-black ground do not read at
+     the same opacity. TO RETINT A THEME: change its --carpet-ink.
+     Anything with its own opaque background (tool cards, the archive
+     plate) covers this layer, which is intended -- those read as objects
+     resting on the paper. */
+  .page-carpet {
+    position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background-color: var(--accent); opacity: var(--carpet-ink);
+    -webkit-mask-image: url('/images/pmr-carpet-1898-mask.png');
+    mask-image: url('/images/pmr-carpet-1898-mask.png');
+    -webkit-mask-repeat: repeat; mask-repeat: repeat;
+    -webkit-mask-size: 520px auto; mask-size: 520px auto;
+    transition: background-color 0.5s ease, opacity 0.5s ease;
   }
 
   /* ═══════════════════════════════════════════════════════════════
@@ -823,21 +866,11 @@
     display: flex; justify-content: space-between; align-items: center;
     position: relative;
   }
-  /* Same source as the archive plate's texture, but tinted with the
-     ACTIVE theme's own --accent -- this is the one placement on the page
-     where the carpet visibly changes color as the theme cycles, since
-     the footer (unlike the archive plate) isn't meant to hold one fixed
-     identity across seasons. */
-  .footer-carpet {
-    position: absolute; inset: 0; pointer-events: none;
-    background-color: var(--accent); opacity: 0.05;
-    -webkit-mask-image: url('/images/pmr-carpet-1898-mask.png');
-    mask-image: url('/images/pmr-carpet-1898-mask.png');
-    -webkit-mask-repeat: repeat; mask-repeat: repeat;
-    -webkit-mask-size: 300px auto; mask-size: 300px auto;
-    -webkit-mask-position: center; mask-position: center;
-    transition: opacity 0.5s ease;
-  }
+  /* The footer used to carry its own carpet instance at a tighter 300px
+     repeat. The page-wide .page-carpet layer now runs behind the footer
+     too, and two copies of the same weave at different scales moire
+     against each other -- so the footer-local one was removed rather
+     than kept and fought with. */
   footer > * { position: relative; }
   /* Same Helvetica Neue / hollow-outline treatment as the hero title
      and section titles, sized down further still — smallest instance
@@ -1055,6 +1088,10 @@
   </script>
 </head>
 <body>
+
+<!-- Page-wide carpet texture. Styled by .page-carpet; sits behind
+     everything at z-index:-1 and retints with the active theme. -->
+<div class="page-carpet" aria-hidden="true"></div>
 
 <!-- ═══════════════════════════════════════════════════════════════
      NAV
@@ -1581,7 +1618,6 @@
 ═══════════════════════════════════════════════════════════════ -->
 <div class="footer-rule"></div>
 <footer>
-  <div class="footer-carpet" aria-hidden="true"></div>
   <div class="footer-brand">Post Millennium Renaissance</div>
   <div class="footer-meta">postmillenniumrenaissance.com &nbsp;·&nbsp; Castle Rock, CO &nbsp;·&nbsp; © 2026 &nbsp;·&nbsp; <a href="/privacy/">Privacy</a></div>
 </footer>
