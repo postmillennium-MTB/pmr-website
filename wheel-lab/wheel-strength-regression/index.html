@@ -319,26 +319,13 @@
     <p class="eyebrow">MTB-wheel-lab &middot; 30 hubs &times; 5 rims &times; 16 build specs &middot; wheel-physics-core</p>
     <h1>Lateral Strength Regressor</h1>
     <p class="dek">
-      Y = <code>F_lat</code> (kgf), the first-spoke-slack lateral strength from wheel-physics-core's
-      Mode Matrix engine. Every one of 30 cataloged hubs is crossed with 5 real rims and a full
-      2&times;2&times;2&times;2 factorial of spoke diameter, spoke count, drive-side build tension, and
-      wheel size (2,400 rows total) &mdash; toggle betas on and off below and the fit refits live.
+      This is an <strong>experimental</strong> tool that estimates how different hub, rim, and
+      build choices affect a wheel's lateral strength &mdash; the sideways force it can take before
+      a spoke loses tension. It's built on 30 real hub designs across a range of rim and build
+      combinations, but <strong>the rim stiffness numbers used here are this tool's own estimates,
+      not measured data</strong>. Toggle the factors below and watch the fit update live.
     </p>
   </header>
-
-  <section class="panel control-panel">
-    <div class="control-head">
-      <span class="control-title">Betas</span>
-      <span class="control-hint" id="dfHint">click to add / remove &middot; refits instantly</span>
-    </div>
-    <div class="group-label">Hub geometry</div>
-    <div class="chips" id="chipsHub"></div>
-    <div class="group-label">Rim <span class="chip-tier est">EST</span> = estimated stiffness scaling, not measured &middot; <span class="chip-tier ver">VER</span> = published spec</div>
-    <div class="chips" id="chipsRim"></div>
-    <div class="group-label">Build spec <span class="chip-tier ver">VER</span> = published spec / working range</div>
-    <div class="chips" id="chipsBuild"></div>
-    <p class="guard-note" id="guardNote"></p>
-  </section>
 
   <div class="kpis" id="kpis"></div>
 
@@ -358,6 +345,20 @@
       </div>
     </div>
   </div>
+
+  <section class="panel control-panel">
+    <div class="control-head">
+      <span class="control-title">Betas</span>
+      <span class="control-hint" id="dfHint">click to add / remove &middot; refits instantly</span>
+    </div>
+    <div class="group-label">Hub geometry</div>
+    <div class="chips" id="chipsHub"></div>
+    <div class="group-label">Rim <span class="chip-tier est">EST</span> = estimated stiffness scaling, not measured &middot; <span class="chip-tier ver">VER</span> = published spec</div>
+    <div class="chips" id="chipsRim"></div>
+    <div class="group-label">Build spec <span class="chip-tier ver">VER</span> = published spec / working range</div>
+    <div class="chips" id="chipsBuild"></div>
+    <p class="guard-note" id="guardNote"></p>
+  </section>
 
   <details class="panel">
     <summary>Rim catalog &amp; sourcing<span class="car">&#9656;</span></summary>
