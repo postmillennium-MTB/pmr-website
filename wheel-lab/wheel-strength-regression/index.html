@@ -355,6 +355,10 @@
     <div class="chips" id="chipsHub"></div>
     <div class="group-label">Rim <span class="chip-tier est">EST</span> = estimated stiffness scaling, not measured &middot; <span class="chip-tier ver">VER</span> = published spec</div>
     <div class="chips" id="chipsRim"></div>
+    <div class="group-label">Carbon rim stiffness assumption &mdash; no measured carbon MTB rim data exists
+      anywhere in this project's sourced literature (see <a href="./README.md">analysis README</a>); the
+      options below let you see how much this one unverified guess drives the result.</div>
+    <div class="chips" id="carbonFactorChips"></div>
     <div class="group-label">Build spec <span class="chip-tier ver">VER</span> = published spec / working range</div>
     <div class="chips" id="chipsBuild"></div>
     <p class="guard-note" id="guardNote"></p>
@@ -2823,6 +2827,168 @@
   let selected = new Set(["tension_ratio", "flange_width", "pcd_mean", "standard_157", "rim_stiffness_index"]);
 
   // ---------------------------------------------------------------------
+  // Carbon rim stiffness assumption -- adjustable, not baked in.
+  //
+  // rim_stiffness_index = geometryFactor * materialFactor, where
+  // materialFactor is 1.0 for alloy (not adjustable -- that part isn't in
+  // question) and 1.35 for carbon BY DEFAULT ONLY -- a bare rule of thumb
+  // with zero supporting measurement anywhere in this project's sourced
+  // literature (papers/, literature/, and literature/bike-tech-archive/
+  // were all checked; not one contains a measured carbon MTB rim
+  // stiffness value). Carbon fiber's raw modulus beats aluminum's, but a
+  // rim is a tuned laminate layup, not raw fiber -- manufacturers can and
+  // do engineer carbon rims either stiffer OR more compliant than a
+  // comparable alloy rim on purpose. "Carbon is 35% stiffer" is a
+  // marketing-adjacent generalization, not a verified constant, and there
+  // is no basis here to rule out the opposite direction.
+  //
+  // Because rim_stiffness_index feeds into the physics engine nonlinearly
+  // (it scales EIL/EIR/GJ/EA_rim, which then go through a mode-matrix
+  // stiffness-matrix inversion -- see wheel-physics-core's calc()), simply
+  // rescaling the stored rim_stiffness_index number would NOT correctly
+  // update F_lat. So this control actually re-runs the real physics
+  // engine, client-side, for the carbon rows only, whenever the
+  // assumption changes -- alloy rows are untouched (materialFactor for
+  // alloy stays fixed at 1.0; only the carbon side is in question).
+  let carbonFactor = 1.35;
+  const CARBON_FACTOR_OPTIONS = [
+    { value: 1.35, label: "Stiffer", sub: "1.35\u00d7 \u00b7 default estimate" },
+    { value: 1.0,  label: "Similar to alloy", sub: "1.0\u00d7" },
+    { value: 0.75, label: "Less stiff", sub: "0.75\u00d7" },
+  ];
+
+  // Ford's Mode Matrix engine (wheel-physics-core, MIT, \u00a9 Matthew Ford),
+  // copied verbatim from js/engine.js so this page stays a single
+  // self-contained file with no build step. Edit wheel-physics-core's copy
+  // first if this ever needs to change; see that repo's README.
+  function spokeEA(d_mm) { return Math.PI / 4 * Math.pow(d_mm / 1000, 2) * 210e9; }
+  function calc(erd_mm, hub, spkDS, spkNDS, tDS_kgf, EIL, EIR, GJ, EA_rim, Ns, N) {
+    const PI = Math.PI;
+    const R = erd_mm / 2 / 1000 + 0.011;
+    const nCross = 3;
+    const dth = 2 * PI / (Ns / 2) * nCross;
+    function spokeGeom(width_m, flange_dia_mm) {
+      const Rh = flange_dia_mm / 2 / 1000;
+      const du = width_m, dv = R - Rh * Math.cos(dth), dw = Rh * Math.sin(dth);
+      const L = Math.sqrt(du*du + dv*dv + dw*dw);
+      return { L, nu: du / L, nv: dv / L, nw: dw / L };
+    }
+    const gDS = spokeGeom(hub.ds / 1000, hub.pds);
+    const gNDS = spokeGeom(hub.nds / 1000, hub.pnds);
+    const T_DS = tDS_kgf * 9.81;
+    const ratio = Math.abs(gDS.nu) / Math.abs(gNDS.nu);
+    const T_NDS = T_DS * ratio;
+    const EA_DS = spokeEA(spkDS), EA_NDS = spokeEA(spkNDS);
+    function kdiag(g, EA, T, n2) { return (EA / g.L) * n2 + (T / g.L) * (1 - n2); }
+    const half = Ns / 2, circ = 2 * PI * R;
+    const kbar_uu = (half * (kdiag(gDS, EA_DS, T_DS, gDS.nu*gDS.nu) + kdiag(gNDS, EA_NDS, T_NDS, gNDS.nu*gNDS.nu))) / circ;
+    const T_avg = (half * (T_DS * gDS.nv + T_NDS * gNDS.nv)) / Ns;
+    let C_lat = 1 / (circ * kbar_uu);
+    for (let n = 1; n <= N; n++) {
+      const n2 = n * n;
+      const Kuu = EIL * PI / (R*R*R) * n2*n2 + GJ * PI / (R*R*R) * n2 + PI * R * kbar_uu - T_avg * (Ns / circ) * PI * n2;
+      const Kup = -(EIL * PI / (R*R) * n2 + GJ * PI / (R*R) * n2);
+      const Kpp = EIL * PI / R + GJ * PI / R * n2;
+      const det = Kuu * Kpp - Kup * Kup;
+      C_lat += Kpp / det;
+    }
+    const K_lat = 1 / C_lat;
+    const uSlackDS = T_DS * gDS.L / (EA_DS * Math.abs(gDS.nu));
+    const uSlackNDS = T_NDS * gNDS.L / (EA_NDS * Math.abs(gNDS.nu));
+    const F_lat_N = K_lat * Math.min(uSlackDS, uSlackNDS);
+    return { F_lat: F_lat_N / 9.81 };
+  }
+
+  const EIL_REF = 50, EIR_REF = 150, GJ_REF = 22, EA_RIM_REF = 115e5, MODES = 24;
+  const REF_WIDTH = 30, REF_DEPTH = 21; // DT Swiss XM 481
+
+  // Rim depth isn't stored per DATA row (only internal_width is, to keep
+  // the embedded dataset smaller) -- this is the same 5-rim catalog from
+  // build_dataset.js, just the one extra field needed to recover
+  // geometryFactor exactly.
+  const RIM_DEPTH = {
+    "DT Swiss XM 481": 21, "Race Face ARC Offset 30": 20, "Stan's Flow S2": 18.2,
+    "We Are One Convert": 21, "ENVE M730": 27,
+  };
+
+  // 30-hub geometry lookup, matching build_dataset.js's HUBS_148/HUBS_157
+  // exactly -- needed because calc() takes raw hub {nds,ds,pds,pnds}, which
+  // isn't itself a stored DATA column (only derived betas like
+  // flange_width and pcd_mean are).
+  const HUB_GEOM = {
+    "Onyx 148 MFU": {nds:36.9,ds:22.92,pds:50,pnds:50},
+    "Spank Hex J-Type Boost R148": {nds:37,ds:25,pds:64,pnds:58},
+    "CK 148x12 Centerlock Rear": {nds:36.3,ds:24,pds:57.4,pnds:57.4},
+    "Project 321 G3 148x12": {nds:32,ds:22,pds:60.5,pnds:55},
+    "Hydra Mountain 6-Bolt 148": {nds:38,ds:25,pds:60,pnds:58},
+    "I9 Hydra Centerlock 148": {nds:39,ds:24,pds:60,pnds:49},
+    "I9 1/1 Mountain 6-Bolt 148": {nds:37,ds:23,pds:60,pnds:58},
+    "Hope Pro5 148 6-bolt": {nds:35,ds:22.6,pds:59,pnds:57},
+    "Erase MTB IS 148x12 V2": {nds:38,ds:25,pds:56,pnds:50},
+    "Hadley 148x12": {nds:37.1,ds:22.9,pds:59,pnds:52},
+    "OneUp Rear Hub 148x12": {nds:38,ds:23,pds:48,pnds:52},
+    "KOM Xeno Rear Boost 148x12": {nds:30.5,ds:23.5,pds:46,pnds:46},
+    "DMR Zone 148 Boost Centerlock": {nds:38,ds:21,pds:56,pnds:56},
+    "DT Swiss 350 148 6-bolt": {nds:36.6,ds:23.3,pds:52,pnds:58},
+    "e*thirteen Sidekick 148 Boost": {nds:38,ds:21,pds:60,pnds:60},
+    "Onyx 150/157": {nds:41.4,ds:27.42,pds:50,pnds:50},
+    "Onyx 150/157 Vesper": {nds:41.4,ds:26.97,pds:50,pnds:42},
+    "Spank Hex J-Type R150/157": {nds:39.5,ds:29.5,pds:64,pnds:58},
+    "CK 157 SB Centerlock Rear": {nds:40.3,ds:28.8,pds:57.4,pnds:57.4},
+    "Project 321 G3 157 SB": {nds:32,ds:26,pds:60.5,pnds:55},
+    "I9 Hydra 6-Bolt 150/157": {nds:41,ds:29,pds:60,pnds:58},
+    "I9 Hydra Centerlock 157 SB": {nds:43,ds:28,pds:60,pnds:49},
+    "Hope Pro5 157 SB 6-bolt": {nds:39.6,ds:27,pds:59,pnds:57},
+    "Erase MTB IS 157x12 V2": {nds:42.5,ds:29.5,pds:56,pnds:50},
+    "Hadley 150/157": {nds:41.5,ds:27.5,pds:59,pnds:59},
+    "OneUp Rear Hub 157x12": {nds:35,ds:26,pds:48,pnds:52.5},
+    "KOM Xeno Rear Super Boost 157": {nds:35,ds:28,pds:46,pnds:46},
+    "DMR Zone 157 SB Centerlock": {nds:41,ds:25,pds:56,pnds:56},
+    "DT Swiss 350 157 6-bolt": {nds:41.1,ds:27.9,pds:50.5,pnds:60},
+    "e*thirteen Sidekick Pro 157 SB": {nds:42.5,ds:25.5,pds:60,pnds:60},
+  };
+
+  // Cache: recomputing 960 carbon rows through calc() on every render would
+  // be wasteful once the user has already tried a given factor -- cache by
+  // factor value, invalidated never (the inputs never change, only which
+  // rows we filter to alloy vs "recompute this row").
+  const _adjCache = new Map();
+  function adjustedRowsFor(factor) {
+    if (factor === 1.35) return null; // baseline == stored data, no adjustment needed
+    if (_adjCache.has(factor)) return _adjCache.get(factor);
+    const map = new Map(); // DATA index -> { F_lat, rim_stiffness_index }
+    DATA.forEach((d, i) => {
+      if (d.rim_material !== "carbon") return;
+      const depth = RIM_DEPTH[d.rim];
+      const hub = HUB_GEOM[d.hub];
+      if (depth == null || hub == null) return; // defensive; should never happen
+      const geometryFactor = (d.rim_internal_width * depth) / (REF_WIDTH * REF_DEPTH);
+      const idx = geometryFactor * factor;
+      const result = calc(
+        d.wheel_erd, hub, d.spoke_diameter, d.spoke_diameter, d.tension_kgf,
+        EIL_REF * idx, EIR_REF * idx, GJ_REF * idx, EA_RIM_REF * idx,
+        d.spoke_count, MODES
+      );
+      map.set(i, { F_lat: result.F_lat, rim_stiffness_index: +idx.toFixed(3) });
+    });
+    _adjCache.set(factor, map);
+    return map;
+  }
+  // Reads a possibly-adjusted value for row i, key "F_lat" or
+  // "rim_stiffness_index" -- every other column is unaffected by the
+  // carbon-factor control and just reads through to DATA[i][key].
+  function getVal(i, key) {
+    if (key === "F_lat" || key === "rim_stiffness_index") {
+      const adj = adjustedRowsFor(carbonFactor);
+      if (adj) {
+        const row = adj.get(i);
+        if (row) return row[key];
+      }
+    }
+    return DATA[i][key];
+  }
+
+  // ---------------------------------------------------------------------
   // Small linear-algebra kernel: just enough for OLS on <= 8 columns.
   // ---------------------------------------------------------------------
   function transpose(A) { return A[0].map((_, j) => A.map((row) => row[j])); }
@@ -2887,11 +3053,11 @@
   // quick-look approximation, not the final word -- see README.
   function runModel() {
     const betaIds = BETAS.filter((b) => selected.has(b.id)).map((b) => b.id);
-    const y = DATA.map((d) => d.F_lat);
+    const y = DATA.map((d, i) => getVal(i, "F_lat"));
     if (betaIds.length === 0) {
       return { betaIds: [], std: null, raw: fitOLS([], y), y };
     }
-    const rawCols = betaIds.map((id) => DATA.map((d) => d[id]));
+    const rawCols = betaIds.map((id) => DATA.map((d, i) => getVal(i, id)));
     const zCols = rawCols.map((col) => { const m = mean(col), s = std(col) || 1; return col.map((v) => (v - m) / s); });
     const ym = mean(y), ys = std(y) || 1;
     const zy = y.map((v) => (v - ym) / ys);
@@ -2936,9 +3102,27 @@
       hostEl.appendChild(btn);
     });
   }
+  function renderCarbonFactorChips() {
+    const host = document.getElementById("carbonFactorChips");
+    host.innerHTML = "";
+    CARBON_FACTOR_OPTIONS.forEach((opt) => {
+      const on = carbonFactor === opt.value;
+      const btn = document.createElement("button");
+      btn.className = "chip";
+      btn.type = "button";
+      btn.dataset.on = String(on);
+      btn.innerHTML = `<span class="chip-label"><span class="chip-swatch"></span>${opt.label}</span><span class="chip-sub">${opt.sub}</span>`;
+      btn.addEventListener("click", () => {
+        carbonFactor = opt.value;
+        render();
+      });
+      host.appendChild(btn);
+    });
+  }
   function renderChips() {
     renderChipGroup(document.getElementById("chipsHub"), "hub");
     renderChipGroup(document.getElementById("chipsRim"), "rim");
+    renderCarbonFactorChips();
     renderChipGroup(document.getElementById("chipsBuild"), "build");
   }
 
@@ -3035,9 +3219,10 @@
     svg += `<line class="tick-line" x1="${pad}" y1="${16}" x2="${pad}" y2="${H - pad}" />`;
     svg += `<line x1="${scale(lo)}" y1="${scaleY(lo)}" x2="${scale(hi)}" y2="${scaleY(hi)}" stroke="var(--ink-faint)" stroke-width="1.25" stroke-dasharray="4 4" />`;
     DATA.forEach((d, i) => {
-      const cx = scale(d.F_lat), cy = scaleY(yhat[i]);
+      const fLat = getVal(i, "F_lat");
+      const cx = scale(fLat), cy = scaleY(yhat[i]);
       const color = d.rim_material === "carbon" ? "var(--accent-pos-fill)" : "var(--accent-neg-fill)";
-      svg += `<circle cx="${cx}" cy="${cy}" r="4" fill="${color}" fill-opacity="0.7" stroke="var(--surface)" stroke-width="0.75"><title>${d.hub} / ${d.rim}: actual ${d.F_lat.toFixed(1)}kgf, predicted ${yhat[i].toFixed(1)}kgf</title></circle>`;
+      svg += `<circle cx="${cx}" cy="${cy}" r="4" fill="${color}" fill-opacity="0.7" stroke="var(--surface)" stroke-width="0.75"><title>${d.hub} / ${d.rim}: actual ${fLat.toFixed(1)}kgf, predicted ${yhat[i].toFixed(1)}kgf</title></circle>`;
     });
     svg += `<text class="axis-label" x="${pad}" y="${H - 12}">actual F_lat (kgf) →</text>`;
     svg += `<text class="axis-label" x="${pad - 8}" y="26" text-anchor="start">↑ predicted</text>`;
@@ -3084,11 +3269,11 @@
       { key: "wheel_erd", label: "ERD (mm)" },
     ];
     let html = "<thead><tr>" + cols.map((c) => `<th>${c.label}</th>`).join("") + "</tr></thead><tbody>";
-    DATA.slice(0, 500).forEach((d) => {
+    DATA.slice(0, 500).forEach((d, i) => {
       html += "<tr>" + cols.map((c) => {
         if (c.key === "hub" || c.key === "rim" || c.key === "rim_material") return `<td>${d[c.key]}</td>`;
         if (c.key === "standard_157") return `<td>${d.standard_157 ? "157" : "148"}</td>`;
-        const v = d[c.key];
+        const v = getVal(i, c.key);
         return `<td>${typeof v === "number" ? v.toFixed(2) : v}</td>`;
       }).join("") + "</tr>";
     });
@@ -3103,7 +3288,8 @@
       "underlying matrix singular (not just correlated). " +
       "<strong>Rim betas</strong> are not mutually exclusive (VIF &asymp; 1.3, correlated but not degenerate) &mdash; " +
       "but <code>rim_stiffness_index</code> is an estimate this tool built from published geometry and a " +
-      "documented material rule of thumb, not a measured constant. " +
+      "documented material rule of thumb, not a measured constant \u2014 try the carbon-assumption chips above " +
+      "to see how much that one guess drives the fit. " +
       "<strong>Build-spec betas</strong> (spoke diameter, spoke count, tension, wheel size) are all real, " +
       "verified specs or published working ranges &mdash; none carry an estimation caveat. See the analysis " +
       "README for the full 2&times;2&times;2&times;2 factorial design and sourcing.";
