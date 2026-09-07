@@ -255,6 +255,14 @@
     font-family: 'IBM Plex Mono', monospace;
   }
   .legend-row span { display: inline-flex; align-items: center; gap: 5px; }
+  .legend-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: none; border: none; padding: 0; margin: 0;
+    font: inherit; color: inherit; cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+  .legend-btn[data-active="false"] { opacity: 0.35; }
+  .legend-btn:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
   .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 
   /* ---- dataset table ---- */
@@ -339,11 +347,17 @@
       <div class="chart-title">Predicted vs. actual F_lat</div>
       <div class="chart-caption">dashed line = perfect fit (y = x) &middot; colored by rim material</div>
       <div class="chart-svg-wrap" id="scatterChart"></div>
-      <div class="legend-row">
-        <span><span class="legend-dot" style="background:var(--accent-neg-fill)"></span>alloy</span>
-        <span><span class="legend-dot" style="background:var(--accent-pos-fill)"></span>carbon</span>
+      <div class="legend-row" id="scatterLegend">
+        <button type="button" class="legend-btn" data-material="alloy"><span class="legend-dot" style="background:var(--accent-neg-fill)"></span>alloy</button>
+        <button type="button" class="legend-btn" data-material="carbon"><span class="legend-dot" style="background:var(--accent-pos-fill)"></span>carbon</button>
       </div>
     </div>
+  </div>
+
+  <div class="panel chart-card" style="margin-bottom:20px;">
+    <div class="chart-title">Partial R&sup2;</div>
+    <div class="chart-caption">unique variance each selected beta explains, holding the others fixed &middot; bars don't sum to the total R&sup2; above when betas are correlated with each other</div>
+    <div class="chart-svg-wrap" id="partialR2Chart"></div>
   </div>
 
   <section class="panel control-panel">
@@ -3051,21 +3065,38 @@
   // real repeated-measures design. The Python regression in this folder's
   // README does cluster by hub_id; treat the CI whiskers here as a
   // quick-look approximation, not the final word -- see README.
+  // Partial R^2 for one beta = full-model R^2 minus the R^2 of the same
+  // model with that one column dropped -- the unique variance only that
+  // beta explains, holding the others fixed. Bars can undersell a
+  // correlated beta (its "unique" share shrinks when another beta already
+  // covers the same ground) and won't sum to the model's total R^2 -- that
+  // is expected, not a bug, whenever betas share variance.
+  function computePartialR2(betaIds, rawCols, y, fullR2) {
+    const partial = {};
+    betaIds.forEach((id, idx) => {
+      const reducedCols = rawCols.filter((_, j) => j !== idx);
+      const reducedR2 = fitOLS(reducedCols, y).r2;
+      partial[id] = Math.max(0, fullR2 - reducedR2);
+    });
+    return partial;
+  }
   function runModel() {
     const betaIds = BETAS.filter((b) => selected.has(b.id)).map((b) => b.id);
     const y = DATA.map((d, i) => getVal(i, "F_lat"));
     if (betaIds.length === 0) {
-      return { betaIds: [], std: null, raw: fitOLS([], y), y };
+      return { betaIds: [], std: null, raw: fitOLS([], y), y, partialR2: {} };
     }
     const rawCols = betaIds.map((id) => DATA.map((d, i) => getVal(i, id)));
     const zCols = rawCols.map((col) => { const m = mean(col), s = std(col) || 1; return col.map((v) => (v - m) / s); });
     const ym = mean(y), ys = std(y) || 1;
     const zy = y.map((v) => (v - ym) / ys);
+    const raw = fitOLS(rawCols, y);
     return {
       betaIds,
       std: fitOLS(zCols, zy),
-      raw: fitOLS(rawCols, y),
+      raw,
       y,
+      partialR2: computePartialR2(betaIds, rawCols, y, raw.r2),
     };
   }
 
@@ -3202,6 +3233,50 @@
   }
 
   // ---------------------------------------------------------------------
+  // Partial R^2: one unidirectional bar per selected beta, colored by
+  // confidence tier (amber = estimated, blue = published spec, gray =
+  // untagged hub-geometry betas) so the same VER/EST language from the
+  // chip badges carries onto the chart itself.
+  // ---------------------------------------------------------------------
+  function renderPartialR2Chart(model) {
+    const host = document.getElementById("partialR2Chart");
+    if (!model.betaIds.length) {
+      host.innerHTML = '<div class="empty-state">Select at least one beta to see its unique contribution.</div>';
+      return;
+    }
+    const rows = model.betaIds.map((id) => {
+      const b = BETAS.find((x) => x.id === id);
+      const value = Math.max(0, model.partialR2[id] || 0);
+      const color = b.tier === "est" ? "var(--accent-pos-fill)" : b.tier === "ver" ? "var(--accent-neg-fill)" : "var(--accent-neutral)";
+      return { id, label: b.label, value, color };
+    }).sort((a, c) => c.value - a.value);
+
+    const W = 560, rowH = 40, padTop = 10, padBottom = 22, padLeft = 14, padRight = 50;
+    const H = rows.length * rowH + padTop + padBottom;
+    const plotW = W - padLeft - padRight;
+    const maxVal = Math.max(0.02, ...rows.map((r) => r.value));
+    const xScale = (v) => padLeft + (v / maxVal) * plotW;
+
+    let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Partial R-squared per selected beta">`;
+    [0.25, 0.5, 0.75, 1].forEach((f) => {
+      const x = xScale(f * maxVal);
+      svg += `<line class="tick-line" x1="${x}" y1="${padTop}" x2="${x}" y2="${H - padBottom}" />`;
+    });
+    rows.forEach((r, i) => {
+      const cy = padTop + i * rowH + rowH / 2;
+      const barW = Math.max(1, xScale(r.value) - padLeft);
+      svg += `
+        <rect x="${padLeft}" y="${cy - 8}" width="${barW}" height="16" rx="4" fill="${r.color}" />
+        <text class="bar-label" x="${padLeft}" y="${cy - 12}">${r.label}</text>
+        <text class="bar-sub" x="${padLeft + barW + 6}" y="${cy + 4}">${r.value.toFixed(3)}</text>
+      `;
+    });
+    svg += `<text class="axis-label" x="${padLeft}" y="${H - 6}">unique contribution to R&sup2; &rarr;</text>`;
+    svg += `</svg>`;
+    host.innerHTML = svg;
+  }
+
+  // ---------------------------------------------------------------------
   // Scatter: predicted vs actual F_lat, colored by rim material
   // ---------------------------------------------------------------------
   function renderScatter(model) {
@@ -3221,13 +3296,22 @@
     DATA.forEach((d, i) => {
       const fLat = getVal(i, "F_lat");
       const cx = scale(fLat), cy = scaleY(yhat[i]);
+      const isDimmed = isolateMaterial && d.rim_material !== isolateMaterial;
       const color = d.rim_material === "carbon" ? "var(--accent-pos-fill)" : "var(--accent-neg-fill)";
-      svg += `<circle cx="${cx}" cy="${cy}" r="4" fill="${color}" fill-opacity="0.7" stroke="var(--surface)" stroke-width="0.75"><title>${d.hub} / ${d.rim}: actual ${fLat.toFixed(1)}kgf, predicted ${yhat[i].toFixed(1)}kgf</title></circle>`;
+      const op = isDimmed ? 0.08 : 0.7;
+      svg += `<circle cx="${cx}" cy="${cy}" r="4" fill="${color}" fill-opacity="${op}" stroke="var(--surface)" stroke-width="0.75"><title>${d.hub} / ${d.rim}: actual ${fLat.toFixed(1)}kgf, predicted ${yhat[i].toFixed(1)}kgf</title></circle>`;
     });
     svg += `<text class="axis-label" x="${pad}" y="${H - 12}">actual F_lat (kgf) →</text>`;
     svg += `<text class="axis-label" x="${pad - 8}" y="26" text-anchor="start">↑ predicted</text>`;
     svg += `</svg>`;
     host.innerHTML = svg;
+  }
+  let isolateMaterial = null; // null | "alloy" | "carbon" -- set by clicking a scatter legend button
+  function updateLegendState() {
+    document.querySelectorAll("#scatterLegend .legend-btn").forEach((btn) => {
+      const m = btn.dataset.material;
+      btn.dataset.active = String(!isolateMaterial || isolateMaterial === m);
+    });
   }
 
   // ---------------------------------------------------------------------
@@ -3295,17 +3379,122 @@
       "README for the full 2&times;2&times;2&times;2 factorial design and sourcing.";
   }
 
-  function render() {
-    const model = runModel();
-    renderChips();
+  // ---------------------------------------------------------------------
+  // Refit animation: KPIs, the standardized-coefficient chart, and the
+  // partial-R^2 chart all read a "model"-shaped object with a handful of
+  // numeric leaves (r2, adjR2, each beta's coefficient and partial R^2).
+  // Rather than diff SVG elements and hope CSS transitions on x/width are
+  // supported everywhere, this just eases those numbers from their
+  // last-rendered value to the new one over ANIM_MS and calls the same
+  // render functions once per frame -- they stay simple, full-redraw
+  // functions throughout; only the numbers feeding them move smoothly.
+  // Scatter and the chip lists redraw once, immediately, at the real
+  // target state -- 2,400 points redrawing don't read as a "jump" the
+  // way a single coefficient number snapping to a new value would.
+  const ANIM_MS = 260;
+  const raf = typeof requestAnimationFrame === "function"
+    ? (cb) => requestAnimationFrame(cb)
+    : (cb) => setTimeout(() => cb(nowMs()), 16);
+  const cancelRaf = typeof cancelAnimationFrame === "function"
+    ? (h) => cancelAnimationFrame(h)
+    : (h) => clearTimeout(h);
+  function nowMs() { return typeof performance !== "undefined" ? performance.now() : Date.now(); }
+
+  let lastRenderedModel = null; // last model (real or mid-tween) fed to renderFrame -- this frame's tween start point
+  let lastFullModel = null;     // last REAL (non-interpolated) model -- what legend clicks re-render from
+  let animHandle = null;
+
+  function lerp(a, b, t) { return a + (b - a) * t; }
+
+  // Build a model-shaped object with every leaf renderKPIs/renderBarChart/
+  // renderPartialR2Chart read, eased t of the way from oldModel to
+  // newModel. betaIds/order always match newModel (the target) -- a beta
+  // being added tweens in from 0; one being removed just isn't drawn
+  // during the tween (its bar would be shrinking toward a spot that no
+  // longer exists in the target layout, which reads worse than omitting).
+  function buildFrameModel(oldModel, newModel, t) {
+    const oldIdx = new Map((oldModel ? oldModel.betaIds : []).map((id, i) => [id, i]));
+    const stdBeta = [0], stdSe = [0];
+    const partialR2 = {};
+    newModel.betaIds.forEach((id, i) => {
+      const newB = newModel.std ? newModel.std.beta[i + 1] : 0;
+      const newS = newModel.std ? newModel.std.se[i + 1] : 0;
+      const oi = oldIdx.get(id);
+      const oldB = (oldModel && oldModel.std && oi != null) ? oldModel.std.beta[oi + 1] : 0;
+      const oldS = (oldModel && oldModel.std && oi != null) ? oldModel.std.se[oi + 1] : 0;
+      stdBeta.push(lerp(oldB, newB, t));
+      stdSe.push(lerp(oldS, newS, t));
+      const oldP = (oldModel && oldModel.partialR2 && oldModel.partialR2[id] != null) ? oldModel.partialR2[id] : 0;
+      const newP = newModel.partialR2[id] || 0;
+      partialR2[id] = lerp(oldP, newP, t);
+    });
+    const oldRaw = oldModel ? oldModel.raw : { r2: 0, adjR2: 0 };
+    return {
+      betaIds: newModel.betaIds,
+      std: { beta: stdBeta, se: stdSe, df: newModel.std ? newModel.std.df : 0 },
+      raw: {
+        n: newModel.raw.n,
+        df: newModel.raw.df,
+        r2: lerp(oldRaw.r2 || 0, newModel.raw.r2, t),
+        adjR2: lerp(Number.isFinite(oldRaw.adjR2) ? oldRaw.adjR2 : 0, newModel.raw.adjR2, t),
+      },
+      partialR2,
+    };
+  }
+
+  function renderFrame(model) {
     renderKPIs(model);
     renderBarChart(model);
-    renderScatter(model);
+    renderPartialR2Chart(model);
   }
+
+  function animateTo(newModel) {
+    if (animHandle != null) cancelRaf(animHandle);
+    const startModel = lastRenderedModel;
+    if (!startModel) { // first load: nothing to tween from, render once, exactly
+      renderFrame(newModel);
+      lastRenderedModel = newModel;
+      animHandle = null;
+      return;
+    }
+    const t0 = nowMs();
+    function step() {
+      const t = Math.min(1, (nowMs() - t0) / ANIM_MS);
+      const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+      const frame = buildFrameModel(startModel, newModel, eased);
+      renderFrame(frame);
+      if (t < 1) {
+        lastRenderedModel = frame;
+        animHandle = raf(step);
+      } else {
+        lastRenderedModel = newModel; // snap to the exact real values -- no accumulated interpolation drift
+        animHandle = null;
+      }
+    }
+    animHandle = raf(step);
+  }
+
+  function render() {
+    const model = runModel();
+    lastFullModel = model;
+    renderChips();
+    renderScatter(model);
+    animateTo(model);
+  }
+
+  document.querySelectorAll("#scatterLegend .legend-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const m = btn.dataset.material;
+      isolateMaterial = isolateMaterial === m ? null : m;
+      updateLegendState();
+      if (lastFullModel) renderScatter(lastFullModel);
+    });
+  });
 
   renderGuardNote();
   renderRimTable();
   renderTable();
+  updateLegendState();
   render();
 })();
 </script>
