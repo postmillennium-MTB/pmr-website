@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<!-- ═══════════════════════════════════════════════════════════════════════
+     GLOBE LAB  —  geometry prototype for a rotatable tool selector
+     postmillenniumrenaissance.com  ·  NOT LINKED FROM THE SITE (noindex)
+
+     WHAT THIS IS
+       A working proof that the homepage tool grid can become a rotatable
+       sphere whose faces are the tools. It exists to answer the questions
+       that art direction cannot: does dragging feel right, can 21 labels
+       coexist, does it survive all five themes, is it keyboard-reachable.
+       It is deliberately unstyled beyond PMR tokens — the surface
+       treatment comes later, from the image pipeline.
+
+     WHY A RHOMBIC TRIACONTAHEDRON
+       "Equally sized countries" has an exact answer and this is it. The
+       RT is isohedral: all 30 faces are congruent, each exactly 4π/30
+       steradians. A truncated icosahedron (the obvious soccer-ball
+       choice) is NOT — its hexagons are ~1.7× the area of its pentagons.
+       30 faces against 21 tools also leaves 9 unclaimed, which reads as
+       unexplored territory rather than as a gap.
+
+     FILE MAP
+       1. TOKENS       five theme blocks, lifted from the homepage
+       2. LAYOUT       stage, panel, legend — mobile-first
+       3. MARKUP       header, SVG stage, detail panel, legend, notes
+       4. DATA         PMR_TOOLS · PMR_CONTINENTS  → END OF DATA marker
+       5. GEOMETRY     icosahedron → RT faces → adjacency → continents
+       6. PROJECTION   orthographic + hemisphere clipping
+       7. RENDER       path rebuild, labels, panel
+       8. INTERACTION  drag, inertia, fly-to, keyboard, theme cycle
+
+     EXTERNAL DEPENDENCIES
+       Google Fonts only, and only because this page is a preview of a
+       page that already loads them — an accurate preview has to use the
+       real typefaces. Nothing here needs them to function.
+═══════════════════════════════════════════════════════════════════════ -->
+<html lang="en" data-theme="day">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Globe Lab — PMR tool selector prototype</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500&family=Space+Mono&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   1. TOKENS  —  the five homepage themes, verbatim
+═══════════════════════════════════════════════════════════════ */
+:root {
+  --bg:#ECEAE4; --bg-card:#F4F1EC; --bg-rule:#CECCCA;
+  --text:#1A1814; --text-muted:#5C574E;
+  --accent:#7A3828; --blue:#3A5C6E; --gold:#786030;
+  --ff-display:'Audiowide','Space Grotesk',sans-serif;
+  --ff-sans:'Space Grotesk',sans-serif;
+  --ff-body:'Inter',sans-serif;
+  --ff-mono:'Space Mono',monospace;
+}
+[data-theme="spring"] {
+  --bg:#E6EBE4; --bg-card:#EEF2EC; --bg-rule:#C2CAB8;
+  --text:#181E18; --text-muted:#506050;
+  --accent:#3A6830; --blue:#467A68; --gold:#7A9830;
+}
+[data-theme="autumn"] {
+  --bg:#EDE6DA; --bg-card:#F5EEE2; --bg-rule:#D0BEA8;
+  --text:#201810; --text-muted:#6A5840;
+  --accent:#904820; --blue:#5A6840; --gold:#C08818;
+}
+[data-theme="winter"] {
+  --bg:#181C22; --bg-card:#1E2430; --bg-rule:#2A3040;
+  --text:#C4CCD4; --text-muted:#606870;
+  --accent:#5A7A8E; --blue:#4A7898; --gold:#6880A0;
+}
+[data-theme="2049"] {
+  --bg:#0B0A08; --bg-card:#1A1815; --bg-rule:#3A3126;
+  --text:#E8E2D4; --text-muted:#8A8272;
+  --accent:#C9A227; --blue:#8C3A1E; --gold:#B8901E;
+}
+
+/* Continent colors are derived from the three theme accents rather than
+   fixed, so a theme switch retints the globe with no per-theme values to
+   maintain. Defined once, outside the theme blocks, on purpose. */
+:root {
+  --cont-mechanics:   var(--accent);
+  --cont-economics:   var(--gold);
+  --cont-land:        var(--blue);
+  --cont-places:      color-mix(in oklab, var(--blue) 55%, var(--gold));
+  --cont-archive:     color-mix(in oklab, var(--accent) 45%, var(--blue));
+  --cont-unclaimed:   var(--bg-rule);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   2. LAYOUT  —  phone first; the desktop split is added at 860px
+═══════════════════════════════════════════════════════════════ */
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0; padding: 1.25rem 1rem 3rem;
+  background: var(--bg); color: var(--text);
+  font-family: var(--ff-body); font-size: 15px; line-height: 1.6;
+  transition: background-color .5s ease, color .5s ease;
+}
+.wrap { max-width: 1080px; margin: 0 auto; }
+
+header { display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap;
+         border-bottom: 1px solid var(--bg-rule); padding-bottom: .9rem; margin-bottom: 1.5rem; }
+h1 { font-family: var(--ff-display); font-size: 1.15rem; margin: 0; letter-spacing: .01em; }
+.kicker { font-family: var(--ff-mono); font-size: .62rem; letter-spacing: .16em;
+          text-transform: uppercase; color: var(--blue); }
+.theme-btn {
+  margin-left: auto; font-family: var(--ff-mono); font-size: .62rem;
+  letter-spacing: .12em; text-transform: uppercase; cursor: pointer;
+  background: var(--bg-card); color: var(--text-muted);
+  border: 1px solid var(--bg-rule); padding: .4rem .7rem;
+}
+.theme-btn:hover { color: var(--text); border-color: var(--text-muted); }
+
+.split { display: grid; gap: 1.5rem; }
+@media (min-width: 860px) { .split { grid-template-columns: 1fr 320px; align-items: start; } }
+
+/* The stage. touch-action:none is load-bearing — without it a vertical
+   drag on the globe scrolls the page instead of rotating the sphere. */
+.stage-wrap { position: relative; }
+#stage {
+  display: block; width: 100%; height: auto; max-width: 560px; margin: 0 auto;
+  touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none;
+}
+#stage.dragging { cursor: grabbing; }
+#stage:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+.face {
+  stroke: var(--bg); stroke-width: 1.1; stroke-linejoin: round;
+  transition: fill-opacity .18s ease;
+  cursor: pointer;
+}
+.face:focus { outline: none; }
+.face-label {
+  font-family: var(--ff-mono); font-size: 9.5px; letter-spacing: .09em;
+  text-transform: uppercase; text-anchor: middle; fill: var(--text);
+  paint-order: stroke; stroke: var(--bg-card); stroke-width: 3.5px;
+  stroke-linejoin: round; pointer-events: none;
+}
+.limb { fill: none; stroke: var(--text-muted); stroke-width: 1; opacity: .5; }
+
+/* Detail panel */
+.panel { background: var(--bg-card); border: 1px solid var(--bg-rule); padding: 1.25rem; }
+.panel-tag { font-family: var(--ff-mono); font-size: .6rem; letter-spacing: .16em;
+             text-transform: uppercase; color: var(--blue); margin-bottom: .5rem; }
+.panel-name { font-family: var(--ff-sans); font-weight: 700; font-size: 1.05rem;
+              line-height: 1.25; margin: 0 0 .6rem; }
+.panel-desc { font-size: .85rem; color: var(--text-muted); margin: 0 0 1rem; }
+.panel-open {
+  display: inline-block; font-family: var(--ff-mono); font-size: .68rem;
+  letter-spacing: .1em; text-transform: uppercase; text-decoration: none;
+  color: var(--bg-card); background: var(--accent); padding: .55rem .9rem;
+}
+.panel-open:hover { filter: brightness(1.15); }
+.panel-open[hidden] { display: none; }
+
+.legend { list-style: none; margin: 1.25rem 0 0; padding: 0;
+          display: flex; flex-wrap: wrap; gap: .5rem 1rem; }
+.legend li { display: flex; align-items: center; gap: .4rem;
+             font-family: var(--ff-mono); font-size: .6rem; letter-spacing: .1em;
+             text-transform: uppercase; color: var(--text-muted); }
+.legend .sw { width: 11px; height: 11px; border: 1px solid var(--bg-rule); }
+
+.notes { margin-top: 2.5rem; border-top: 1px solid var(--bg-rule); padding-top: 1.25rem;
+         font-size: .82rem; color: var(--text-muted); max-width: 62ch; }
+.notes h2 { font-family: var(--ff-mono); font-size: .62rem; letter-spacing: .16em;
+            text-transform: uppercase; color: var(--blue); margin: 0 0 .6rem; }
+.notes li { margin-bottom: .45rem; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ═══════════════════════════════════════════════════════════════
+     3. MARKUP
+═══════════════════════════════════════════════════════════════ -->
+<header>
+  <h1>Globe Lab</h1>
+  <span class="kicker">Rhombic triacontahedron · 30 faces · 21 claimed</span>
+  <button class="theme-btn" id="theme-btn" type="button">Theme: Day</button>
+</header>
+
+<div class="split">
+  <div class="stage-wrap">
+    <svg id="stage" viewBox="0 0 600 600" role="application"
+         aria-label="Rotatable globe of PMR tools. Drag to rotate, arrow keys to turn, Tab to move between tools." tabindex="0">
+      <defs>
+        <radialGradient id="shade" cx="35%" cy="30%" r="78%">
+          <stop offset="0%"   stop-color="#fff" stop-opacity="0.20"/>
+          <stop offset="55%"  stop-color="#fff" stop-opacity="0"/>
+          <stop offset="100%" stop-color="#000" stop-opacity="0.30"/>
+        </radialGradient>
+      </defs>
+      <g id="faces"></g>
+      <circle class="limb" cx="300" cy="300" r="250"/>
+      <circle cx="300" cy="300" r="250" fill="url(#shade)" pointer-events="none"/>
+      <g id="labels"></g>
+    </svg>
+  </div>
+
+  <div>
+    <div class="panel">
+      <div class="panel-tag"  id="p-tag">—</div>
+      <h2 class="panel-name"  id="p-name">Select a country</h2>
+      <p  class="panel-desc"  id="p-desc">Drag the globe. Click a face to bring it forward.</p>
+      <a  class="panel-open"  id="p-open" href="#" hidden>Open tool →</a>
+    </div>
+    <ul class="legend" id="legend"></ul>
+  </div>
+</div>
+
+<div class="notes">
+  <h2>What this prototype is testing</h2>
+  <ul>
+    <li><strong>Equal area, provably.</strong> The rhombic triacontahedron is
+        face-transitive — all 30 countries are congruent, each exactly 4π/30 sr.
+        A soccer-ball tessellation only looks equal; its hexagons are ~1.7× its pentagons.</li>
+    <li><strong>Adjacency carries meaning.</strong> Tools are grouped into five
+        contiguous continents by category. A globe of 21 scattered countries is
+        worse than a list; a globe where related tools border each other is better.</li>
+    <li><strong>Vector, not bitmap.</strong> Every face is a real SVG path — clickable,
+        focusable, screen-reader labelled, and retinted by CSS variables across all
+        five themes with no per-theme assets.</li>
+    <li><strong>Nine unclaimed faces</strong> are headroom to 30 tools. Past that the
+        next exactly-equal-area step up is 60 faces.</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   4. DATA
+   PMR_TOOLS mirrors the homepage registry, plus one new field:
+
+     short — a 1–2 word label. The full names ("Interactive Suspension
+             Dynamics Laboratory") cannot be drawn on a face at any
+             legible size. If this design ships, this one field is the
+             only addition the homepage registry needs.
+
+   PMR_CONTINENTS maps tags to landmasses. Each continent's size on the
+   globe is derived from how many tools carry its tags — no face counts
+   are typed anywhere.
+═══════════════════════════════════════════════════════════════ */
+var PMR_TOOLS = [
+  { path:"/wheel-lab/", tag:"Wheel mechanics", short:"Wheel Lab",
+    name:"Wheel Strength Lab",
+    desc:"148mm Boost vs. 157mm Super Boost hub comparison using Ford's Mode Matrix — across Compare, Simulation, and Deep Dive tabs." },
+  { path:"/atlas/", tag:"IP research", short:"Patents",
+    name:"MTB Patent Atlas",
+    desc:"Mountain bike intellectual property from 1890 to 2026, across eight categories with 200+ entries and confidence-tier labeling." },
+  { path:"/roi/", tag:"Trail economics", short:"Trail ROI",
+    name:"Trail Investment ROI Calculator",
+    desc:"Economic impact modeling for trail projects, synthesized from 13 U.S. investment studies with international currency toggle." },
+  { path:"/suspension-lab/", tag:"Suspension physics", short:"Suspension",
+    name:"Interactive Suspension Dynamics Laboratory",
+    desc:"HSC/LSC damping controls, terrain-specific inputs, and an anatomically correct fork schematic for visualizing compression behavior." },
+  { path:"/parks-us/", tag:"Destinations", short:"US Parks",
+    name:"US Lift-Served Bike Parks",
+    desc:"85+ parks across 29 states, with Loam Pass badge system and mobile-first accordion design for trail-side reference." },
+  { path:"/parks-ca/", tag:"Destinations", short:"CA Parks",
+    name:"Canadian Bike Parks",
+    desc:"27 parks, bilingual EN/FR, Leaflet map, Gravity Logic and Kodiak Trail Works badge system. Fully self-contained at ~268 KB." },
+  { path:"/weagle/", tag:"IP research", short:"Weagle",
+    name:"Dave Weagle Patent Widget",
+    desc:"35 suspension patents with live expiration countdowns, three brand-themed color schemes, and Pinkbike iframe deployment." },
+  { path:"/geometry/", tag:"Geometry", short:"Geometry",
+    name:"MTB Steering Geometry",
+    desc:"Six-axis radar chart with Devinci Troy 2025 presets, corrected Whipple reference wheelbase, and bar sweep RAD correction." },
+  { path:"/tire-sim/", tag:"Tire mechanics", short:"Tires",
+    name:"MTB Tire Tread Simulator",
+    desc:"Pacejka/FastBike tire model for comparing tread patterns across terrain types and load conditions." },
+  { path:"/sports-popularity/", tag:"Data visualization", short:"Popularity",
+    name:"Sports Popularity Over Time",
+    desc:"Google Trends-style and estimated participant data across action sports, cycling, and racquet sports — charting how participation has shifted over time." },
+  { path:"/wheel-comparison-widget2/", tag:"Wheel mechanics", short:"Hub Compare",
+    name:"Wheel Strength Comparison Tool",
+    desc:"Compares 148×12 Boost to 157×12 Super Boost hubs using Matt Ford's academic research on spoke bracing angles and wheel stiffness." },
+  { path:"/MTB-inflation/", tag:"Economics", short:"Inflation",
+    name:"MTB Inflation Dashboard",
+    desc:"Tracks mountain bike price inflation against CPI and other economic metrics, using FRED data across multiple component and complete-bike categories." },
+  { path:"/headwaters-ledger/", tag:"Water & land", short:"Headwaters",
+    name:"The Headwaters Ledger",
+    desc:"An interactive map of Rocky Mountain water rights — tracing where the water goes, which states claim it, and the century-old interstate compacts that decide who gets what." },
+  { path:"/singletrack-density/", tag:"Trail data", short:"Density",
+    name:"Singletrack Density",
+    desc:"Compares trail miles per capita across 26 destinations — from Moab to Squamish." },
+  { path:"/trail-partnership-atlas/", tag:"Trail advocacy", short:"Partnerships",
+    name:"Trail Partnership Atlas",
+    desc:"Compares Front Range Colorado towns on nonprofit trail-advocacy partnerships — COMBA, Medicine Wheel, Boulder MBA, and others." },
+  { path:"/trail-advocacy-atlas/", tag:"Trail advocacy", short:"Advocacy",
+    name:"Trail Advocacy Atlas",
+    desc:"A working directory of nonprofit MTB trail advocacy organizations across the US — grouped by state and tiered from national umbrella groups down to local chapters." },
+  { path:"/maintenance/", tag:"Cost planning", short:"Maintenance",
+    name:"MTB Annual Maintenance Cost Calculator",
+    desc:"Annualized cost dials across suspension, drivetrain, and consumables, plus a Ride Worksheet that suggests part replacement based on how you actually ride." },
+  { path:"/mtb-weight-price/", tag:"MTB economics", short:"Weight/Price",
+    name:"Weight vs. Price MTB Scatterplot",
+    desc:"XC, Trail, Enduro, DH, and eMTB flagship bikes plotted by price and weight, with a toggleable fit line and lb/kg, USD/CHF unit switching." },
+  { path:"/autonomy-paradox/", tag:"Transit policy", short:"Rail",
+    name:"The Rail Automation Paradox",
+    desc:"Robotaxis run roughly 500,000 driverless rides a week in the US, yet almost no train does — an interactive look at the automation ladder." },
+  { path:"/viscosity-ledger/", tag:"Suspension physics", short:"Viscosity",
+    name:"The Viscosity Ledger",
+    desc:"Two 10wt fork oils can read identical on the bottle and sit nearly 2× apart at 0 °C. Set a baseline, build two comparison setups, and watch oil choice and heat build reshape the damping curve." },
+  { path:"/metric-clock/", tag:"Time & measurement", short:"Metric Time",
+    name:"Analogue Metric Clock",
+    desc:"A live analogue face for decimal time — 10 metric hours and 100 metric minutes a day, sweeping in sync with the real clock, second by second." }
+];
+
+var PMR_CONTINENTS = [
+  { id:"mechanics", name:"Mechanics",  token:"--cont-mechanics",
+    tags:["Wheel mechanics","Suspension physics","Tire mechanics","Geometry"] },
+  { id:"economics", name:"Economics",  token:"--cont-economics",
+    tags:["Trail economics","Economics","MTB economics","Cost planning"] },
+  { id:"land",      name:"Land & Water", token:"--cont-land",
+    tags:["Trail advocacy","Water & land","Trail data","Transit policy"] },
+  { id:"places",    name:"Places",     token:"--cont-places",
+    tags:["Destinations"] },
+  { id:"archive",   name:"Archive",    token:"--cont-archive",
+    tags:["IP research","Data visualization","Time & measurement"] }
+];
+
+var THEMES = ["day","spring","autumn","winter","2049"];
+var THEME_LABELS = { day:"Day", spring:"Spring", autumn:"Autumn", winter:"Winter", "2049":"2049" };
+
+/* ─────────────────────────  END OF DATA  ───────────────────────── */
+
+/* ═══════════════════════════════════════════════════════════════
+   TUNING CONSTANTS
+   Every number the look or feel depends on lives here, with what it
+   controls and what changes if you move it.
+═══════════════════════════════════════════════════════════════ */
+var CX = 300, CY = 300;      // sphere center in viewBox units
+var R  = 250;                // sphere radius in viewBox units
+
+var EDGE_SEG  = 10;          // great-circle steps per rhombus edge. Lower = visibly
+                             // faceted "gem" look; higher = smoother globe, more CPU.
+var LIMB_SEG  = 8;           // steps along the horizon for a face crossing the limb.
+                             // Too low and edge faces look chorded/sheared.
+var LIMB_EPS  = 1e-9;        // |z| below this counts as "on the horizon".
+
+var LABEL_MIN  = 0.68;       // face must be this front-facing before its label appears
+var LABEL_FULL = 0.88;       // ...and this front-facing to reach full opacity.
+                             // Widening the gap = more labels visible at once = clutter.
+
+var PITCH_LIMIT = 1.30;      // ~75°. Clamping pitch stops the globe going upside down,
+                             // which is disorienting on a labelled sphere.
+var DRAG_GAIN   = 0.0075;    // radians of rotation per pixel dragged
+var FRICTION    = 0.94;      // spin decay per frame after release. 1 = never stops.
+var IDLE_SPIN   = 0.0016;    // radians/frame of ambient drift when untouched
+var FLY_EASE    = 0.14;      // fraction of remaining angle covered per frame on fly-to
+var CLICK_SLOP  = 5;         // px of movement still counted as a click, not a drag
+
+var FILL_BASE = 26, FILL_HOVER = 52, FILL_SELECT = 82;  // % of continent color in the mix
+
+var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ═══════════════════════════════════════════════════════════════
+   5. GEOMETRY
+   Icosahedron → its 30 edges → one rhombus per edge. Each rhombus has
+   the edge's two endpoints as one diagonal and the two adjacent face
+   centroids (dodecahedron vertices) as the other. That is the rhombic
+   triacontahedron, and it falls out of the icosahedron for free.
+═══════════════════════════════════════════════════════════════ */
+var PHI = (1 + Math.sqrt(5)) / 2;
+
+function vnorm(p){ var m = Math.sqrt(p[0]*p[0] + p[1]*p[1] + p[2]*p[2]); return [p[0]/m, p[1]/m, p[2]/m]; }
+function vdot(a,b){ return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]; }
+function vadd(a,b){ return [a[0]+b[0], a[1]+b[1], a[2]+b[2]]; }
+
+// Spherical linear interpolation. Straight-line interpolation between two
+// points on a sphere cuts a chord *through* the sphere; every edge here
+// has to ride the surface or faces overlap near the horizon.
+function slerp(a, b, t){
+  var d = Math.max(-1, Math.min(1, vdot(a,b)));
+  var w = Math.acos(d);
+  if (w < 1e-6) return vnorm([a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t]);
+  var s = Math.sin(w), s0 = Math.sin((1-t)*w)/s, s1 = Math.sin(t*w)/s;
+  return [a[0]*s0 + b[0]*s1, a[1]*s0 + b[1]*s1, a[2]*s0 + b[2]*s1];
+}
+
+function buildFaces(){
+  // 12 icosahedron vertices: cyclic permutations of (0, ±1, ±φ)
+  var IV = [], sg = [1,-1], i, j;
+  for (i = 0; i < 2; i++) for (j = 0; j < 2; j++){
+    IV.push(vnorm([0, sg[i], sg[j]*PHI]));
+    IV.push(vnorm([sg[i], sg[j]*PHI, 0]));
+    IV.push(vnorm([sg[i]*PHI, 0, sg[j]]));
+  }
+
+  // The 30 edges are simply the 30 closest vertex pairs. On an icosahedron
+  // the nearest-neighbour dot product is +1/√5 and the next is −1/√5, so
+  // the gap is enormous and this needs no tolerance tuning.
+  var pairs = [], a, b, c;
+  for (a = 0; a < 12; a++) for (b = a+1; b < 12; b++) pairs.push({a:a, b:b, d:vdot(IV[a], IV[b])});
+  pairs.sort(function(p,q){ return q.d - p.d; });
+  var edges = pairs.slice(0, 30);
+
+  var isEdge = {};
+  edges.forEach(function(e){ isEdge[e.a+'-'+e.b] = isEdge[e.b+'-'+e.a] = true; });
+
+  // 20 triangular faces = every mutually adjacent triple
+  var tri = [];
+  for (a = 0; a < 12; a++) for (b = a+1; b < 12; b++) for (c = b+1; c < 12; c++)
+    if (isEdge[a+'-'+b] && isEdge[b+'-'+c] && isEdge[a+'-'+c]) tri.push([a,b,c]);
+
+  var dodec = tri.map(function(t){ return vnorm(vadd(vadd(IV[t[0]], IV[t[1]]), IV[t[2]])); });
+
+  return edges.map(function(e){
+    var owners = [];
+    tri.forEach(function(t, ti){ if (t.indexOf(e.a) >= 0 && t.indexOf(e.b) >= 0) owners.push(ti); });
+    var corners = [ IV[e.a], dodec[owners[0]], IV[e.b], dodec[owners[1]] ];
+    var ring = [], k, s;
+    for (k = 0; k < 4; k++){
+      var p = corners[k], q = corners[(k+1) % 4];
+      for (s = 0; s < EDGE_SEG; s++) ring.push(slerp(p, q, s / EDGE_SEG));
+    }
+    return {
+      ring:   ring,
+      // The edge-midpoint direction is the face normal, and also where the
+      // face center lands on the sphere — one vector serves both jobs.
+      normal: vnorm(vadd(IV[e.a], IV[e.b])),
+      // Corner identities, used only to work out which faces touch.
+      keys:   ['i'+e.a, 'd'+owners[0], 'i'+e.b, 'd'+owners[1]]
+    };
+  });
+}
+
+// Two rhombi share an edge exactly when they share two corners.
+function buildNeighbors(faces){
+  return faces.map(function(f, i){
+    var out = [];
+    faces.forEach(function(g, j){
+      if (i === j) return;
+      var shared = 0;
+      f.keys.forEach(function(k){ if (g.keys.indexOf(k) >= 0) shared++; });
+      if (shared >= 2) out.push(j);
+    });
+    return out;
+  });
+}
+
+// Continent seeds, spread as far apart as possible: repeatedly take the
+// face whose nearest already-chosen seed is furthest away. Deterministic,
+// so the map is the same on every load.
+function spreadSeeds(faces, n){
+  var picked = [0];
+  while (picked.length < n){
+    var best = -1, bestScore = 2;
+    for (var i = 0; i < faces.length; i++){
+      if (picked.indexOf(i) >= 0) continue;
+      var closest = -2;
+      for (var k = 0; k < picked.length; k++)
+        closest = Math.max(closest, vdot(faces[i].normal, faces[picked[k]].normal));
+      if (closest < bestScore){ bestScore = closest; best = i; }
+    }
+    picked.push(best);
+  }
+  return picked;
+}
+
+// Grow all continents outward at the same rate from their seeds until each
+// has claimed one face per tool. Round-robin rather than one-at-a-time so a
+// large continent cannot swallow the sphere before a small one starts.
+function growContinents(faces, nbrs, quotas, seeds){
+  var owner = faces.map(function(){ return -1; });
+  var claimed = seeds.map(function(s, ci){ owner[s] = ci; return [s]; });
+  var frontier = seeds.map(function(s){ return [s]; });
+  var progress = true;
+  while (progress){
+    progress = false;
+    for (var ci = 0; ci < quotas.length; ci++){
+      if (claimed[ci].length >= quotas[ci]) continue;
+      var q = frontier[ci], took = false;
+      while (q.length && !took){
+        var ns = nbrs[q[0]], grew = false;
+        for (var k = 0; k < ns.length; k++){
+          if (owner[ns[k]] === -1){
+            owner[ns[k]] = ci; claimed[ci].push(ns[k]); q.push(ns[k]);
+            took = grew = true; break;
+          }
+        }
+        if (!grew) q.shift();
+      }
+      if (took) progress = true;
+    }
+  }
+  return { owner: owner, claimed: claimed };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   6. PROJECTION
+   Orthographic, camera down +Z. Rotation is yaw (about Y, unbounded)
+   then pitch (about X, clamped) — globe convention rather than a free
+   trackball, because a labelled sphere that can end up upside down is
+   much harder to read than one that cannot.
+═══════════════════════════════════════════════════════════════ */
+
+// Build the SVG path for one face at the current rotation, clipped to the
+// visible hemisphere. Without the clip, the part of a face past the horizon
+// projects back inside the disc and folds over the front of the globe.
+function facePath(ring, cy, sy, cp, sp){
+  var rot = [], i, p, x1, y1, z1;
+  for (i = 0; i < ring.length; i++){
+    p = ring[i];
+    x1 =  p[0]*cy + p[2]*sy;
+    y1 =  p[1];
+    z1 = -p[0]*sy + p[2]*cy;
+    rot.push([x1, y1*cp - z1*sp, y1*sp + z1*cp]);
+  }
+
+  // Sutherland–Hodgman against the plane z = 0.
+  var clip = [], n = rot.length;
+  for (i = 0; i < n; i++){
+    var a = rot[i], b = rot[(i+1) % n], ain = a[2] > 0, bin = b[2] > 0;
+    if (ain) clip.push(a);
+    if (ain !== bin){
+      var t = a[2] / (a[2] - b[2]);
+      // z is forced to exactly 0 rather than left to rounding, so the
+      // horizon test below is an equality test and needs no slop.
+      clip.push(vnorm([a[0] + (b[0]-a[0])*t, a[1] + (b[1]-a[1])*t, 0]));
+    }
+  }
+  if (clip.length < 3) return '';
+
+  // Where a face left the visible hemisphere and came back, the two crossing
+  // points are now adjacent. Joining them with a straight line cuts a chord
+  // across the horizon and shaves a bite out of the globe's outline — so walk
+  // the limb arc instead. Both points have z = 0, and slerp between them
+  // stays on z = 0, which is exactly the horizon circle.
+  var out = [], m = clip.length;
+  for (i = 0; i < m; i++){
+    var u = clip[i], v = clip[(i+1) % m];
+    out.push(u);
+    if (Math.abs(u[2]) < LIMB_EPS && Math.abs(v[2]) < LIMB_EPS)
+      for (var s = 1; s < LIMB_SEG; s++) out.push(slerp(u, v, s / LIMB_SEG));
+  }
+
+  var d = '';
+  for (i = 0; i < out.length; i++)
+    d += (i ? 'L' : 'M') + (CX + out[i][0]*R).toFixed(1) + ' ' + (CY - out[i][1]*R).toFixed(1);
+  return d + 'Z';
+}
+
+// Yaw and pitch that bring a given direction to face the camera. Solved from
+// the rotation above: x and y of the rotated normal both go to zero.
+function aimAt(n){
+  var yaw = Math.atan2(-n[0], n[2]);
+  var h   = Math.sqrt(n[0]*n[0] + n[2]*n[2]);
+  return { yaw: yaw, pitch: Math.atan2(n[1], h) };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   7. BUILD + RENDER
+═══════════════════════════════════════════════════════════════ */
+var FACES = buildFaces();
+var NBRS  = buildNeighbors(FACES);
+
+// Tools grouped by continent, in registry order. The globe's shape is
+// derived from PMR_TOOLS — nothing about it is typed by hand.
+var byCont = PMR_CONTINENTS.map(function(c){
+  return PMR_TOOLS.filter(function(t){ return c.tags.indexOf(t.tag) >= 0; });
+});
+var seeds  = spreadSeeds(FACES, PMR_CONTINENTS.length);
+var grown  = growContinents(FACES, NBRS, byCont.map(function(g){ return g.length; }), seeds);
+
+// faceTool[i] is the tool living on face i, or null for unclaimed territory.
+var faceTool = FACES.map(function(){ return null; });
+var faceCont = grown.owner;
+grown.claimed.forEach(function(list, ci){
+  list.forEach(function(faceIdx, k){ if (byCont[ci][k]) faceTool[faceIdx] = byCont[ci][k]; });
+});
+
+var svgNS   = 'http://www.w3.org/2000/svg';
+var gFaces  = document.getElementById('faces');
+var gLabels = document.getElementById('labels');
+var paths = [], labels = [];
+
+FACES.forEach(function(f, i){
+  var tool = faceTool[i];
+  var token = tool ? PMR_CONTINENTS[faceCont[i]].token : '--cont-unclaimed';
+
+  var p = document.createElementNS(svgNS, 'path');
+  p.setAttribute('class', 'face');
+  p.style.setProperty('--c', 'var(' + token + ')');
+  p.style.fill = 'color-mix(in oklab, var(--c) ' + FILL_BASE + '%, var(--bg-card))';
+  if (tool){
+    p.setAttribute('tabindex', '0');
+    p.setAttribute('role', 'button');
+    p.setAttribute('aria-label', tool.name + ' — ' + tool.tag);
+  } else {
+    p.setAttribute('aria-hidden', 'true');
+    p.style.cursor = 'default';
+  }
+  gFaces.appendChild(p);
+  paths.push(p);
+
+  var tx = document.createElementNS(svgNS, 'text');
+  tx.setAttribute('class', 'face-label');
+  tx.textContent = tool ? tool.short : '';
+  gLabels.appendChild(tx);
+  labels.push(tx);
+});
+
+// Legend, built from the same registry that colored the faces.
+var legend = document.getElementById('legend');
+legend.innerHTML = PMR_CONTINENTS.map(function(c, i){
+  return '<li><span class="sw" style="background:var(' + c.token + ')"></span>' +
+         c.name + ' · ' + byCont[i].length + '</li>';
+}).join('');
+
+var selected = -1;
+
+function fillFor(i){
+  var pct = (i === selected) ? FILL_SELECT : FILL_BASE;
+  return 'color-mix(in oklab, var(--c) ' + pct + '%, var(--bg-card))';
+}
+
+var yaw = 0.6, pitch = 0.35, spin = 0, flying = null;
+
+function render(){
+  var cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+  for (var i = 0; i < FACES.length; i++){
+    var d = facePath(FACES[i].ring, cy, sy, cp, sp);
+    paths[i].setAttribute('d', d);
+    paths[i].style.pointerEvents = d ? 'auto' : 'none';
+
+    // Label placement uses the projected face center, which for a sphere is
+    // just the rotated normal — no separate centroid math needed.
+    var n = FACES[i].normal;
+    var x1 =  n[0]*cy + n[2]*sy, y1 = n[1], z1 = -n[0]*sy + n[2]*cy;
+    var ny = y1*cp - z1*sp, nz = y1*sp + z1*cp;
+    var t  = labels[i];
+    if (nz > LABEL_MIN && faceTool[i]){
+      var o = Math.min(1, (nz - LABEL_MIN) / (LABEL_FULL - LABEL_MIN));
+      t.setAttribute('x', (CX + x1*R).toFixed(1));
+      t.setAttribute('y', (CY - ny*R + 3.4).toFixed(1));
+      t.setAttribute('opacity', o.toFixed(2));
+    } else {
+      t.setAttribute('opacity', '0');
+    }
+  }
+}
+
+function selectFace(i, fly){
+  if (!faceTool[i]) return;
+  if (selected >= 0) paths[selected].style.fill = 'color-mix(in oklab, var(--c) ' + FILL_BASE + '%, var(--bg-card))';
+  selected = i;
+  paths[i].style.fill = 'color-mix(in oklab, var(--c) ' + FILL_SELECT + '%, var(--bg-card))';
+
+  var tool = faceTool[i];
+  document.getElementById('p-tag').textContent  = PMR_CONTINENTS[faceCont[i]].name + ' · ' + tool.tag;
+  document.getElementById('p-name').textContent = tool.name;
+  document.getElementById('p-desc').textContent = tool.desc;
+  var open = document.getElementById('p-open');
+  open.href = tool.path; open.hidden = false;
+
+  if (!fly) return;
+  var aim = aimAt(FACES[i].normal);
+  // Unwrap so the globe turns the short way round rather than spinning
+  // most of a full turn to reach a face just off the left edge.
+  while (aim.yaw - yaw >  Math.PI) aim.yaw -= 2*Math.PI;
+  while (aim.yaw - yaw < -Math.PI) aim.yaw += 2*Math.PI;
+  spin = 0;
+  if (REDUCED){ yaw = aim.yaw; pitch = aim.pitch; render(); }
+  else flying = aim;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   8. INTERACTION
+═══════════════════════════════════════════════════════════════ */
+var stage = document.getElementById('stage');
+var dragging = false, lastX = 0, lastY = 0, moved = 0, idle = 0;
+
+stage.addEventListener('pointerdown', function(e){
+  dragging = true; moved = 0; flying = null; spin = 0;
+  lastX = e.clientX; lastY = e.clientY;
+  stage.classList.add('dragging');
+  stage.setPointerCapture(e.pointerId);
+});
+
+stage.addEventListener('pointermove', function(e){
+  if (!dragging) return;
+  var dx = e.clientX - lastX, dy = e.clientY - lastY;
+  lastX = e.clientX; lastY = e.clientY;
+  moved += Math.abs(dx) + Math.abs(dy);
+  yaw  += dx * DRAG_GAIN;
+  pitch = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, pitch + dy * DRAG_GAIN));
+  spin  = dx * DRAG_GAIN;
+  idle  = 0;
+  render();
+});
+
+function endDrag(e){
+  if (!dragging) return;
+  dragging = false;
+  stage.classList.remove('dragging');
+  try { stage.releasePointerCapture(e.pointerId); } catch (err) { /* pointer already gone */ }
+}
+stage.addEventListener('pointerup', endDrag);
+stage.addEventListener('pointercancel', endDrag);
+
+paths.forEach(function(p, i){
+  // A click that arrives after a real drag is the end of a rotation, not a
+  // selection — without this every drag lands on whatever face stopped
+  // under the cursor.
+  p.addEventListener('click', function(){ if (moved <= CLICK_SLOP) selectFace(i, true); });
+  p.addEventListener('dblclick', function(){ if (faceTool[i]) location.href = faceTool[i].path; });
+  p.addEventListener('focus', function(){ selectFace(i, true); });
+  p.addEventListener('keydown', function(e){
+    if ((e.key === 'Enter' || e.key === ' ') && faceTool[i]){ e.preventDefault(); location.href = faceTool[i].path; }
+  });
+});
+
+stage.addEventListener('keydown', function(e){
+  var step = 0.16, used = true;
+  if      (e.key === 'ArrowLeft')  yaw   -= step;
+  else if (e.key === 'ArrowRight') yaw   += step;
+  else if (e.key === 'ArrowUp')    pitch  = Math.min(PITCH_LIMIT, pitch + step);
+  else if (e.key === 'ArrowDown')  pitch  = Math.max(-PITCH_LIMIT, pitch - step);
+  else used = false;
+  if (used){ e.preventDefault(); flying = null; spin = 0; idle = 0; render(); }
+});
+
+function frame(){
+  if (flying){
+    yaw   += (flying.yaw   - yaw)   * FLY_EASE;
+    pitch += (flying.pitch - pitch) * FLY_EASE;
+    if (Math.abs(flying.yaw - yaw) < 0.002 && Math.abs(flying.pitch - pitch) < 0.002){
+      yaw = flying.yaw; pitch = flying.pitch; flying = null;
+    }
+    render();
+  } else if (!dragging){
+    if (Math.abs(spin) > 0.0002){ yaw += spin; spin *= FRICTION; idle = 0; render(); }
+    else if (!REDUCED){
+      // Ambient drift, but only after the globe has been left alone for a
+      // moment — spinning away from a face the moment it is selected is
+      // hostile, so idle has to build up first.
+      idle++;
+      if (idle > 90){ yaw += IDLE_SPIN; render(); }
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+// Theme cycling, so the globe can be checked against all five palettes.
+var themeIdx = 0, themeBtn = document.getElementById('theme-btn');
+themeBtn.addEventListener('click', function(){
+  themeIdx = (themeIdx + 1) % THEMES.length;
+  document.documentElement.setAttribute('data-theme', THEMES[themeIdx]);
+  themeBtn.textContent = 'Theme: ' + THEME_LABELS[THEMES[themeIdx]];
+});
+
+render();
+selectFace(faceTool.findIndex(function(t){ return t; }), true);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
