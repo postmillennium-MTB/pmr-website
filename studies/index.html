@@ -9,7 +9,8 @@
   <title>Trail Visitor Spending Ledger — Post Millennium Renaissance</title>
   <meta name="description" content="What non-local and local mountain bikers actually spend at trail systems — 21 site figures compiled from 16 published economic-impact studies, confidence-tiered, with every reporting unit disclosed rather than normalized away.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://postmillenniumrenaissance.com/studies/">
+  <link rel="canonical" href="https://www.postmillenniumrenaissance.com/studies/">
+  <meta property="og:url" content="https://www.postmillenniumrenaissance.com/studies/">
   <meta property="og:title" content="Trail Visitor Spending Ledger — Post Millennium Renaissance">
   <meta property="og:description" content="What non-local and local mountain bikers actually spend at trail systems — 21 site figures compiled from 16 published economic-impact studies, confidence-tiered, with every reporting unit disclosed rather than normalized away.">
   <meta property="og:image" content="https://postmillenniumrenaissance.com/og-image.jpg">
@@ -19,21 +20,59 @@
   <meta name="twitter:title" content="Trail Visitor Spending Ledger — Post Millennium Renaissance">
   <meta name="twitter:description" content="What non-local and local mountain bikers actually spend at trail systems — 21 site figures compiled from 16 published economic-impact studies, confidence-tiered, with every reporting unit disclosed rather than normalized away.">
   <meta name="twitter:image" content="https://postmillenniumrenaissance.com/og-image.jpg">
+  <!-- Mobile browser chrome is painted by the TOP document, so the tool's own
+       theme-color (inside the frame) can never reach it. Kept in step with the
+       tool's active palette by the pmr-theme listener below. -->
+  <meta name="theme-color" content="#f4ede1">
   <style>
-    /* Background matches the tool's own --paper (#f4ede1), NOT the dark value
-       the other wrappers use. Those wrap dark-themed tools; this one is the
-       cream "Ledger" theme, and a mismatched wrapper flashes dark before the
-       iframe paints. */
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    /* #f4ede1 is the tool's DEFAULT palette ("Ledger", cream) — not the dark
+       value the other wrappers use, because a mismatched wrapper flashes the
+       wrong color before the iframe paints. It is only a starting value: the
+       tool now ships a second, dark palette and posts its choice up on load and
+       on every switch, and the pmr-theme listener below repaints this to match.
+       Without that, picking the dark theme leaves a cream halo wherever the
+       frame doesn't reach — on mobile, the strip the collapsing URL bar uncovers. */
     html, body { height: 100%; overflow: hidden; background: #f4ede1; }
     iframe { display: block; width: 100%; height: 100vh; border: none; }
   </style>
 </head>
 <body>
-  <iframe src="https://postmillennium-mtb.github.io/studies/" title="Trail Visitor Spending Ledger" allowfullscreen></iframe>
+  <!-- allow= is load-bearing, not boilerplate. In a CROSS-ORIGIN frame the Web
+       Share API and the async clipboard are both gated on permission policy, so
+       without these two the tool's Share button falls all the way back to the
+       old execCommand path. -->
+  <iframe src="https://postmillennium-mtb.github.io/studies/" title="Trail Visitor Spending Ledger"
+          allow="web-share; clipboard-write" allowfullscreen></iframe>
   <script>
-    document.querySelectorAll('iframe[src*="postmillennium-mtb.github.io"]').forEach(f => {
+    var TOOL_ORIGIN = 'https://postmillennium-mtb.github.io';
+    var frames = document.querySelectorAll('iframe[src*="postmillennium-mtb.github.io"]');
+
+    // Deep link at load: same-origin policy stops the frame reading this page's
+    // address, so the hash has to be handed over on the src.
+    frames.forEach(function (f) {
       if (window.location.hash) f.src += window.location.hash;
+    });
+
+    // Deep link AFTER load: appending to src again would reload the frame and
+    // throw away the tool's state, so later changes go over postMessage. The
+    // tool checks our origin before acting on it.
+    window.addEventListener('hashchange', function () {
+      frames.forEach(function (f) {
+        f.contentWindow.postMessage({ type: 'pmr-hash', hash: window.location.hash }, TOOL_ORIGIN);
+      });
+    });
+
+    // The tool owns the theme choice and stores it on ITS origin, which this
+    // page cannot read. So it tells us, and we repaint to match.
+    window.addEventListener('message', function (e) {
+      if (e.origin !== TOOL_ORIGIN) return;
+      var d = e.data;
+      if (!d || d.type !== 'pmr-theme' || !/^#[0-9a-f]{3,8}$/i.test(d.paper || '')) return;
+      document.documentElement.style.background = d.paper;
+      document.body.style.background = d.paper;
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', d.paper);
     });
   </script>
 </body>
