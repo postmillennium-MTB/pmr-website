@@ -25,7 +25,9 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { height: 100%; overflow: hidden; background: #1C1A14; }
-    iframe { display: block; width: 100%; height: 100vh; border: none; }
+    /* 100vh on iOS Safari includes the area behind the browser toolbars, which hid the bottom ~100px of the tool.
+       100dvh is the visible height; the 100vh line stays as the fallback for browsers without dvh. */
+    iframe { display: block; width: 100%; height: 100vh; height: 100dvh; border: none; }
   </style>
 </head>
 <body>
