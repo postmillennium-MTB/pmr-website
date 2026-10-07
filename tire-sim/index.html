@@ -7,25 +7,27 @@
   <link rel="icon" type="image/png" href="/favicon-32x32.png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <title>MTB Tire Tread Simulator — Post Millennium Renaissance</title>
-  <meta name="description" content="Pacejka/FastBike tire model for comparing tread patterns across terrain types and load conditions.">
+  <meta name="description" content="Interactive explorer of the measured tire data in Dressel & Sadauckas (2020): cornering, camber and twisting stiffness, contact patches and cross-sections of five mountain bike tire sizes.">
 
   <!-- Open Graph / link preview -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://postmillenniumrenaissance.com/tire-sim/">
   <meta property="og:title" content="MTB Tire Tread Simulator — Post Millennium Renaissance">
-  <meta property="og:description" content="Pacejka/FastBike tire model for comparing tread patterns across terrain types and load conditions.">
+  <meta property="og:description" content="Interactive explorer of the measured tire data in Dressel & Sadauckas (2020): cornering, camber and twisting stiffness, contact patches and cross-sections of five mountain bike tire sizes.">
   <meta property="og:image" content="https://postmillenniumrenaissance.com/og-image.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="MTB Tire Tread Simulator — Post Millennium Renaissance">
-  <meta name="twitter:description" content="Pacejka/FastBike tire model for comparing tread patterns across terrain types and load conditions.">
+  <meta name="twitter:description" content="Interactive explorer of the measured tire data in Dressel & Sadauckas (2020): cornering, camber and twisting stiffness, contact patches and cross-sections of five mountain bike tire sizes.">
   <meta name="twitter:image" content="https://postmillenniumrenaissance.com/og-image.jpg">
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { height: 100%; overflow: hidden; background: #1C1A14; }
-    iframe { display: block; width: 100%; height: 100vh; border: none; }
+    /* 100vh on iOS Safari includes the area behind the browser toolbars, which hid the bottom ~100px of the tool.
+       100dvh is the visible height; the 100vh line stays as the fallback for browsers without dvh. */
+    iframe { display: block; width: 100%; height: 100vh; height: 100dvh; border: none; }
   </style>
 </head>
 <body>
