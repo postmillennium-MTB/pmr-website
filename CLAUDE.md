@@ -25,6 +25,27 @@ This is the repository for `pmr-website` (Postmillennium MTB). Claude should pri
   * Variables/Functions: `camelCase` (e.g., `fetchRaceResults`)
 * **Styling Rules:** Utilize Tailwind utility classes directly in the markup. Extract complex, repeated UI elements into separate components rather than writing custom CSS classes.
 
+## Icons
+
+**When an icon is called for or requested, use Lucide** (https://lucide.dev/icons/).
+It is the icon set for every PMR tool and for this site. (The README describes the
+site's real stack, plain static HTML; this applies to every page and tool folder.)
+
+* **Inline SVG only.** Paste the icon's SVG into the page. No CDN script, icon font or
+  npm package, and no separate icon image file: pages stay self-contained.
+* **Copy the SVG from lucide.dev and keep its attributes**: `xmlns`,
+  `width="24" height="24" viewBox="0 0 24 24"`, `fill="none"`, `stroke="currentColor"`,
+  `stroke-width="2"`, `stroke-linecap="round"`, `stroke-linejoin="round"`. Add
+  `class="lucide lucide-<icon-name>"`, `aria-hidden="true"` and `focusable="false"`.
+  Do not edit the path data.
+* **Color and size come from CSS.** The stroke is `currentColor`, so the icon follows
+  the text color and every theme (day, spring, autumn, winter, 2049) automatically.
+* **Accessibility:** the SVG is decorative; the button or link carries the name
+  (`aria-label`), never the icon.
+* **Never hand-draw an icon or invent path data.** If Lucide has no suitable icon, say
+  so and ask Jon.
+* **No emoji as icons** in new UI; use Lucide.
+
 ## Git & PR Guidelines
 * Write concise, descriptive commit messages (e.g., `feat: add race registration form`, `fix: mobile menu toggle`).
 * Before suggesting a PR, ensure `npm run build` completes without errors and all TypeScript types are resolved.
