@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PMR Texture Studio</title>
+<meta name="description" content="Pick a patent-derived carpet pattern, recolor it for any color scheme, and copy the CSS.">
+<style>
+:root{
+  --bg:#ECEAE4; --card:#F4F1EC; --rule:#CECCCA; --text:#1A1814; --muted:#5C574E; --accent:#7A3828; --accent-text:#fff;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 56px}
+h1{font-size:1.5rem;margin:0 0 4px;letter-spacing:-.01em}
+.lede{color:var(--muted);margin:0 0 20px;max-width:62ch}
+section{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:16px;margin-bottom:14px}
+h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 10px;font-weight:700}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+button,.chip{font:inherit;cursor:pointer}
+.chip{border:1px solid var(--rule);background:#fff;color:var(--text);border-radius:999px;padding:6px 12px;font-size:.88rem}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-text)}
+.chip:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.pre{display:inline-flex;align-items:center;gap:8px}
+.sw{width:22px;height:22px;border-radius:6px;border:1px solid rgba(0,0,0,.25);position:relative;overflow:hidden;flex:none}
+.sw i{position:absolute;right:0;bottom:0;width:60%;height:60%}
+.grid{display:grid;gap:14px}
+@media(min-width:720px){.grid.two{grid-template-columns:1fr 1fr}}
+label{display:block;font-size:.88rem;color:var(--muted);margin-bottom:4px}
+.field{display:flex;align-items:center;gap:8px}
+input[type=color]{width:44px;height:36px;padding:0;border:1px solid var(--rule);border-radius:8px;background:#fff}
+input[type=text]{font:var(--mono);font-size:.9rem;padding:7px 9px;border:1px solid var(--rule);border-radius:8px;width:110px;background:#fff}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.val{font:var(--mono);font-size:.85rem;color:var(--text);margin-left:6px}
+.stage{position:relative;overflow:hidden;border-radius:12px;border:1px solid var(--rule);min-height:360px;background:var(--stage-paper,#ECEAE4);isolation:isolate}
+.tex{position:absolute;inset:0;pointer-events:none;z-index:-1;background-color:var(--tex-ink,#7A3828);opacity:var(--tex-opacity,.055);
+  -webkit-mask-repeat:repeat;mask-repeat:repeat}
+.sample{margin:28px auto;max-width:420px;padding:16px 18px;border-radius:12px;background:var(--stage-card,rgba(255,255,255,.9));color:var(--stage-text,#1A1814);border:1px solid rgba(0,0,0,.12)}
+.sample b{display:block;margin-bottom:4px}
+.sample span{font-size:.9rem;opacity:.8}
+.meta{font-size:.88rem;color:var(--muted)}
+.badge{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;border-radius:6px;padding:2px 7px;margin-right:6px}
+.badge.real{background:#2D6A4F;color:#fff}.badge.adapted{background:#8a6d1c;color:#fff}
+pre,textarea.code{font:var(--mono);font-size:.78rem;background:#1f1d1a;color:#e9e4d8;border-radius:10px;padding:12px;margin:0;overflow:auto;white-space:pre;width:100%}
+textarea.code{white-space:pre-wrap;word-break:break-all;resize:vertical}
+.copy{margin-top:8px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-text);border-radius:8px;padding:6px 12px;font-size:.88rem}
+.copy.done{background:#2D6A4F;border-color:#2D6A4F}
+.tabs{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.hint{font-size:.85rem;color:var(--muted);margin:8px 0 0}
+.eff{display:flex;align-items:center;gap:8px;font-size:.88rem;color:var(--muted);margin-top:8px}
+.eff .sw{width:28px;height:28px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>PMR Texture Studio</h1>
+  <p class="lede">Pick a pattern, set its ink and paper colors to match any color scheme, and copy the CSS. The patterns are alpha masks, so one file serves every color scheme.</p>
+
+  <section aria-labelledby="h-pattern">
+    <h2 id="h-pattern">Pattern</h2>
+    <div class="row" id="patterns"></div>
+    <p class="meta" id="provenance" style="margin:10px 0 0"></p>
+  </section>
+
+  <section aria-labelledby="h-color">
+    <h2 id="h-color">Colors</h2>
+    <div class="row" id="presets" style="margin-bottom:14px"></div>
+    <div class="grid two">
+      <div><label for="ink">Ink (the pattern color)</label>
+        <div class="field"><input type="color" id="ink"><input type="text" id="inkHex" maxlength="7" aria-label="Ink hex"></div></div>
+      <div><label for="paper">Paper (the page background)</label>
+        <div class="field"><input type="color" id="paper"><input type="text" id="paperHex" maxlength="7" aria-label="Paper hex"></div></div>
+    </div>
+    <div class="grid two" style="margin-top:14px">
+      <div><label for="opacity">Ink strength <span class="val" id="opacityVal"></span></label>
+        <input type="range" id="opacity" min="1" max="40" step="0.5"></div>
+      <div><label for="size">Pattern size <span class="val" id="sizeVal"></span></label>
+        <input type="range" id="size" min="200" max="900" step="10"></div>
+    </div>
+    <div class="row" style="margin-top:12px;align-items:center">
+      <label style="margin:0;display:flex;align-items:center;gap:8px"><input type="checkbox" id="boost"> Show at full strength to inspect the pattern</label>
+    </div>
+    <div class="eff"><span class="sw" id="effSw"></span><span id="effTxt"></span></div>
+  </section>
+
+  <section aria-labelledby="h-prev">
+    <h2 id="h-prev">Preview</h2>
+    <div class="stage" id="stage">
+      <div class="tex" id="tex" aria-hidden="true"></div>
+      <div class="sample"><b>Sample card</b><span>Body text should stay easy to read over the texture. Raise or lower the ink strength until it does.</span></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-out">
+    <h2 id="h-out">CSS to copy</h2>
+    <div class="tabs" role="tablist">
+      <button class="chip" role="tab" id="tab-self" aria-pressed="true">Self-contained (works anywhere, including a double-clicked file)</button>
+      <button class="chip" role="tab" id="tab-url" aria-pressed="false">File link (needs a web server)</button>
+    </div>
+    <div id="out-self"><textarea class="code" id="cssSelf" rows="6" readonly aria-label="Self-contained CSS"></textarea><p class="hint" id="selfSize"></p><button class="copy" data-copy="cssSelf">Copy</button></div>
+    <div id="out-url" hidden><pre id="cssUrl" aria-label="CSS with file link"></pre><p class="hint">Copy <code id="maskFile"></code> into your project next to the page, or point the path at wherever you host it. Browsers do not load a mask image from a double-clicked local file; use the self-contained version for that.</p><button class="copy" data-copy="cssUrl">Copy</button></div>
+    <h2 style="margin-top:20px">Put it on the page</h2>
+    <pre id="usage"></pre><button class="copy" data-copy="usage">Copy</button>
+    <h2 style="margin-top:20px">Per-theme colors (one block per color scheme)</h2>
+    <pre id="vars"></pre><button class="copy" data-copy="vars">Copy</button>
+    <h2 style="margin-top:20px">Credit line for the page footer (recommended)</h2>
+    <pre id="credit"></pre><button class="copy" data-copy="credit">Copy</button>
+    <p class="hint">Patents are public records and need no permission, but the designs deserve a name on them.</p>
+  </section>
+
+  <section aria-labelledby="h-credits">
+    <h2 id="h-credits">Credits</h2>
+    <p class="meta" style="margin-top:0">Every pattern here comes from a US design patent for a carpet by Eugene A. Crowe of Boston, 1882-1884. The patents expired more than a century ago. Drawing scans are from the US Patent Office via Google Patents.</p>
+    <ul id="creditList" class="meta" style="padding-left:20px;margin:8px 0"></ul>
+    <p class="meta">Patterns marked <span class="badge adapted">Adapted</span> are not the patent's own drawing: the drawing was redrawn with an AI image model (Google Gemini) and its edges repaired so it tiles. Only patterns marked <span class="badge real">Patent drawing</span> are the original drawing.</p>
+  </section>
+</div>
+
+<script>
+/* ===== DATA BLOCK ===== */
+/* Masks, embedded as data URIs by tools/build_studio.py from patterns.json. 'kind' is "patent-drawing"
+   or "adapted" (AI-redrawn, edges repaired): never describe an adapted pattern as the patent's own drawing. */
+const PATTERNS = /*__PATTERNS__*/[];
+
+/* Color presets: paper = the scheme's page background, ink = its accent, opacity = its texture strength.
+   PMR site values are from pmr-website index.html tokens (--bg, --accent, --carpet-ink); Atlas values are
+   from MTB-PATENT-ATLAS index.html (--bg, --primary), with opacity set by eye since the Atlas has no texture token. */
+const PRESETS = [
+  {group:"PMR site", name:"Day",    paper:"#ECEAE4", ink:"#7A3828", opacity:5.5},
+  {group:"PMR site", name:"Spring", paper:"#E6EBE4", ink:"#3A6830", opacity:5.5},
+  {group:"PMR site", name:"Autumn", paper:"#EDE6DA", ink:"#904820", opacity:5.5},
+  {group:"PMR site", name:"Winter", paper:"#181C22", ink:"#5A7A8E", opacity:7},
+  {group:"PMR site", name:"2049",   paper:"#0B0A08", ink:"#C9A227", opacity:6.5},
+  {group:"Patent Atlas", name:"WMBC",  paper:"#EEF3EC", ink:"#2D6A4F", opacity:6},
+  {group:"Patent Atlas", name:"COMBA", paper:"#EFE7D6", ink:"#6E5C49", opacity:6},
+  {group:"Patent Atlas", name:"CAMBA", paper:"#F2F2F2", ink:"#C5050C", opacity:6},
+  {group:"Patent Atlas", name:"CAMBR", paper:"#EDF0F5", ink:"#13294B", opacity:6}
+];
+const DEFAULT_SIZE = 520;               /* mask width in CSS px; the PMR site's carpet uses 520 */
+const HOSTED_BASE = "";                 /* fill in once the masks are hosted, e.g. "https://example.org/pmr-textures/" */
+/* ===== END DATA BLOCK ===== */
+
+const $ = id => document.getElementById(id);
+const state = {pat:PATTERNS[0], ink:"#7A3828", paper:"#ECEAE4", opacity:PATTERNS[0].defaultOpacity*100, size:DEFAULT_SIZE, boost:false, tab:"self"};
+
+const hex = v => /^#[0-9a-fA-F]{6}$/.test(v) ? v.toUpperCase() : null;
+const rgb = h => [1,3,5].map(i => parseInt(h.slice(i,i+2),16));
+const toHex = a => "#"+a.map(v => Math.round(v).toString(16).padStart(2,"0")).join("").toUpperCase();
+const lum = h => { const [r,g,b]=rgb(h).map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)}); return .2126*r+.7152*g+.0722*b; };
+
+function buildPatterns(){
+  $("patterns").innerHTML = "";
+  PATTERNS.forEach(p=>{
+    const b=document.createElement("button"); b.className="chip"; b.textContent=p.title; b.setAttribute("aria-pressed",p===state.pat);
+    b.onclick=()=>{ state.pat=p; state.opacity=p.defaultOpacity*100; sync(); };
+    $("patterns").appendChild(b);
+  });
+}
+function buildPresets(){
+  PRESETS.forEach(p=>{
+    const b=document.createElement("button"); b.className="chip pre";
+    b.innerHTML=`<span class="sw" style="background:${p.paper}"><i style="background:${p.ink}"></i></span>${p.group==="Patent Atlas"?"Atlas · ":""}${p.name}`;
+    b.onclick=()=>{ state.paper=p.paper; state.ink=p.ink; state.opacity=p.opacity; sync(); };
+    $("presets").appendChild(b);
+  });
+}
+function fmtOp(o){ return (Math.round(o*10)/1000).toString(); }          /* 5.5 -> 0.055 */
+
+function sync(){
+  const p=state.pat, op=state.boost?1:state.opacity/100, stage=$("stage");
+  stage.style.setProperty("--stage-paper",state.paper);
+  const dark=lum(state.paper)<.2;
+  stage.style.setProperty("--stage-card",dark?"rgba(30,34,40,.92)":"rgba(255,255,255,.9)");
+  stage.style.setProperty("--stage-text",dark?"#E8E2D4":"#1A1814");
+  const tex=$("tex");
+  tex.style.setProperty("--tex-ink",state.ink); tex.style.setProperty("--tex-opacity",op);
+  tex.style.webkitMaskImage=tex.style.maskImage=`url("${p.data}")`;
+  tex.style.webkitMaskSize=tex.style.maskSize=state.size+"px auto";
+  [...$("patterns").children].forEach((b,i)=>b.setAttribute("aria-pressed",PATTERNS[i]===p));
+  $("ink").value=state.ink; $("inkHex").value=state.ink; $("paper").value=state.paper; $("paperHex").value=state.paper;
+  $("opacity").value=state.opacity; $("opacityVal").textContent=(state.opacity).toFixed(1)+"%";
+  $("size").value=state.size; $("sizeVal").textContent=state.size+" px";
+  const e=toHex(rgb(state.paper).map((c,i)=>c+(rgb(state.ink)[i]-c)*(state.opacity/100*p.inkCoverage)));
+  $("effSw").style.background=e; $("effTxt").textContent=`Average tone of the textured area: ${e} (paper ${state.paper}).`;
+  $("provenance").innerHTML=`<span class="badge ${p.kind==="patent-drawing"?"real":"adapted"}">${p.kind==="patent-drawing"?"Patent drawing":"Adapted"}</span><b>${p.patent}</b>, ${p.inventor}, granted ${p.granted}. ${p.note}`;
+  /* CSS output */
+  const o=fmtOp(state.opacity), tag=`/* PMR texture: ${p.id} (${p.kind==="patent-drawing"?"from":"adapted from"} ${p.patent}) */`;
+  const rule=url=>`${tag}\n.texture{\n  position:absolute; inset:0; z-index:-1; pointer-events:none;\n  background-color:var(--tex-ink,${state.ink}); opacity:var(--tex-opacity,${o});\n  -webkit-mask-image:url("${url}"); mask-image:url("${url}");\n  -webkit-mask-size:${state.size}px auto; mask-size:${state.size}px auto;\n  -webkit-mask-repeat:repeat; mask-repeat:repeat;\n}\n:root{ --tex-ink:${state.ink}; --tex-opacity:${o}; }`;
+  $("cssSelf").value=rule(p.data);
+  $("selfSize").textContent=`About ${Math.round(p.data.length/1024)} KB of CSS, because the pattern is embedded.`;
+  const file=HOSTED_BASE+p.mask;
+  $("cssUrl").textContent=rule(file); $("maskFile").textContent=p.mask;
+  $("usage").textContent=`<!-- The page needs a positioned parent; the texture sits behind everything in it. -->\n<body style="position:relative">\n  <div class="texture" aria-hidden="true"></div>\n  ...your page...\n</body>\n\n/* Background color: set it on <body> or <html> (not only on an inner wrapper), or the\n   texture will be hidden behind it. Prefer position:absolute over position:fixed if the\n   page will be embedded in an iframe (e.g. Pinkbike). Keep ink strength low behind body text. */`;
+  const label=p.patent.replace("US Design Patent ","US Design Patent No. ");
+  const creditHtml=p.url?p.credit.replace(label,`<a href="${p.url}">${label}</a>`):p.credit;
+  $("credit").textContent=`${p.credit}\n\n<!-- as HTML -->\n<p class="texture-credit">${creditHtml}</p>`;
+  $("vars").textContent=`/* one block per color scheme; the .texture rule above reads these */\n[data-theme="YOUR-THEME"]{ --tex-ink:${state.ink}; --tex-opacity:${o}; }`;
+  $("tab-self").setAttribute("aria-pressed",state.tab==="self"); $("tab-url").setAttribute("aria-pressed",state.tab==="url");
+  $("out-self").hidden=state.tab!=="self"; $("out-url").hidden=state.tab!=="url";
+}
+
+function bind(){
+  const hexInput=(inp,key)=>{ $(inp).oninput=e=>{ state[key]=e.target.value; sync(); }; $(inp+"Hex").onchange=e=>{ const h=hex(e.target.value.startsWith("#")?e.target.value:"#"+e.target.value); if(h){state[key]=h;} sync(); }; };
+  hexInput("ink","ink"); hexInput("paper","paper");
+  $("opacity").oninput=e=>{ state.opacity=+e.target.value; sync(); };
+  $("size").oninput=e=>{ state.size=+e.target.value; sync(); };
+  $("boost").onchange=e=>{ state.boost=e.target.checked; sync(); };
+  $("tab-self").onclick=()=>{ state.tab="self"; sync(); }; $("tab-url").onclick=()=>{ state.tab="url"; sync(); };
+  document.querySelectorAll(".copy").forEach(b=>b.onclick=async()=>{
+    const el=$(b.dataset.copy), text=el.value!==undefined?el.value:el.textContent;
+    try{ await navigator.clipboard.writeText(text); }catch(e){ const t=document.createElement("textarea"); t.value=text; document.body.appendChild(t); t.select(); try{document.execCommand("copy");}catch(_){} t.remove(); }
+    const old=b.textContent; b.textContent="Copied"; b.classList.add("done"); setTimeout(()=>{b.textContent=old;b.classList.remove("done");},1400);
+  });
+}
+function buildCredits(){
+  $("creditList").innerHTML=PATTERNS.map(p=>{
+    const label=p.patent.replace("US Design Patent ","US Design Patent No. ");
+    const ref=p.url?`<a href="${p.url}" target="_blank" rel="noopener">${label}</a>`:label;
+    return `<li>${ref}: ${p.inventor}, granted ${p.granted}${p.kind==="patent-drawing"?"":" (adapted)"}</li>`;
+  }).join("");
+}
+buildPatterns(); buildPresets(); buildCredits(); bind(); sync();
+</script>
+</body>
+</html>

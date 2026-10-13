@@ -29,6 +29,9 @@ confidence-tiered sourcing for anything factual.
   `dst/`, `1977/`, `autonomy-paradox/`, `studies/`, `stickers/`, `privacy/`),
   each with its own `index.html`.
 - `images/` — shared site assets, including the carpet texture (below).
+- `textures/` — recolorable background patterns (carpet masks from 1880s design
+  patents) plus a studio page to recolor them and copy the CSS. See
+  `textures/README.md`. Not linked from the site or the sitemap.
 - `sitemap.xml` / `robots.txt` — SEO, kept in sync with the tool directory.
 - `CNAME` — GitHub Pages custom domain pin (`www.postmillenniumrenaissance.com`).
 
