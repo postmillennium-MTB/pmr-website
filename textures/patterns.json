@@ -1,0 +1,82 @@
+{
+  "_readme": "Registry of the texture masks. 'kind' is 'patent-drawing' only when the mask comes straight from a patent's own drawing; 'adapted' means the drawing was redrawn by an AI image model and its edges repaired so it tiles. Never describe an 'adapted' pattern as the patent's drawing. 'url' is set only where the Google Patents page was opened and confirmed; otherwise null (cite by number). 'credit' is the ready-to-paste attribution line shown in the studio.",
+  "patterns": [
+    {
+      "id": "crowe-1884-14685",
+      "title": "Crowe carpet, 1884",
+      "kind": "patent-drawing",
+      "patent": "US Design Patent 14,685",
+      "inventor": "Eugene A. Crowe",
+      "granted": "1884-02-19",
+      "assignee": "Lowell Manufacturing Company (per the patent specification)",
+      "mask": "masks/crowe-1884-14685.webp",
+      "pixels": "800x352",
+      "inkCoverage": 0.62,
+      "defaultOpacity": 0.05,
+      "note": "Genuine drawing, deskewed 0.5 degrees and cropped to a repeat that wraps both ways. The drawing shows two horizontal repeats, used together. Fine horizontal dashes are scan artifacts of the original engraving.",
+      "url": "https://patents.google.com/patent/USD14685S/en",
+      "credit": "Background pattern from US Design Patent No. 14,685 (Eugene A. Crowe, 1884); the patent has long expired."
+    },
+    {
+      "id": "crowe-1882-12657",
+      "title": "Crowe carpet, 1882 (medallions)",
+      "kind": "adapted",
+      "patent": "US Design Patent 12,657",
+      "inventor": "Eugene A. Crowe",
+      "granted": "1882-01-10",
+      "assignee": "Lowell Manufacturing Company (per the patent specification)",
+      "mask": "masks/crowe-1882-12657.webp",
+      "pixels": "800x800",
+      "inkCoverage": 0.49,
+      "defaultOpacity": 0.06,
+      "note": "The patent drawing is a single swatch that does not tile. Redrawn with an AI image model, then edges repaired with make_tileable.py.",
+      "url": "https://patents.google.com/patent/USD12657S/en",
+      "credit": "Background pattern adapted from US Design Patent No. 12,657 (Eugene A. Crowe, 1882); the patent has long expired."
+    },
+    {
+      "id": "crowe-1882-13102",
+      "title": "Crowe carpet, 1882 (leaf bouquet and frames)",
+      "kind": "adapted",
+      "patent": "US Design Patent 13,102",
+      "inventor": "Eugene A. Crowe",
+      "granted": "1882-08-01",
+      "mask": "masks/crowe-1882-13102.webp",
+      "pixels": "800x800",
+      "inkCoverage": 0.53,
+      "defaultOpacity": 0.06,
+      "note": "Swatch redrawn with an AI image model, edges repaired. The central bouquet is partly re-cut by the repair.",
+      "url": null,
+      "credit": "Background pattern adapted from US Design Patent No. 13,102 (Eugene A. Crowe, 1882); the patent has long expired."
+    },
+    {
+      "id": "crowe-1882-13483",
+      "title": "Crowe carpet, 1882 (dense foliage)",
+      "kind": "adapted",
+      "patent": "US Design Patent 13,483",
+      "inventor": "Eugene A. Crowe",
+      "granted": "1882-12-26",
+      "mask": "masks/crowe-1882-13483.webp",
+      "pixels": "800x800",
+      "inkCoverage": 0.66,
+      "defaultOpacity": 0.045,
+      "note": "Swatch redrawn with an AI image model, edges repaired. Densest pattern in the set; keep opacity low.",
+      "url": null,
+      "credit": "Background pattern adapted from US Design Patent No. 13,483 (Eugene A. Crowe, 1882); the patent has long expired."
+    },
+    {
+      "id": "crowe-1882-13105",
+      "title": "Crowe carpet, 1882 (patchwork)",
+      "kind": "adapted",
+      "patent": "US Design Patent 13,105",
+      "inventor": "Eugene A. Crowe",
+      "granted": "1882-08-01",
+      "mask": "masks/crowe-1882-13105.webp",
+      "pixels": "800x800",
+      "inkCoverage": 0.54,
+      "defaultOpacity": 0.06,
+      "note": "Swatch redrawn with an AI image model, edges repaired. Its fine grid can blur when shown smaller than about 400 px.",
+      "url": null,
+      "credit": "Background pattern adapted from US Design Patent No. 13,105 (Eugene A. Crowe, 1882); the patent has long expired."
+    }
+  ]
+}

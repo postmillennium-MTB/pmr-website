@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+"""Force a pattern image to wrap on all four edges (minimum-error-cut quilting).
+
+    python3 tools/make_tileable.py input.png output.png [band_px]
+
+Joins the bottom band to the top band along the lowest-error path, then does the
+same left to right. Output is band_px smaller each way. Check the result by
+shifting it half its width and height with wraparound: no straight seam should
+show through the middle. band_px 96-160 works best; try a few and compare.
+"""
+import sys
+import numpy as np
+from PIL import Image
+
+
+def quilt_rows(A, B):
+    H, W = A.shape
+    top, bot = A[:B].astype(float), A[H - B:].astype(float)
+    err = (top - bot) ** 2
+    err = np.apply_along_axis(lambda r: np.convolve(r, np.ones(5) / 5, mode="same"), 1, err)
+    cost = np.full((B, W), np.inf)
+    cost[:, 0] = err[:, 0]
+    back = np.zeros((B, W), int)
+    for x in range(1, W):
+        for dy in (-1, 0, 1):
+            prev = np.roll(cost[:, x - 1], dy)
+            if dy == -1: prev[-1] = np.inf
+            if dy == 1: prev[0] = np.inf
+            cand = prev + err[:, x]
+            better = cand < cost[:, x]
+            cost[better, x] = cand[better]
+            back[better, x] = dy
+    y = int(np.argmin(cost[:, -1]))
+    cut = np.zeros(W, int)
+    for x in range(W - 1, -1, -1):
+        cut[x] = y
+        y -= back[y, x]
+    M = np.empty_like(top)
+    for x in range(W):
+        M[:cut[x], x] = bot[:cut[x], x]
+        M[cut[x]:, x] = top[cut[x]:, x]
+    return np.vstack([M, A[B:H - B].astype(float)])
+
+
+src, dst = sys.argv[1], sys.argv[2]
+B = int(sys.argv[3]) if len(sys.argv) > 3 else 128
+A = np.asarray(Image.open(src).convert("L"))
+T = quilt_rows(A, B)
+T = quilt_rows(T.T, B).T
+Image.fromarray(((T > 127) * 255).astype(np.uint8)).save(dst)
+print(f"{dst}: {T.shape[1]}x{T.shape[0]}")
