@@ -1,5 +1,9 @@
 # PMR Textures
 
+Texture studio can be found here: 
+
+https://www.postmillenniumrenaissance.com/textures/studio/
+
 Recolorable background patterns for Post Millennium Renaissance tools, derived
 from 1880s carpet design patents by Eugene A. Crowe. Each pattern is one alpha
 mask (ink opaque, paper transparent), so a single file serves every color
