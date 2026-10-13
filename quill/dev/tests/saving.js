@@ -1,0 +1,30 @@
+const fs=require('fs');
+function mkP(){const f=function(){};return new Proxy(f,{get(t,k){if(k===Symbol.toPrimitive)return()=>0;if(k==='length')return 0;if(k==='getContext')return()=>mkP();if(k==='getBoundingClientRect')return()=>({left:0,top:0,width:960,height:600});if(k==='then')return undefined;return mkP()},set(){return true},apply(){return mkP()}})}
+global.window=global;global.addEventListener=()=>{};
+global.document={getElementById:()=>mkP(),createElement:()=>mkP(),createTextNode:()=>mkP(),querySelectorAll:()=>mkP(),addEventListener(){}};
+global.requestAnimationFrame=()=>0;
+(0,eval)(fs.readFileSync(__dirname+'/../build/game.js','utf8'));
+const Q=window.QC;let fails=0;const ok=(c,m)=>{if(!c){console.log('FAIL',m);fails++}else console.log('ok  ',m)};
+const S=()=>Q.S;
+Q.newGame();['map','compass','jar','tea'].forEach(i=>Q.run('hand',i));
+Q.walk(0,160,12);Q.use('feather','gnome');Q.use('jar','log');
+const before=JSON.stringify({s:S().score,inv:S().inv,room:S().room,f:S().f,got:S().got});
+const code=Q.encodeSave();console.log('  code length',code.length,code.slice(0,12));
+ok(code.startsWith('QC1.'),'code prefix');
+Q.newGame();ok(S().score===0,'reset');
+const sv=Q.decodeSave(code);ok(!!sv,'decodes');Q.applySave(sv);
+const after=JSON.stringify({s:S().score,inv:S().inv,room:S().room,f:S().f,got:S().got});if(after!==before)console.log('  B',before,'\n  A',after);ok(after===before,'state round-trips');
+ok(Q.decodeSave(' '+code.slice(0,20)+'\n'+code.slice(20)+' ')!==null,'whitespace tolerated');
+ok(Q.decodeSave(code.slice(0,-15))===null,'truncated code rejected');
+ok(Q.decodeSave('hello')===null&&Q.decodeSave('')===null&&Q.decodeSave(null)===null,'garbage rejected');
+const evil=o=>'QC1.'+Buffer.from(JSON.stringify(o)).toString('base64');
+ok(Q.decodeSave(evil({v:1,S:{room:'nowhere'}}))===null,'unknown room rejected');
+ok(Q.decodeSave(evil({v:2,S:{room:'cottage'}}))===null,'future version rejected');
+const e2=Q.decodeSave(evil({v:1,S:{room:'grove',score:9999,acorns:-5,inv:['feather','bomb','feather','acorn'],gIdx:99,f:{x:{a:1},y:2}},wr:{x:-50,y:9999}}));
+ok(e2&&e2.S.score===61&&e2.S.acorns===0&&e2.S.inv.join()==='feather'&&e2.S.gIdx===2&&e2.S.f.y===2&&e2.S.f.x===undefined,'hostile values sanitised');
+ok(e2.wr.x>=3&&e2.wr.y<=186,'position clamped');
+Q.applySave(e2);Q.render(1000);ok(S().room==='grove','hostile save still renders');
+// mid-dialog save drops the dialogue
+Q.newGame();Q.enter('grove',[170,170]);Q.run('talk','hazel');ok(!!S().dlg,'dialog open');
+const c3=Q.encodeSave();Q.applySave(Q.decodeSave(c3));ok(!S().dlg,'dialog not restored');
+console.log(fails?('FAILS '+fails):'ALL PASS');process.exit(fails?1:0);
