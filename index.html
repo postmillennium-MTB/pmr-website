@@ -1204,12 +1204,6 @@
      instead of claiming. Every plate degrades to a static screenshot
      without JavaScript, via the <noscript> block inside it.
 ═══════════════════════════════════════════════════════════════ -->
-<section id="preview">
-  <div class="section-header">
-    <span class="section-label">See them in action</span>
-    <h2 class="section-title">Three instruments, running live.</h2>
-  </div>
-</section>
 
 <!-- ── Plate I — Wheel Strength Lab ──────────────────────────────
      Radial. The one panel that genuinely needs three dimensions:
@@ -1263,7 +1257,9 @@
      year; the scrubber does the same thing by hand. Crossover flags
      are found in the data at load, never hand-placed.
 ──────────────────────────────────────────────────────────────── -->
-<section class="plate plate-chart" id="plate-chart" data-scale="44 yr" data-unit="participation">
+<!-- Plate II is hidden from the live site (the `hidden` attribute) but the markup,
+     styles and script are kept intact. To bring it back, delete `hidden` below. -->
+<section class="plate plate-chart" id="plate-chart" data-scale="44 yr" data-unit="participation" hidden>
   <div class="chart-head">
     <div>
       <span class="plate-tag">Fig. 2 &middot; Data visualization</span>
