@@ -104,13 +104,16 @@ select{font:inherit;font-size:.9rem;padding:7px 9px;border:1px solid var(--rule)
   </section>
 
   <section aria-labelledby="h-out">
-    <h2 id="h-out">CSS to copy</h2>
-    <div class="tabs" role="tablist">
-      <button class="chip" role="tab" id="tab-self" aria-pressed="true">Self-contained (works anywhere, including a double-clicked file)</button>
-      <button class="chip" role="tab" id="tab-url" aria-pressed="false">File link (needs a web server)</button>
+    <h2 id="h-out">Copy for your project</h2>
+    <div class="tabs" role="tablist" aria-label="Form of the CSS">
+      <button class="chip" role="tab" id="tab-url" aria-pressed="true">Short: links to the hosted masks (for web pages)</button>
+      <button class="chip" role="tab" id="tab-self" aria-pressed="false">Self-contained (works offline and from a double-clicked file)</button>
     </div>
-    <div id="out-self"><textarea class="code" id="cssSelf" rows="8" readonly aria-label="Self-contained CSS"></textarea><p class="hint" id="selfSize"></p><button class="copy" data-copy="cssSelf">Copy</button></div>
-    <div id="out-url" hidden><pre id="cssUrl" aria-label="CSS with file link"></pre><p class="hint" id="urlHint"></p><button class="copy" data-copy="cssUrl">Copy</button></div>
+    <h2 style="margin-top:6px">Paste into Claude Code</h2>
+    <textarea class="code" id="claudeBox" rows="14" readonly aria-label="Block to paste into Claude Code"></textarea><p class="hint" id="claudeSize"></p><button class="copy" data-copy="claudeBox">Copy</button>
+    <h2 style="margin-top:20px">CSS only</h2>
+    <div id="out-url"><pre id="cssUrl" aria-label="CSS with file link"></pre><p class="hint" id="urlHint"></p><button class="copy" data-copy="cssUrl">Copy</button></div>
+    <div id="out-self" hidden><textarea class="code" id="cssSelf" rows="8" readonly aria-label="Self-contained CSS"></textarea><p class="hint" id="selfSize"></p><button class="copy" data-copy="cssSelf">Copy</button></div>
     <h2 style="margin-top:20px">Put it on the page</h2>
     <pre id="usage"></pre><button class="copy" data-copy="usage">Copy</button>
     <h2 style="margin-top:20px">Per-theme colors (one block per color scheme)</h2>
@@ -122,7 +125,7 @@ select{font:inherit;font-size:.9rem;padding:7px 9px;border:1px solid var(--rule)
 
   <section aria-labelledby="h-credits">
     <h2 id="h-credits">Credits</h2>
-    <p class="meta" style="margin-top:0">The patent patterns come from US design patents: six carpet patents by Eugene A. Crowe of Boston two by Edwin Fisher of Boston and one by John Fisher of New York (all 1882-1884, expired more than a century ago), US Design Patent No. 74,141, a 1927 textile fabric design by Harry S. Day of Hawthorne, New Jersey (assigned to Pennsylvania Textile Mills, Inc.), and US Design Patent No. 268,339, the Tioga Comp III tire tread (Syoji Inae and Eiji Fukuchi, assigned to Mitsuboshi Belting Ltd., granted 1983, expired 1997). Drawing scans are US Patent Office drawings via Google Patents.</p>
+    <p class="meta" style="margin-top:0">The patent patterns come from US design patents: six carpet patents by Eugene A. Crowe of Boston, two by Edwin Fisher of Boston and one by John Fisher of New York (all 1882-1884, expired more than a century ago), US Design Patent No. 74,141, a 1927 textile fabric design by Harry S. Day of Hawthorne, New Jersey (assigned to Pennsylvania Textile Mills, Inc.), and US Design Patent No. 268,339, the Tioga Comp III tire tread (Syoji Inae and Eiji Fukuchi, assigned to Mitsuboshi Belting Ltd., granted 1983, expired 1997). Drawing scans are US Patent Office drawings via Google Patents.</p>
     <ul id="creditList" class="meta" style="padding-left:20px;margin:8px 0"></ul>
     <p class="meta">Patterns marked <span class="badge adapted">Adapted</span> are not the patent's own drawing: the drawing was redrawn with an AI image model (Google Gemini) and its edges repaired so it tiles. Only patterns marked <span class="badge real">Patent drawing</span> are the original drawing. Patterns marked <span class="badge proc">Procedural</span> are generated noise, not drawn from any patent, and need no credit.</p>
   </section>
@@ -161,7 +164,7 @@ const FADES = [
   {id:"right", label:"Left to right (full at left, clear at right)"},
   {id:"left",  label:"Right to left (full at right, clear at left)"}
 ];                                      /* id = the CSS gradient direction ("to bottom" etc.) */
-const HOSTED_BASE = "";                 /* fill in once the masks are hosted, e.g. "https://example.org/pmr-textures/" */
+const HOSTED_BASE = "https://www.postmillenniumrenaissance.com/textures/";   /* where masks/<id>.webp are served (GitHub Pages) */
 /* ===== END DATA BLOCK ===== */
 
 const $ = id => document.getElementById(id);
@@ -181,7 +184,7 @@ function newLayer(p){
   return {pat:p, opacity:p.defaultOpacity*100, size:p.defaultSize||DEFAULT_SIZE, ownInk:false, ink:"#7A3828",
           fade:"none", hold:0, floor:0, n:++uid, el:null, ui:null};
 }
-const state = {ink:"#7A3828", paper:"#ECEAE4", boost:false, tab:"self", layers:[newLayer(PATTERNS[0])]};
+const state = {ink:"#7A3828", paper:"#ECEAE4", boost:false, tab:"url", layers:[newLayer(PATTERNS[0])]};
 
 /* ---------- colors ---------- */
 function buildPresets(){
@@ -334,9 +337,11 @@ function sync(){
   $("cssSelf").value=rules(p=>p.data)+"\n\n"+rootVars;
   const uniq=[...new Map(L.map(l=>[l.pat.id,l.pat])).values()];
   $("selfSize").textContent=`About ${Math.round(uniq.reduce((s,p)=>s+p.data.length,0)/1024)} KB of CSS, because the patterns are embedded.`;
-  $("cssUrl").textContent=rules(p=>p.mask?HOSTED_BASE+p.mask:p.data)+"\n\n"+rootVars;
+  const cssShort=rules(p=>p.mask?HOSTED_BASE+p.mask:p.data)+"\n\n"+rootVars, cssFull=rules(p=>p.data)+"\n\n"+rootVars;
+  $("cssUrl").textContent=cssShort;
+  const kb=n=>n<1024?`${n} bytes`:`${Math.round(n/1024)} KB`;
   const files=uniq.filter(p=>p.mask).map(p=>p.mask);
-  $("urlHint").textContent=(files.length?`Copy ${files.join(", ")} into your project next to the page, or point the paths at wherever you host them. `:"")+"Procedural patterns are tiny, so they stay embedded in this form. Browsers do not load a mask image from a double-clicked local file; use the self-contained version for that.";
+  $("urlHint").textContent=`About ${kb(cssShort.length)}. Loads ${files.length?files.join(", ")+" from "+HOSTED_BASE:"nothing from the site (these patterns are generated)"}. Works on any web page (GitHub Pages sends the CORS header mask images need), but not offline or from a double-clicked file: use the self-contained tab for those. A new pattern only loads once it is on the live site. Procedural patterns stay embedded (about 1 KB each).`;
   const divs=L.map((l,i)=>`  <div class="${layerClass(i)}" aria-hidden="true"></div>`).join("\n");
   $("usage").textContent=`<!-- The page needs a positioned parent; the texture${L.length>1?" layers sit":" sits"} behind everything in it${L.length>1?", layer 1 lowest":""}. -->\n<body style="position:relative">\n${divs}\n  ...your page...\n</body>\n\n/* Background color: set it on <body> or <html> (not only on an inner wrapper), or the\n   texture will be hidden behind it. Prefer position:absolute over position:fixed if the\n   page will be embedded in an iframe (e.g. Pinkbike). Keep ink strength low behind body text.${anyFade?"\n   A fade runs across the whole element the texture sits on (the full page height on <body>).":""} */`;
   const credited=uniq.filter(p=>p.credit);
@@ -345,6 +350,20 @@ function sync(){
     $("credit").textContent=`${credited.map(p=>p.credit).join("\n")}\n\n<!-- as HTML -->\n${html}`;
   } else $("credit").textContent="No credit line needed: these patterns are generated, not taken from a patent.";
   $("vars").textContent=`/* one block per color scheme; the layer rules above read these */\n[data-theme="YOUR-THEME"]{ ${varList}; }`;
+  /* one block to paste into Claude Code: instructions + CSS + markup + variables + credit */
+  const short=state.tab==="url", css=short?cssShort:cssFull;
+  const creditText=credited.length?credited.map(p=>p.credit).join("\n"):"(none needed: these patterns are generated)";
+  $("claudeBox").value=[
+    "Add a PMR background texture to this page. Use the CSS exactly as given.","",
+    "1. Put this CSS in the page's <style> (or the site's main stylesheet):","",css,"",
+    `2. Add ${L.length>1?"these elements":"this element"} as the first ${L.length>1?"children":"child"} of <body> and give <body> position:relative:`,divs,
+    "   Set the page background color on <body> or <html> (not only on an inner wrapper), or the texture is hidden behind it. Use position:absolute, not fixed, if the page is embedded in an iframe.","",
+    `3. If the page has several color schemes, set these variables per scheme, for example [data-theme="..."]{ ${varList}; }`,"",
+    "4. Add this credit to the page footer (keep the link if there is one):",creditText,"",
+    short?`Notes: the mask images load from ${HOSTED_BASE}masks/ and need the page to be served from the web (not opened as a local file). Keep ink strength low behind body text.`
+         :"Notes: the mask images are embedded, so this works offline and from a double-clicked file. Keep ink strength low behind body text."
+  ].join("\n");
+  $("claudeSize").textContent=`About ${kb($("claudeBox").value.length)}${short?"":", because the patterns are embedded. For a web page, the Short tab is much smaller"}.`;
   $("tab-self").setAttribute("aria-pressed",state.tab==="self"); $("tab-url").setAttribute("aria-pressed",state.tab==="url");
   $("out-self").hidden=state.tab!=="self"; $("out-url").hidden=state.tab!=="url";
 }

@@ -58,13 +58,18 @@ text in each entry's `credit` field.
 4. Optional **fade** per layer: top to bottom, bottom to top, left to right or
    right to left, with a "full strength until" point and a "strength left at the
    far edge" floor. Fade one layer out while another fades in to blend patterns.
-5. Copy the **self-contained** CSS and paste it into the page's `<style>`.
-6. Add the `<div>`s the studio lists (`texture`, then `texture-2`, `texture-3`
-   for extra layers) as the first children of `<body>` and give `<body>`
-   `position:relative`. The "Put it on the page" box in the studio has the exact
-   text.
-7. Paste the credit line the studio generates into the page footer (procedural
-   patterns need none).
+5. **Using it in a project with Claude Code:** copy the **Paste into Claude Code**
+   block and paste it into the conversation. It holds the instructions, the CSS, the
+   `<div>`s, the per-theme variables and the credit line, and is about 4 KB with the
+   default **Short** form (the masks load from the hosted site). The
+   **Self-contained** tab gives the same block with the masks embedded (100 KB or
+   more), for single-file tools that must work offline or double-clicked.
+6. **Doing it by hand:** copy the CSS from "CSS only", add the `<div>`s the studio
+   lists (`texture`, then `texture-2`, `texture-3` for extra layers) as the first
+   children of `<body>`, and give `<body>` `position:relative`. The "Put it on the
+   page" box has the exact text.
+7. Put the credit line the studio generates in the page footer (procedural patterns
+   need none).
 
 To recolor for another color scheme later, change only the CSS variables,
 `--tex-ink` and `--tex-opacity` (plus `--tex-2-opacity` etc. for extra layers, and
@@ -76,7 +81,7 @@ block to paste for each theme.
 | Form | Use when | Why |
 |---|---|---|
 | Self-contained (data URI) | The tool is a single file that must work when double-clicked, or is embedded in an iframe | Browsers do not load a mask image from a local file. Tested: a relative `mask-image: url(m.webp)` renders nothing from `file://`; the same mask as a data URI renders. |
-| File link | The page is served from a web server (GitHub Pages, etc.) | Smaller CSS. Needs the `.webp` copied next to the page. Cross-site links also need the host to send CORS headers (GitHub Pages does). |
+| Short (file link, the studio default) | The page is served from the web | About 1-2 KB of CSS per layer. The masks load from `https://www.postmillenniumrenaissance.com/textures/masks/<id>.webp`; GitHub Pages sends the CORS header mask images need, so any web page can use them. Tested against a local server sending the same CORS header (the short CSS painted on a page from a different origin); not yet tested against the live site. A new pattern only loads once it is on the live site (after the branch is merged). The procedural pile and grain stay embedded (about 1 KB each). |
 
 The Patent Atlas must keep working when double-clicked, so it should use the
 self-contained form. That adds roughly 40-100 KB to `index.html` per pattern.
