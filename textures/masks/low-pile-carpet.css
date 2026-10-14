@@ -1,0 +1,68 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   LOW-PILE CARPET — a procedural texture kit (PMR)
+   ───────────────────────────────────────────────────────────────────────
+   What it is: two tiny (≈1 KB) 256px seamless SVG-noise tiles, generated
+   rather than drawn — fine carpet "pile" noise, plus (carpet only) a faint
+   4px woven grid. No image files, no requests, no patent source, so no
+   credit line is needed (unlike the Crowe patterns in the PMR texture
+   catalogue, postmillennium-MTB/pmr-website → textures/).
+
+   Both are used as ALPHA MASKS, exactly like the catalogue masks: the tile
+   only supplies the shape; CSS paints it in any colour. So one tile serves
+   every theme — set --pile-ink and --pile-opacity per theme.
+
+     --pile-mask-carpet   pile + weave.  Reads as woven carpet / berber.
+     --pile-mask-grain    pile only.     Reads as paper / felt grain.
+
+   WHEN TO USE WHICH
+   • Cards, buttons, plates, chart backdrops: it is a SMALL-SCALE texture
+     (grain is ~1px, weave 4px), so it won't clash with the big Crowe damask
+     on the page floor the way a second large pattern would (the catalogue's
+     "one layer per page" rule is about moiré between large repeats).
+     Carpet reads best at 6-10% --pile-opacity on cards; the grain-only
+     variant is quieter and wants about 12-18%. Prefer grain if the page floor
+     already carries the damask, to be safe.
+   • Tested range: 6-18% --pile-opacity depending on variant (these are
+     full-strength masks, so the numbers read higher than the catalogue's
+     4-7%). Above ~20% it turns into visible static.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --pile-mask-carpet: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='p' x='0' y='0' width='100%' height='100%'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8 .7' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 3.2 0 0 0 -1.24'/%3E%3C/filter%3E%3Cfilter id='m' x='0' y='0' width='100%' height='100%'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 1.2 0 0 0 -.45'/%3E%3C/filter%3E%3Cpattern id='w' width='4' height='4' patternUnits='userSpaceOnUse'%3E%3Cpath d='M0 .5H4M.5 0V4' stroke='rgb(255,255,255)' stroke-opacity='0.045' stroke-width='1' fill='none'/%3E%3C/pattern%3E%3Crect width='100%' height='100%' filter='url(%23m)' opacity='.10'/%3E%3Crect width='100%' height='100%' filter='url(%23p)' opacity='0.2'/%3E%3Crect width='100%' height='100%' fill='url(%23w)'/%3E%3C/svg%3E");
+  --pile-mask-grain:  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='p' x='0' y='0' width='100%' height='100%'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8 .7' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 3.2 0 0 0 -1.24'/%3E%3C/filter%3E%3Cfilter id='m' x='0' y='0' width='100%' height='100%'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 1.2 0 0 0 -.45'/%3E%3C/filter%3E%3Cpattern id='w' width='4' height='4' patternUnits='userSpaceOnUse'%3E%3Cpath d='M0 .5H4M.5 0V4' stroke='rgb(255,255,255)' stroke-opacity='0.045' stroke-width='1' fill='none'/%3E%3C/pattern%3E%3Crect width='100%' height='100%' filter='url(%23p)' opacity='0.16'/%3E%3C/svg%3E");
+  --pile-ink: #ffffff;       /* per theme: light ink on dark grounds, dark ink on light */
+  --pile-opacity: 0.09;
+}
+
+/* ── RECIPE 1: textured card / plate ───────────────────────────────────
+   Put class="pile" on any card with position:relative and its own background.
+   The texture is an overlay behind the card's content.
+     <div class="card pile"> … </div>                                      */
+.pile { position: relative; isolation: isolate; }
+.pile::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  border-radius: inherit;
+  background-color: var(--pile-ink); opacity: var(--pile-opacity);
+  -webkit-mask-image: var(--pile-mask-carpet); mask-image: var(--pile-mask-carpet);
+  -webkit-mask-size: 256px 256px; mask-size: 256px 256px;
+  -webkit-mask-repeat: repeat; mask-repeat: repeat;
+}
+.pile--grain::before {
+  -webkit-mask-image: var(--pile-mask-grain); mask-image: var(--pile-mask-grain);
+}
+
+/* ── RECIPE 2: accent texture inside a coloured element ────────────────
+   Tint it with the accent instead of white/black — a badge, a header band,
+   a primary button.   <button class="btn pile" style="--pile-ink:#000">   */
+
+/* ── RECIPE 3: per-theme retint (change only these two variables) ──────
+   body.theme-dark  { --pile-ink: #ffffff; --pile-opacity: 0.09; }
+   body.theme-light { --pile-ink: #26301f; --pile-opacity: 0.08; }       */
+
+/* ── HOW THE TILES WERE MADE (to regenerate or retune) ─────────────────
+   SVG <feTurbulence type="fractalNoise" stitchTiles="stitch">:
+     pile   baseFrequency=".8 .7"  numOctaves=2  seed=7   
+     mottle baseFrequency=".012"   numOctaves=2  seed=3   
+     weave  4px <pattern> of 1px lines             
+   each run through feColorMatrix to turn noise value into alpha (single ink
+   colour, alpha kept at full strength), layered, rasterised at 256×256 and URL-encoded as a data URI.  */
