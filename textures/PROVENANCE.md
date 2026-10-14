@@ -1,7 +1,7 @@
 # Provenance
 
-All source patents are US design patents from 1882-1884, naming Eugene A. Crowe
-of Boston as inventor. Design patents of that era ran 3.5, 7 or 14 years, so
+The Crowe patterns' source patents are US design patents from 1882-1884, naming
+Eugene A. Crowe of Boston as inventor. Comp III (`us-d268339`) is a 1983 patent, covered below. Design patents of that era ran 3.5, 7 or 14 years, so
 all had expired by 1898 at the latest: the patents are in the public domain.
 The drawing sheets are the USPTO / Google Patents scans (the 12,657 scan is
 stamped "Best Available Copy").
@@ -19,7 +19,7 @@ other three assignees were not read.
 | `crowe-1882-13102` | US D 13,102 | Aug 1, 1882 | Adapted | Same method; band 128 px. The center bouquet is partly re-cut by the repair. |
 | `crowe-1882-13483` | US D 13,483 | Dec 26, 1882 | Adapted | Same method; band 160 px. |
 | `crowe-1882-13105` | US D 13,105 | Aug 1, 1882 | Adapted | Same method; band 96 px. |
-| `us-d268339` | US D 268,339 | not checked | Patent drawing | Scan `masks/USD268339S.png` (1328x1108), cropped to x 197-1085, y 110-975 (888x865 px): exactly 3 horizontal repeats (period about 296 px, found by autocorrelation) starting between columns, and one vertical repeat whose top and bottom half-plates, cut by the drawing frame, join into whole plates. Frame lines and margin marks are outside the crop. Then `make_mask.py` at 800 px (ink coverage 10%). |
+| `us-d268339` (Comp III) | US D 268,339 | Mar 22, 1983 | Patent drawing | Scan `masks/USD268339S.png` (1328x1108), cropped to x 197-1085, y 110-975 (888x865 px): exactly 3 horizontal repeats (period about 296 px, found by autocorrelation) starting between columns, and one vertical repeat whose top and bottom half-plates, cut by the drawing frame, join into whole plates. Frame lines and margin marks are outside the crop. Then `make_mask.py` at 800 px (ink coverage 10%). |
 | `pile-carpet`, `pile-grain` | none | n/a | Procedural | SVG `feTurbulence` tiles (256 px, `stitchTiles`) from `masks/low-pile-carpet.css`; ink coverage measured in Chromium (11% and 6%). |
 
 Patent numbers and grant dates were read from the printed header of each
@@ -47,11 +47,13 @@ swatches (13,102 especially) have their central motif partly re-cut.
 
 For comparison, the PMR site's existing 1898 carpet (US D 28,278) is about 45%.
 
-## US D 268,339: what is not verified
+## US D 268,339 (Comp III)
 
-The patent number comes from the scan's file name (`USD268339S.png`). The title,
-inventor, assignee and grant date were not read (no access to the patent page when
-this was added), so the registry leaves them null and the credit line cites the
-number only. Add them to `patterns.json` once checked. The tile was checked by eye
-shifted half its width and height with wraparound; no seam shows. The scan has
-rough, slightly fuzzy edges, which survive into the mask.
+The tread design of the Tioga Comp III tire (the tire identification is from the
+site owner; the patent page lists no tire name). Inventors Syoji Inae and Eiji
+Fukuchi; assigned to Mitsuboshi Belting Ltd. (assignment recorded 1982-10-28);
+application US 06/349,941 filed 1982-02-18; granted 1983-03-22; expired 1997-03-22
+([Google Patents](https://patents.google.com/patent/USD268339S/en)). The patent
+title was not recorded. The tile was checked by eye shifted half its width and
+height with wraparound; no seam shows. The scan has rough, slightly fuzzy edges,
+which survive into the mask.

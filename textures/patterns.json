@@ -1,5 +1,5 @@
 {
-  "_readme": "Registry of the texture masks. 'kind' is 'patent-drawing' only when the mask comes straight from a patent's own drawing; 'adapted' means the drawing was redrawn by an AI image model and its edges repaired so it tiles. Never describe an 'adapted' pattern as the patent's drawing. 'url' is set only where the Google Patents page was opened and confirmed; otherwise null (cite by number). 'credit' is the ready-to-paste attribution line shown in the studio. 'procedural' entries are generated SVG-noise tiles from masks/low-pile-carpet.css (read by tools/build_studio.py via 'cssVar'); they have no patent and need no credit. 'defaultSize' is the tile width in CSS px (default 520). inventor/granted are null where they were not verified.",
+  "_readme": "Registry of the texture masks. 'kind' is 'patent-drawing' only when the mask comes straight from a patent's own drawing; 'adapted' means the drawing was redrawn by an AI image model and its edges repaired so it tiles. Never describe an 'adapted' pattern as the patent's drawing. 'url' is set only where the Google Patents page was opened and confirmed; otherwise null (cite by number). 'credit' is the ready-to-paste attribution line shown in the studio. 'procedural' entries are generated SVG-noise tiles from masks/low-pile-carpet.css (read by tools/build_studio.py via 'cssVar'); they have no patent and need no credit. 'defaultSize' is the tile width in CSS px (default 520). inventor/granted are null for procedural entries (no patent).",
   "patterns": [
     {
       "id": "crowe-1884-14685",
@@ -80,19 +80,19 @@
     },
     {
       "id": "us-d268339",
-      "title": "Butterfly hinges (D 268,339)",
+      "title": "Comp III",
       "kind": "patent-drawing",
       "patent": "US Design Patent 268,339",
-      "inventor": null,
-      "granted": null,
-      "assignee": null,
+      "inventor": "Syoji Inae and Eiji Fukuchi",
+      "granted": "1983-03-22",
+      "assignee": "Mitsuboshi Belting Ltd.",
       "mask": "masks/us-d268339.webp",
       "pixels": "800x779",
       "inkCoverage": 0.1,
       "defaultOpacity": 0.1,
-      "note": "Line art cropped from the patent drawing to a repeat that wraps both ways (4 columns by one vertical repeat; the half-plates cut by the drawing frame join into whole plates). Thin outlines, so it needs more strength than the filled patterns. Inventor, title and grant date were not read; cite by number.",
-      "url": null,
-      "credit": "Background pattern from US Design Patent No. 268,339."
+      "note": "The tread design of the Tioga Comp III tire (US D 268,339, expired 1997-03-22). Line art cropped from the patent drawing to a repeat that wraps both ways (3 columns by one vertical repeat; the half-plates cut by the drawing frame join into whole plates). Thin outlines, so it needs more strength than the filled patterns.",
+      "url": "https://patents.google.com/patent/USD268339S/en",
+      "credit": "Background pattern from US Design Patent No. 268,339 (Syoji Inae and Eiji Fukuchi, Mitsuboshi Belting Ltd., 1983); the patent has long expired."
     },
     {
       "id": "pile-carpet",
