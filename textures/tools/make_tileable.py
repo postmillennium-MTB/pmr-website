@@ -42,10 +42,15 @@ def quilt_rows(A, B):
     return np.vstack([M, A[B:H - B].astype(float)])
 
 
-src, dst = sys.argv[1], sys.argv[2]
-B = int(sys.argv[3]) if len(sys.argv) > 3 else 128
-A = np.asarray(Image.open(src).convert("L"))
-T = quilt_rows(A, B)
-T = quilt_rows(T.T, B).T
-Image.fromarray(((T > 127) * 255).astype(np.uint8)).save(dst)
-print(f"{dst}: {T.shape[1]}x{T.shape[0]}")
+def make_tileable(A, B):
+    """A: 2-D uint8 array. Returns the float array tiled on both axes (B px smaller each way)."""
+    T = quilt_rows(A, B)
+    return quilt_rows(T.T, B).T
+
+
+if __name__ == "__main__":
+    src, dst = sys.argv[1], sys.argv[2]
+    B = int(sys.argv[3]) if len(sys.argv) > 3 else 128
+    T = make_tileable(np.asarray(Image.open(src).convert("L")), B)
+    Image.fromarray(((T > 127) * 255).astype(np.uint8)).save(dst)
+    print(f"{dst}: {T.shape[1]}x{T.shape[0]}")

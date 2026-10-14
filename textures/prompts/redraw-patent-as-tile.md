@@ -2,7 +2,7 @@
 
 Saved 2026-10-14. **Used in Google Gemini** (image generation, with the patent PDF
 attached) to make the "adapted" carpet patterns: `crowe-1882-12657`, `-13102`,
-`-13483`, `-13105`, `-13106` and `fisher-1882-13108`. See `../PROVENANCE.md` for what was done to each result
+`-13483`, `-13105`, `-13106`, `fisher-1882-13108` and `fisher-1882-13109`. See `../PROVENANCE.md` for what was done to each result
 afterward.
 
 ## How to use
@@ -80,3 +80,4 @@ These are suggestions, not tested changes. Change one at a time and log it below
 | 2026-10-14 | First version saved (the text above, as used in Gemini). | Used for the four adapted patterns. |
 | 2026-10-14 | Same text re-run on US D 13,106. | Returned a 1125x1125 image, not the 2048x2048 requested, with no edge match (left-right correlation 0.06). `make_tileable.py` at 128 px fixed the seams; no visible seam in the half-shifted view. |
 | 2026-10-14 | Same text re-run on US D 13,108. | Again 1125x1125 with no edge match (left-right correlation 0.05). `make_tileable.py` at 96 px fixed it. Two runs in a row ignored the 2048 px size and the exact-edge instruction. |
+| 2026-10-14 | Same text re-run on US D 13,109. | Again 1125x1125 with no edge match (left-right correlation 0.02). This drawing has a strict fine square grid; the plain repair left the grid out of step at the join, so `make_tileable_grid.py` was added. Three runs in a row ignored the 2048 px size and the exact-edge instruction. |

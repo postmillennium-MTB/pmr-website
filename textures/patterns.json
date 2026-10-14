@@ -111,6 +111,22 @@
       "credit": "Background pattern adapted from US Design Patent No. 13,108 (Edwin Fisher, 1882); the patent has long expired."
     },
     {
+      "id": "fisher-1882-13109",
+      "title": "Fisher carpet, 1882 (blooms on fine grid)",
+      "kind": "adapted",
+      "patent": "US Design Patent 13,109",
+      "inventor": "Edwin Fisher",
+      "granted": "1882-08-01",
+      "assignee": "Lowell Manufacturing Company (per the patent specification)",
+      "mask": "masks/fisher-1882-13109.webp",
+      "pixels": "791x800",
+      "inkCoverage": 0.57,
+      "defaultOpacity": 0.055,
+      "note": "Swatch redrawn with an AI image model (Google Gemini), then edges repaired with make_tileable_grid.py so the fine square grid lines meet at the join. Dark flowers, tulip-like blooms and a fan-shaped plant on thin stems over a dense grid of dotted cells and dashed hatching. Compared with the patent sheet: same motifs. Dark and busy, so keep strength low behind text.",
+      "url": "https://patents.google.com/patent/USD13109S/en",
+      "credit": "Background pattern adapted from US Design Patent No. 13,109 (Edwin Fisher, 1882); the patent has long expired."
+    },
+    {
       "id": "us-d268339",
       "title": "Comp III",
       "kind": "patent-drawing",

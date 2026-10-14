@@ -4,8 +4,8 @@ Texture studio can be found here:
 
 https://www.postmillenniumrenaissance.com/textures/studio/
 
-Recolorable background patterns for Post Millennium Renaissance tools: seven
-derived from 1880s carpet design patents (six by Eugene A. Crowe, one by Edwin Fisher), one cropped from the
+Recolorable background patterns for Post Millennium Renaissance tools: eight
+derived from 1880s carpet design patents (six by Eugene A. Crowe, two by Edwin Fisher), one cropped from the
 Tioga Comp III tire tread patent (US Design Patent 268,339), and two procedural pile/grain tiles. Each pattern is one
 alpha mask (ink opaque, paper transparent), so a single file serves every color
 scheme: CSS paints the ink in whatever color you choose.
@@ -13,9 +13,9 @@ scheme: CSS paints the ink in whatever color you choose.
 ## Credits
 
 Six of the carpet patterns are derived from US design patents for a carpet naming
-**Eugene A. Crowe** of Boston as inventor, granted 1882-1884, and one (D 13,108) from
-a patent naming **Edwin Fisher** of Boston. The four specifications that were read
-(12,657, 14,685, 13,106 and 13,108) name the **Lowell Manufacturing Company** of
+**Eugene A. Crowe** of Boston as inventor, granted 1882-1884, and two (D 13,108 and D 13,109)
+from patents naming **Edwin Fisher** of Boston. The five specifications that were read
+(12,657, 14,685, 13,106, 13,108 and 13,109) name the **Lowell Manufacturing Company** of
 Lowell, Massachusetts as assignee. **Comp III** is US D 268,339, the Tioga Comp III tire tread: inventors
 **Syoji Inae and Eiji Fukuchi**, assigned to **Mitsuboshi Belting Ltd.**, granted
 Mar 22, 1983, expired Mar 22, 1997. The pile and grain tiles are generated and need
@@ -32,6 +32,7 @@ their names when they are used.
 | `crowe-1882-13105` | [US D 13,105](https://patents.google.com/patent/USD13105S/en) | Eugene A. Crowe | Aug 1, 1882 | Adapted |
 | `crowe-1882-13106` | [US D 13,106](https://patents.google.com/patent/USD13106S/en) | Eugene A. Crowe | Aug 1, 1882 | Adapted |
 | `fisher-1882-13108` | [US D 13,108](https://patents.google.com/patent/USD13108S/en) | **Edwin Fisher** | Aug 1, 1882 | Adapted |
+| `fisher-1882-13109` | [US D 13,109](https://patents.google.com/patent/USD13109S/en) | **Edwin Fisher** | Aug 1, 1882 | Adapted |
 | `us-d268339` (Comp III) | [US D 268,339](https://patents.google.com/patent/USD268339S/en) | Syoji Inae, Eiji Fukuchi | Mar 22, 1983 | Patent drawing (cropped) |
 | `pile-carpet`, `pile-grain` | none (procedural) | n/a | n/a | Generated noise, no credit needed |
 
@@ -115,6 +116,7 @@ patent's drawing.** See `PROVENANCE.md`.
 | `studio/index.html` | The recolor-and-copy-CSS page (built; masks embedded) with layers, fades and a random-color button |
 | `prompts/redraw-patent-as-tile.md` | The Gemini prompt used to redraw a single-swatch patent as a seamless tile, with notes and a revision log |
 | `tools/make_mask.py` | Black-on-white image to alpha mask (downscale, then Otsu with soft ramp) |
+| `tools/make_tileable_grid.py` | Same edge repair for a pattern with a strict fine grid: crops to a whole number of grid cells first so the grid lines meet at the join |
 | `tools/make_tileable.py` | Forces an image to wrap on all four edges (min-error-cut quilting) |
 | `tools/build_studio.py` + `tools/studio_template.html` | Rebuild the studio after adding a pattern |
 | `PROVENANCE.md` | Where each pattern came from and how it was made |
@@ -124,7 +126,8 @@ patent's drawing.** See `PROVENANCE.md`.
 1. Get a black-on-white image (a patent PDF page, or a redrawn version) (for a single swatch that does not repeat, use `prompts/redraw-patent-as-tile.md` in Gemini).
 2. If it does not already wrap, run `python3 tools/make_tileable.py in.png out.png 128`,
    then shift the result half its width and height with wraparound and check that
-   no straight seam shows through the middle.
+   no straight seam shows through the middle. If the pattern has a strict fine
+   square grid, use `tools/make_tileable_grid.py` instead so the grid lines meet at the join.
 3. `python3 tools/make_mask.py out.png masks/<id>.webp 800`
 4. Add an entry to `patterns.json` (set `kind` honestly) and a row to `PROVENANCE.md`.
 5. `python3 tools/build_studio.py`
