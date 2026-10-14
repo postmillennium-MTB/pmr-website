@@ -1,8 +1,8 @@
 # Prompt: redraw a patent drawing as a seamless tile
 
 Saved 2026-10-14. **Used in Google Gemini** (image generation, with the patent PDF
-attached) to make the "adapted" Crowe patterns: `crowe-1882-12657`, `-13102`,
-`-13483`, `-13105`, `-13106` and `-13108`. See `../PROVENANCE.md` for what was done to each result
+attached) to make the "adapted" carpet patterns: `crowe-1882-12657`, `-13102`,
+`-13483`, `-13105`, `-13106` and `fisher-1882-13108`. See `../PROVENANCE.md` for what was done to each result
 afterward.
 
 ## How to use

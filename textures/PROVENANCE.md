@@ -1,12 +1,13 @@
 # Provenance
 
-The Crowe patterns' source patents are US design patents from 1882-1884, naming
-Eugene A. Crowe of Boston as inventor. Comp III (`us-d268339`) is a 1983 patent, covered below. Design patents of that era ran 3.5, 7 or 14 years, so
+The carpet patterns' source patents are US design patents from 1882-1884: six name
+Eugene A. Crowe of Boston as inventor, and D 13,108 names Edwin Fisher of Boston.
+Comp III (`us-d268339`) is a 1983 patent, covered below. Design patents of that era ran 3.5, 7 or 14 years, so
 all had expired by 1898 at the latest: the patents are in the public domain.
 The drawing sheets are the USPTO / Google Patents scans (the 12,657 scan is
 stamped "Best Available Copy").
 
-Links: every Crowe patent links to its Google Patents page. 14,685 and 12,657 were opened and confirmed; the 13,102, 13,483 and 13,105 links were supplied by the site owner and not opened here (no network access in the build session).
+Links: every carpet patent links to its Google Patents page. 14,685 and 12,657 were opened and confirmed; the 13,102, 13,483, 13,105, 13,106 and 13,108 links were supplied by the site owner and not opened here (no network access in the build session). For 13,106 and 13,108 the site owner also supplied the patent PDFs, which were read (see below).
 
 "Same inventor" here means the name on the drawing sheet. The 1884 and 1882
 (12,657) specifications name the Lowell Manufacturing Company as assignee. The
@@ -19,14 +20,14 @@ other three assignees were not read.
 | `crowe-1882-13102` | US D 13,102 | Aug 1, 1882 | Adapted | Same method; band 128 px. The center bouquet is partly re-cut by the repair. |
 | `crowe-1882-13483` | US D 13,483 | Dec 26, 1882 | Adapted | Same method; band 160 px. |
 | `crowe-1882-13105` | US D 13,105 | Aug 1, 1882 | Adapted | Same method; band 96 px. |
-| `crowe-1882-13106` | US D 13,106 | not checked | Adapted | Same method (Gemini redraw of the patent PDF using `prompts/redraw-patent-as-tile.md`); the 1125 px result did not wrap (edge correlation 0.06 left-right, -0.12 top-bottom, against about 0.8-0.9 for neighbors), so edges were repaired with band 128 px (997 px tile; edge correlation afterward 0.89 and 0.86). Ink coverage 42%. |
-| `crowe-1882-13108` | US D 13,108 | not checked | Adapted | Same method as 13,106 (Gemini redraw using `prompts/redraw-patent-as-tile.md`). The 1125 px result did not wrap (edge correlation 0.05 left-right, -0.04 top-bottom, against about 0.85 for neighbors); edges repaired with band 96 px (1029 px tile; afterward 0.91 and 0.81). Seam ink-density steps are within normal variation. Ink coverage 59%. The match to the patent was supplied by the site owner and not checked against the sheet; no Google Patents link was given, so none is recorded. |
+| `crowe-1882-13106` | US D 13,106 | Aug 1, 1882 | Adapted | Same method (Gemini redraw of the patent PDF using `prompts/redraw-patent-as-tile.md`); the 1125 px result did not wrap (edge correlation 0.06 left-right, -0.12 top-bottom, against about 0.8-0.9 for neighbors), so edges were repaired with band 128 px (997 px tile; edge correlation afterward 0.89 and 0.86). Ink coverage 42%. |
+| `fisher-1882-13108` | US D 13,108 | Aug 1, 1882 | Adapted | Same method as 13,106 (Gemini redraw using `prompts/redraw-patent-as-tile.md`). The 1125 px result did not wrap (edge correlation 0.05 left-right, -0.04 top-bottom, against about 0.85 for neighbors); edges repaired with band 96 px (1029 px tile; afterward 0.91 and 0.81). Seam ink-density steps are within normal variation. Ink coverage 59%. Inventor is Edwin Fisher (not Crowe); the id was renamed from `crowe-1882-13108`. |
 | `us-d268339` (Comp III) | US D 268,339 | Mar 22, 1983 | Patent drawing | Scan `masks/USD268339S.png` (1328x1108), cropped to x 197-1085, y 110-975 (888x865 px): exactly 3 horizontal repeats (period about 296 px, found by autocorrelation) starting between columns, and one vertical repeat whose top and bottom half-plates, cut by the drawing frame, join into whole plates. Frame lines and margin marks are outside the crop. Then `make_mask.py` at 800 px (ink coverage 10%). |
 | `pile-carpet`, `pile-grain` | none | n/a | Procedural | SVG `feTurbulence` tiles (256 px, `stitchTiles`) from `masks/low-pile-carpet.css`; ink coverage measured in Chromium (11% and 6%). |
 
 Patent numbers and grant dates were read from the printed header of each
 drawing sheet. The match between each AI-redrawn image and its source patent was
-made by eye. An earlier attempt at US D 13,106 did not yield a usable tile; a later Gemini redraw did (below). The 13,106 match to its patent was supplied by the site owner and not checked against the sheet, and its inventor and grant date were not read.
+made by eye. An earlier attempt at US D 13,106 did not yield a usable tile; a later Gemini redraw did (below). For 13,106 and 13,108 the patent PDFs were read and the sheet drawings compared with the redraws: the motifs match (13,106: five-petal flowers, leaf sprays, cloud shapes; 13,108: ferns, large leaves, the stepped block). The 13,108 sheet is a tall swatch and the redraw is square, so the redraw rearranges the layout.
 
 ## Seam checks
 
@@ -61,3 +62,16 @@ application US 06/349,941 filed 1982-02-18; granted 1983-03-22; expired 1997-03-
 title was not recorded. The tile was checked by eye shifted half its width and
 height with wraparound; no seam shows. The scan has rough, slightly fuzzy edges,
 which survive into the mask.
+
+## Facts read from the 13,106 and 13,108 PDFs
+
+| | US D 13,106 | US D 13,108 |
+|---|---|---|
+| Title on sheet | Design, carpet | Design, carpet |
+| Inventor | Eugene A. Crowe, of Boston | Edwin Fisher, of Boston |
+| Assignee | Lowell Manufacturing Company, of Lowell, Massachusetts | same |
+| Application filed | June 21, 1882 | June 21, 1882 |
+| Dated / patented | Aug 1, 1882 | Aug 1, 1882 |
+
+US D 13,109 (also Edwin Fisher, Aug 1, 1882, same assignee and filing date) was
+supplied as a PDF for a later pattern; it has not been processed.
