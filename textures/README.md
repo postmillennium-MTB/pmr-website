@@ -5,28 +5,31 @@ Texture studio can be found here:
 https://www.postmillenniumrenaissance.com/textures/studio/
 
 Recolorable background patterns for Post Millennium Renaissance tools: five
-derived from 1880s carpet design patents by Eugene A. Crowe, one cropped from US
-Design Patent 268,339, and two procedural pile/grain tiles. Each pattern is one
+derived from 1880s carpet design patents by Eugene A. Crowe, one cropped from the
+Tioga Comp III tire tread patent (US Design Patent 268,339), and two procedural pile/grain tiles. Each pattern is one
 alpha mask (ink opaque, paper transparent), so a single file serves every color
 scheme: CSS paints the ink in whatever color you choose.
 
 ## Credits
 
-Every pattern is derived from a US design patent for a carpet naming **Eugene A.
-Crowe** of Boston as inventor, granted 1882-1884. The two specifications that were
-read name the **Lowell Manufacturing Company** of Lowell, Massachusetts as
-assignee. The patents expired more than a century ago, and the drawing scans come
-from the US Patent Office via Google Patents. Permission is not required, but
-the designs should carry their names when they are used.
+The five Crowe patterns are derived from US design patents for a carpet naming
+**Eugene A. Crowe** of Boston as inventor, granted 1882-1884. The two specifications
+that were read name the **Lowell Manufacturing Company** of Lowell, Massachusetts as
+assignee. **Comp III** is US D 268,339, the Tioga Comp III tire tread: inventors
+**Syoji Inae and Eiji Fukuchi**, assigned to **Mitsuboshi Belting Ltd.**, granted
+Mar 22, 1983, expired Mar 22, 1997. The pile and grain tiles are generated and need
+no credit. The patents have expired, and the drawing scans come from the US Patent
+Office via Google Patents. Permission is not required, but the designs should carry
+their names when they are used.
 
 | Pattern | Patent | Inventor | Granted | Kind |
 |---|---|---|---|---|
 | `crowe-1884-14685` | [US D 14,685](https://patents.google.com/patent/USD14685S/en) | Eugene A. Crowe | Feb 19, 1884 | Patent drawing |
 | `crowe-1882-12657` | [US D 12,657](https://patents.google.com/patent/USD12657S/en) | Eugene A. Crowe | Jan 10, 1882 | Adapted |
-| `crowe-1882-13102` | US D 13,102 | Eugene A. Crowe | Aug 1, 1882 | Adapted |
-| `crowe-1882-13483` | US D 13,483 | Eugene A. Crowe | Dec 26, 1882 | Adapted |
-| `crowe-1882-13105` | US D 13,105 | Eugene A. Crowe | Aug 1, 1882 | Adapted |
-| `us-d268339` | US D 268,339 | not checked | not checked | Patent drawing (cropped) |
+| `crowe-1882-13102` | [US D 13,102](https://patents.google.com/patent/USD13102S/en) | Eugene A. Crowe | Aug 1, 1882 | Adapted |
+| `crowe-1882-13483` | [US D 13,483](https://patents.google.com/patent/USD13483S/en) | Eugene A. Crowe | Dec 26, 1882 | Adapted |
+| `crowe-1882-13105` | [US D 13,105](https://patents.google.com/patent/USD13105S/en) | Eugene A. Crowe | Aug 1, 1882 | Adapted |
+| `us-d268339` (Comp III) | [US D 268,339](https://patents.google.com/patent/USD268339S/en) | Syoji Inae, Eiji Fukuchi | Mar 22, 1983 | Patent drawing (cropped) |
 | `pile-carpet`, `pile-grain` | none (procedural) | n/a | n/a | Generated noise, no credit needed |
 
 "Adapted" patterns were redrawn from the patent drawing with an AI image model
