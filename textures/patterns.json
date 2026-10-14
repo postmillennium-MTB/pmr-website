@@ -1,5 +1,5 @@
 {
-  "_readme": "Registry of the texture masks. 'kind' is 'patent-drawing' only when the mask comes straight from a patent's own drawing; 'adapted' means the drawing was redrawn by an AI image model and its edges repaired so it tiles. Never describe an 'adapted' pattern as the patent's drawing. 'url' is set only where the Google Patents page was opened and confirmed; otherwise null (cite by number). 'credit' is the ready-to-paste attribution line shown in the studio.",
+  "_readme": "Registry of the texture masks. 'kind' is 'patent-drawing' only when the mask comes straight from a patent's own drawing; 'adapted' means the drawing was redrawn by an AI image model and its edges repaired so it tiles. Never describe an 'adapted' pattern as the patent's drawing. 'url' is set only where the Google Patents page was opened and confirmed; otherwise null (cite by number). 'credit' is the ready-to-paste attribution line shown in the studio. 'procedural' entries are generated SVG-noise tiles from masks/low-pile-carpet.css (read by tools/build_studio.py via 'cssVar'); they have no patent and need no credit. 'defaultSize' is the tile width in CSS px (default 520). inventor/granted are null where they were not verified.",
   "patterns": [
     {
       "id": "crowe-1884-14685",
@@ -77,6 +77,58 @@
       "note": "Swatch redrawn with an AI image model, edges repaired. Its fine grid can blur when shown smaller than about 400 px.",
       "url": null,
       "credit": "Background pattern adapted from US Design Patent No. 13,105 (Eugene A. Crowe, 1882); the patent has long expired."
+    },
+    {
+      "id": "us-d268339",
+      "title": "Butterfly hinges (D 268,339)",
+      "kind": "patent-drawing",
+      "patent": "US Design Patent 268,339",
+      "inventor": null,
+      "granted": null,
+      "assignee": null,
+      "mask": "masks/us-d268339.webp",
+      "pixels": "800x779",
+      "inkCoverage": 0.1,
+      "defaultOpacity": 0.1,
+      "note": "Line art cropped from the patent drawing to a repeat that wraps both ways (4 columns by one vertical repeat; the half-plates cut by the drawing frame join into whole plates). Thin outlines, so it needs more strength than the filled patterns. Inventor, title and grant date were not read; cite by number.",
+      "url": null,
+      "credit": "Background pattern from US Design Patent No. 268,339."
+    },
+    {
+      "id": "pile-carpet",
+      "title": "Low-pile carpet (procedural)",
+      "kind": "procedural",
+      "patent": null,
+      "inventor": null,
+      "granted": null,
+      "assignee": null,
+      "mask": null,
+      "cssVar": "--pile-mask-carpet",
+      "pixels": "256x256",
+      "inkCoverage": 0.11,
+      "defaultOpacity": 0.08,
+      "defaultSize": 256,
+      "note": "Generated fine pile noise with a faint 4 px weave, from masks/low-pile-carpet.css. Small-scale, so it pairs with a large pattern without moire. Works best at 6-10% strength.",
+      "url": null,
+      "credit": null
+    },
+    {
+      "id": "pile-grain",
+      "title": "Pile grain (procedural)",
+      "kind": "procedural",
+      "patent": null,
+      "inventor": null,
+      "granted": null,
+      "assignee": null,
+      "mask": null,
+      "cssVar": "--pile-mask-grain",
+      "pixels": "256x256",
+      "inkCoverage": 0.06,
+      "defaultOpacity": 0.15,
+      "defaultSize": 256,
+      "note": "Generated fine pile noise without the weave, from masks/low-pile-carpet.css. Paper or felt grain. Works best at 12-18% strength.",
+      "url": null,
+      "credit": null
     }
   ]
 }

@@ -33,7 +33,7 @@ input[type=color]{width:44px;height:36px;padding:0;border:1px solid var(--rule);
 input[type=text]{font:var(--mono);font-size:.9rem;padding:7px 9px;border:1px solid var(--rule);border-radius:8px;width:110px;background:#fff}
 input[type=range]{width:100%;accent-color:var(--accent)}
 .val{font:var(--mono);font-size:.85rem;color:var(--text);margin-left:6px}
-.stage{position:relative;overflow:hidden;border-radius:12px;border:1px solid var(--rule);min-height:360px;background:var(--stage-paper,#ECEAE4);isolation:isolate}
+.stage{position:relative;overflow:hidden;border-radius:12px;border:1px solid var(--rule);min-height:420px;background:var(--stage-paper,#ECEAE4);isolation:isolate}
 .tex{position:absolute;inset:0;pointer-events:none;z-index:-1;background-color:var(--tex-ink,#7A3828);opacity:var(--tex-opacity,.055);
   -webkit-mask-repeat:repeat;mask-repeat:repeat}
 .sample{margin:28px auto;max-width:420px;padding:16px 18px;border-radius:12px;background:var(--stage-card,rgba(255,255,255,.9));color:var(--stage-text,#1A1814);border:1px solid rgba(0,0,0,.12)}
@@ -50,46 +50,57 @@ textarea.code{white-space:pre-wrap;word-break:break-all;resize:vertical}
 .hint{font-size:.85rem;color:var(--muted);margin:8px 0 0}
 .eff{display:flex;align-items:center;gap:8px;font-size:.88rem;color:var(--muted);margin-top:8px}
 .eff .sw{width:28px;height:28px}
+.chip.go{background:var(--accent);border-color:var(--accent);color:var(--accent-text);font-weight:600}
+.layer{border:1px solid var(--rule);border-radius:10px;padding:12px;margin-bottom:12px;background:rgba(255,255,255,.45)}
+.layer-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.layer-head b{font-size:.95rem}
+.mini{border:1px solid var(--rule);background:#fff;color:var(--text);border-radius:8px;padding:4px 10px;font-size:.82rem}
+.mini[disabled],.chip[disabled]{opacity:.45;cursor:not-allowed}
+select{font:inherit;font-size:.9rem;padding:7px 9px;border:1px solid var(--rule);border-radius:8px;background:#fff;color:var(--text);width:100%}
+.badge.proc{background:#4A5A6A;color:#fff}
+.check{display:flex;align-items:center;gap:8px;margin:0;font-size:.88rem;color:var(--muted)}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>PMR Texture Studio</h1>
-  <p class="lede">Pick a pattern, set its ink and paper colors to match any color scheme, and copy the CSS. The patterns are alpha masks, so one file serves every color scheme.</p>
-
-  <section aria-labelledby="h-pattern">
-    <h2 id="h-pattern">Pattern</h2>
-    <div class="row" id="patterns"></div>
-    <p class="meta" id="provenance" style="margin:10px 0 0"></p>
-  </section>
+  <p class="lede">Pick one or more patterns, set ink and paper colors to match any color scheme, fade them across the page, and copy the CSS. The patterns are alpha masks, so one file serves every color scheme.</p>
 
   <section aria-labelledby="h-color">
     <h2 id="h-color">Colors</h2>
-    <div class="row" id="presets" style="margin-bottom:14px"></div>
+    <div class="row" id="presets" style="margin-bottom:10px"></div>
+    <div class="row" style="margin-bottom:14px;align-items:center">
+      <button class="chip go" id="random" type="button">Random colors</button>
+      <span class="meta" id="randomNote">Rolls a new ink and paper at random, always with enough contrast to read.</span>
+    </div>
     <div class="grid two">
       <div><label for="ink">Ink (the pattern color)</label>
         <div class="field"><input type="color" id="ink"><input type="text" id="inkHex" maxlength="7" aria-label="Ink hex"></div></div>
       <div><label for="paper">Paper (the page background)</label>
         <div class="field"><input type="color" id="paper"><input type="text" id="paperHex" maxlength="7" aria-label="Paper hex"></div></div>
     </div>
-    <div class="grid two" style="margin-top:14px">
-      <div><label for="opacity">Ink strength <span class="val" id="opacityVal"></span></label>
-        <input type="range" id="opacity" min="1" max="40" step="0.5"></div>
-      <div><label for="size">Pattern size <span class="val" id="sizeVal"></span></label>
-        <input type="range" id="size" min="200" max="900" step="10"></div>
-    </div>
     <div class="row" style="margin-top:12px;align-items:center">
-      <label style="margin:0;display:flex;align-items:center;gap:8px"><input type="checkbox" id="boost"> Show at full strength to inspect the pattern</label>
+      <label class="check"><input type="checkbox" id="boost"> Show at full strength to inspect the patterns</label>
     </div>
     <div class="eff"><span class="sw" id="effSw"></span><span id="effTxt"></span></div>
+  </section>
+
+  <section aria-labelledby="h-layers">
+    <h2 id="h-layers">Texture layers</h2>
+    <div id="layers"></div>
+    <div class="row" style="align-items:center">
+      <button class="chip" id="addLayer" type="button">Add a layer</button>
+      <span class="meta" id="layerNote"></span>
+    </div>
+    <p class="hint">Layers stack in order, so layer 2 sits on top of layer 1. Two large patterns of similar scale can moire against each other: fade one across the other, or pair a large pattern with a fine one (the procedural pile and grain).</p>
   </section>
 
   <section aria-labelledby="h-prev">
     <h2 id="h-prev">Preview</h2>
     <div class="stage" id="stage">
-      <div class="tex" id="tex" aria-hidden="true"></div>
       <div class="sample"><b>Sample card</b><span>Body text should stay easy to read over the texture. Raise or lower the ink strength until it does.</span></div>
     </div>
+    <p class="hint">A fade runs across the whole element the texture sits on: the full page height for a page background, or just a hero band if you put the texture inside one.</p>
   </section>
 
   <section aria-labelledby="h-out">
@@ -98,8 +109,8 @@ textarea.code{white-space:pre-wrap;word-break:break-all;resize:vertical}
       <button class="chip" role="tab" id="tab-self" aria-pressed="true">Self-contained (works anywhere, including a double-clicked file)</button>
       <button class="chip" role="tab" id="tab-url" aria-pressed="false">File link (needs a web server)</button>
     </div>
-    <div id="out-self"><textarea class="code" id="cssSelf" rows="6" readonly aria-label="Self-contained CSS"></textarea><p class="hint" id="selfSize"></p><button class="copy" data-copy="cssSelf">Copy</button></div>
-    <div id="out-url" hidden><pre id="cssUrl" aria-label="CSS with file link"></pre><p class="hint">Copy <code id="maskFile"></code> into your project next to the page, or point the path at wherever you host it. Browsers do not load a mask image from a double-clicked local file; use the self-contained version for that.</p><button class="copy" data-copy="cssUrl">Copy</button></div>
+    <div id="out-self"><textarea class="code" id="cssSelf" rows="8" readonly aria-label="Self-contained CSS"></textarea><p class="hint" id="selfSize"></p><button class="copy" data-copy="cssSelf">Copy</button></div>
+    <div id="out-url" hidden><pre id="cssUrl" aria-label="CSS with file link"></pre><p class="hint" id="urlHint"></p><button class="copy" data-copy="cssUrl">Copy</button></div>
     <h2 style="margin-top:20px">Put it on the page</h2>
     <pre id="usage"></pre><button class="copy" data-copy="usage">Copy</button>
     <h2 style="margin-top:20px">Per-theme colors (one block per color scheme)</h2>
@@ -111,21 +122,23 @@ textarea.code{white-space:pre-wrap;word-break:break-all;resize:vertical}
 
   <section aria-labelledby="h-credits">
     <h2 id="h-credits">Credits</h2>
-    <p class="meta" style="margin-top:0">Every pattern here comes from a US design patent for a carpet by Eugene A. Crowe of Boston, 1882-1884. The patents expired more than a century ago. Drawing scans are from the US Patent Office via Google Patents.</p>
+    <p class="meta" style="margin-top:0">The patent patterns come from US design patents: five carpet patents by Eugene A. Crowe of Boston (1882-1884, expired more than a century ago) and US Design Patent No. 268,339 (cropped from the drawing; its inventor and grant date have not been checked). Drawing scans are US Patent Office drawings; the Crowe scans come via Google Patents.</p>
     <ul id="creditList" class="meta" style="padding-left:20px;margin:8px 0"></ul>
-    <p class="meta">Patterns marked <span class="badge adapted">Adapted</span> are not the patent's own drawing: the drawing was redrawn with an AI image model (Google Gemini) and its edges repaired so it tiles. Only patterns marked <span class="badge real">Patent drawing</span> are the original drawing.</p>
+    <p class="meta">Patterns marked <span class="badge adapted">Adapted</span> are not the patent's own drawing: the drawing was redrawn with an AI image model (Google Gemini) and its edges repaired so it tiles. Only patterns marked <span class="badge real">Patent drawing</span> are the original drawing. Patterns marked <span class="badge proc">Procedural</span> are generated noise, not drawn from any patent, and need no credit.</p>
   </section>
 </div>
-
 <script>
 /* ===== DATA BLOCK ===== */
-/* Masks, embedded as data URIs by tools/build_studio.py from patterns.json. 'kind' is "patent-drawing"
-   or "adapted" (AI-redrawn, edges repaired): never describe an adapted pattern as the patent's own drawing. */
+/* Masks, embedded as data URIs by tools/build_studio.py from patterns.json. 'kind' is "patent-drawing",
+   "adapted" (AI-redrawn, edges repaired) or "procedural" (generated SVG noise, no patent): never describe
+   an adapted pattern as the patent's own drawing. */
 const PATTERNS = /*__PATTERNS__*/[];
 
 /* Color presets: paper = the scheme's page background, ink = its accent, opacity = its texture strength.
    PMR site values are from pmr-website index.html tokens (--bg, --accent, --carpet-ink); Atlas values are
-   from MTB-PATENT-ATLAS index.html (--bg, --primary), with opacity set by eye since the Atlas has no texture token. */
+   from MTB-PATENT-ATLAS index.html (--bg, --primary), with opacity set by eye since the Atlas has no texture token.
+   A preset's opacity is a strength for a typical filled pattern (baseline 5.5%); each layer scales it by
+   its own pattern's default, so line art and fine grain keep their heavier defaults. */
 const PRESETS = [
   {group:"PMR site", name:"Day",    paper:"#ECEAE4", ink:"#7A3828", opacity:5.5},
   {group:"PMR site", name:"Spring", paper:"#E6EBE4", ink:"#3A6830", opacity:5.5},
@@ -137,65 +150,201 @@ const PRESETS = [
   {group:"Patent Atlas", name:"CAMBA", paper:"#F2F2F2", ink:"#C5050C", opacity:6},
   {group:"Patent Atlas", name:"CAMBR", paper:"#EDF0F5", ink:"#13294B", opacity:6}
 ];
+const PRESET_BASE = 5.5;                /* the opacity a preset assumes for a typical filled pattern */
 const DEFAULT_SIZE = 520;               /* mask width in CSS px; the PMR site's carpet uses 520 */
+const MAX_LAYERS = 3;
+const MIN_RANDOM_CONTRAST = 4;          /* ink vs paper, WCAG contrast ratio, for the Random button */
+const FADES = [
+  {id:"none",  label:"No fade"},
+  {id:"bottom",label:"Top to bottom (full at top, clear at bottom)"},
+  {id:"top",   label:"Bottom to top (full at bottom, clear at top)"},
+  {id:"right", label:"Left to right (full at left, clear at right)"},
+  {id:"left",  label:"Right to left (full at right, clear at left)"}
+];                                      /* id = the CSS gradient direction ("to bottom" etc.) */
 const HOSTED_BASE = "";                 /* fill in once the masks are hosted, e.g. "https://example.org/pmr-textures/" */
 /* ===== END DATA BLOCK ===== */
 
 const $ = id => document.getElementById(id);
-const state = {pat:PATTERNS[0], ink:"#7A3828", paper:"#ECEAE4", opacity:PATTERNS[0].defaultOpacity*100, size:DEFAULT_SIZE, boost:false, tab:"self"};
-
 const hex = v => /^#[0-9a-fA-F]{6}$/.test(v) ? v.toUpperCase() : null;
 const rgb = h => [1,3,5].map(i => parseInt(h.slice(i,i+2),16));
 const toHex = a => "#"+a.map(v => Math.round(v).toString(16).padStart(2,"0")).join("").toUpperCase();
 const lum = h => { const [r,g,b]=rgb(h).map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)}); return .2126*r+.7152*g+.0722*b; };
+const contrast = (a,b) => { const x=lum(a), y=lum(b); return (Math.max(x,y)+.05)/(Math.min(x,y)+.05); };
+const fmtOp = o => (Math.round(o*10)/1000).toString();           /* 5.5 -> 0.055 */
+const byId = id => PATTERNS.find(p => p.id===id);
+const kindLabel = k => k==="patent-drawing" ? "Patent drawing" : k==="procedural" ? "Procedural" : "Adapted";
+const kindClass = k => k==="patent-drawing" ? "real" : k==="procedural" ? "proc" : "adapted";
+const patentRef = p => [p.patent, p.inventor, p.granted?("granted "+p.granted):null].filter(Boolean).join(", ");
 
-function buildPatterns(){
-  $("patterns").innerHTML = "";
-  PATTERNS.forEach(p=>{
-    const b=document.createElement("button"); b.className="chip"; b.textContent=p.title; b.setAttribute("aria-pressed",p===state.pat);
-    b.onclick=()=>{ state.pat=p; state.opacity=p.defaultOpacity*100; sync(); };
-    $("patterns").appendChild(b);
-  });
+let uid = 0;
+function newLayer(p){
+  return {pat:p, opacity:p.defaultOpacity*100, size:p.defaultSize||DEFAULT_SIZE, ownInk:false, ink:"#7A3828",
+          fade:"none", hold:0, floor:0, n:++uid, el:null, ui:null};
 }
+const state = {ink:"#7A3828", paper:"#ECEAE4", boost:false, tab:"self", layers:[newLayer(PATTERNS[0])]};
+
+/* ---------- colors ---------- */
 function buildPresets(){
   PRESETS.forEach(p=>{
-    const b=document.createElement("button"); b.className="chip pre";
+    const b=document.createElement("button"); b.className="chip pre"; b.type="button";
     b.innerHTML=`<span class="sw" style="background:${p.paper}"><i style="background:${p.ink}"></i></span>${p.group==="Patent Atlas"?"Atlas · ":""}${p.name}`;
-    b.onclick=()=>{ state.paper=p.paper; state.ink=p.ink; state.opacity=p.opacity; sync(); };
+    b.onclick=()=>{
+      state.paper=p.paper; state.ink=p.ink;
+      state.layers.forEach(l=>{ l.opacity=Math.min(40,Math.round(l.pat.defaultOpacity*100*(p.opacity/PRESET_BASE)*2)/2); });
+      sync();
+    };
     $("presets").appendChild(b);
   });
 }
-function fmtOp(o){ return (Math.round(o*10)/1000).toString(); }          /* 5.5 -> 0.055 */
+function hslHex(h,s,l){                                    /* h 0-360, s/l 0-1 */
+  const k=n=>(n+h/30)%12, a=s*Math.min(l,1-l), f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));
+  return toHex([f(0)*255,f(8)*255,f(4)*255]);
+}
+function randomColors(){
+  const r=(a,b)=>a+Math.random()*(b-a);
+  let paper, ink;
+  for(let i=0;i<200;i++){                                  /* retry until the pair has enough contrast */
+    const dark=Math.random()<.35, ph=r(0,360), ih=Math.random()<.5 ? ph : r(0,360);
+    paper=hslHex(ph, r(.06,.32), dark?r(.05,.16):r(.86,.96));
+    ink  =hslHex(ih, r(.35,.8),  dark?r(.5,.72) :r(.22,.42));
+    if(contrast(ink,paper)>=MIN_RANDOM_CONTRAST) break;
+  }
+  state.paper=paper; state.ink=ink; sync();
+}
+
+/* ---------- layers ---------- */
+function buildLayer(layer){
+  const n=layer.n, el=document.createElement("div"); el.className="layer";
+  el.innerHTML=`
+    <div class="layer-head"><b class="lname"></b><button class="mini rm" type="button">Remove layer</button></div>
+    <div class="grid two">
+      <div><label for="pat${n}">Pattern</label><select id="pat${n}">${PATTERNS.map(p=>`<option value="${p.id}">${p.title}</option>`).join("")}</select></div>
+      <div><label for="fade${n}">Fade</label><select id="fade${n}">${FADES.map(f=>`<option value="${f.id}">${f.label}</option>`).join("")}</select></div>
+      <div><label for="op${n}">Ink strength <span class="val opv"></span></label><input type="range" id="op${n}" min="1" max="40" step="0.5"></div>
+      <div><label for="sz${n}">Pattern size <span class="val szv"></span></label><input type="range" id="sz${n}" min="64" max="900" step="4"></div>
+    </div>
+    <div class="grid two fadeopts" style="margin-top:14px">
+      <div><label for="hold${n}">Full strength until <span class="val holdv"></span> of the way</label><input type="range" id="hold${n}" min="0" max="90" step="5"></div>
+      <div><label for="floor${n}">Strength left at the far edge <span class="val floorv"></span></label><input type="range" id="floor${n}" min="0" max="100" step="5"></div>
+    </div>
+    <div class="owninkrow" style="margin-top:12px">
+      <label class="check"><input type="checkbox" id="own${n}"> Give this layer its own ink color (otherwise it uses the Ink above)</label>
+      <div class="field owninkfield" style="margin-top:8px"><input type="color" id="lci${n}" aria-label="Layer ink color"><input type="text" id="lch${n}" maxlength="7" aria-label="Layer ink hex"></div>
+    </div>
+    <p class="meta prov" style="margin:10px 0 0"></p>`;
+  const q=s=>el.querySelector(s);
+  layer.ui={el, name:q(".lname"), rm:q(".rm"), pat:q("#pat"+n), fade:q("#fade"+n), op:q("#op"+n), opv:q(".opv"), sz:q("#sz"+n), szv:q(".szv"),
+            hold:q("#hold"+n), holdv:q(".holdv"), floor:q("#floor"+n), floorv:q(".floorv"), fadeopts:q(".fadeopts"),
+            own:q("#own"+n), ownrow:q(".owninkrow"), ownfield:q(".owninkfield"), lci:q("#lci"+n), lch:q("#lch"+n), prov:q(".prov")};
+  const u=layer.ui;
+  u.pat.onchange=()=>{ const p=byId(u.pat.value); layer.pat=p; layer.opacity=p.defaultOpacity*100; layer.size=p.defaultSize||DEFAULT_SIZE; sync(); };
+  u.fade.onchange=()=>{ layer.fade=u.fade.value; sync(); };
+  u.op.oninput=()=>{ layer.opacity=+u.op.value; sync(); };
+  u.sz.oninput=()=>{ layer.size=+u.sz.value; sync(); };
+  u.hold.oninput=()=>{ layer.hold=+u.hold.value; sync(); };
+  u.floor.oninput=()=>{ layer.floor=+u.floor.value; sync(); };
+  u.own.onchange=()=>{ layer.ownInk=u.own.checked; if(layer.ownInk&&!layer.inkSet){ layer.ink=state.ink; } sync(); };
+  u.lci.oninput=()=>{ layer.ink=u.lci.value; layer.inkSet=true; sync(); };
+  u.lch.onchange=()=>{ const h=hex(u.lch.value.startsWith("#")?u.lch.value:"#"+u.lch.value); if(h){layer.ink=h; layer.inkSet=true;} sync(); };
+  u.rm.onclick=()=>{ if(state.layers.length<2) return; state.layers.splice(state.layers.indexOf(layer),1); layer.el.remove(); el.remove(); sync(); };
+  $("layers").appendChild(el);
+  const t=document.createElement("div"); t.className="tex"; t.setAttribute("aria-hidden","true");
+  $("stage").insertBefore(t,$("stage").querySelector(".sample")); layer.el=t;
+}
+function addLayer(){
+  if(state.layers.length>=MAX_LAYERS) return;
+  const used=new Set(state.layers.map(l=>l.pat.id));
+  const p=(!used.has("pile-grain")&&byId("pile-grain")) || PATTERNS.find(x=>!used.has(x.id)) || PATTERNS[0];
+  const l=newLayer(p); l.ink=state.ink; state.layers.push(l); buildLayer(l); sync();
+}
+
+/* The CSS declarations for one layer, shared by the live preview and the copied CSS.
+   A fade is a second mask (a gradient) intersected with the pattern mask. */
+function declarations(l, idx, maskUrl){
+  const pre = idx===0 ? "tex" : "tex-"+(idx+1), faded=l.fade!=="none";
+  const inkVar = l.ownInk ? `--${pre}-ink` : "--tex-ink", inkVal = l.ownInk ? l.ink : state.ink;
+  const grad = `linear-gradient(to ${l.fade}, #000 ${l.hold}%, rgba(0,0,0,${l.floor/100}) 100%)`;
+  const d = [
+    ["position","absolute"],["inset","0"],["z-index","-1"],["pointer-events","none"],
+    ["background-color",`var(${inkVar},${inkVal})`],["opacity",`var(--${pre}-opacity,${fmtOp(l.opacity)})`],
+    ["-webkit-mask-image", faded?`${grad}, url("${maskUrl}")`:`url("${maskUrl}")`],
+    ["mask-image",         faded?`${grad}, url("${maskUrl}")`:`url("${maskUrl}")`],
+    ["-webkit-mask-size", faded?`100% 100%, ${l.size}px auto`:`${l.size}px auto`],
+    ["mask-size",         faded?`100% 100%, ${l.size}px auto`:`${l.size}px auto`],
+    ["-webkit-mask-repeat", faded?"no-repeat, repeat":"repeat"],
+    ["mask-repeat",         faded?"no-repeat, repeat":"repeat"]
+  ];
+  if(faded){ d.push(["-webkit-mask-composite","source-in"],["mask-composite","intersect"]); }
+  return d;
+}
+const layerClass = i => i===0 ? "texture" : "texture-"+(i+1);
+const varPrefix = i => i===0 ? "tex" : "tex-"+(i+1);
 
 function sync(){
-  const p=state.pat, op=state.boost?1:state.opacity/100, stage=$("stage");
+  const L=state.layers, stage=$("stage");
   stage.style.setProperty("--stage-paper",state.paper);
   const dark=lum(state.paper)<.2;
   stage.style.setProperty("--stage-card",dark?"rgba(30,34,40,.92)":"rgba(255,255,255,.9)");
   stage.style.setProperty("--stage-text",dark?"#E8E2D4":"#1A1814");
-  const tex=$("tex");
-  tex.style.setProperty("--tex-ink",state.ink); tex.style.setProperty("--tex-opacity",op);
-  tex.style.webkitMaskImage=tex.style.maskImage=`url("${p.data}")`;
-  tex.style.webkitMaskSize=tex.style.maskSize=state.size+"px auto";
-  [...$("patterns").children].forEach((b,i)=>b.setAttribute("aria-pressed",PATTERNS[i]===p));
   $("ink").value=state.ink; $("inkHex").value=state.ink; $("paper").value=state.paper; $("paperHex").value=state.paper;
-  $("opacity").value=state.opacity; $("opacityVal").textContent=(state.opacity).toFixed(1)+"%";
-  $("size").value=state.size; $("sizeVal").textContent=state.size+" px";
-  const e=toHex(rgb(state.paper).map((c,i)=>c+(rgb(state.ink)[i]-c)*(state.opacity/100*p.inkCoverage)));
-  $("effSw").style.background=e; $("effTxt").textContent=`Average tone of the textured area: ${e} (paper ${state.paper}).`;
-  $("provenance").innerHTML=`<span class="badge ${p.kind==="patent-drawing"?"real":"adapted"}">${p.kind==="patent-drawing"?"Patent drawing":"Adapted"}</span><b>${p.patent}</b>, ${p.inventor}, granted ${p.granted}. ${p.note}`;
+  $("addLayer").disabled=L.length>=MAX_LAYERS;
+  $("layerNote").textContent=`${L.length} of ${MAX_LAYERS} layers`;
+
+  /* per-layer controls + live preview */
+  L.forEach((l,i)=>{
+    const u=l.ui, p=l.pat;
+    u.name.textContent="Layer "+(i+1)+(i===0?" (bottom)":"");
+    u.rm.hidden=L.length<2; u.rm.setAttribute("aria-label","Remove layer "+(i+1));
+    u.pat.value=p.id; u.fade.value=l.fade;
+    u.op.value=l.opacity; u.opv.textContent=l.opacity.toFixed(1)+"%";
+    u.sz.value=l.size; u.szv.textContent=l.size+" px";
+    u.hold.value=l.hold; u.holdv.textContent=l.hold+"%";
+    u.floor.value=l.floor; u.floorv.textContent=l.floor+"%";
+    u.fadeopts.hidden=l.fade==="none";
+    u.ownrow.hidden=i===0; u.own.checked=l.ownInk; u.ownfield.hidden=!l.ownInk;
+    u.lci.value=l.ink; u.lch.value=l.ink;
+    u.prov.innerHTML=`<span class="badge ${kindClass(p.kind)}">${kindLabel(p.kind)}</span>${p.patent?`<b>${p.patent}</b>${patentRef(p).slice(p.patent.length)}. `:""}${p.note}`;
+    const t=l.el; t.removeAttribute("style");
+    declarations(l,i,p.data).forEach(([k,v])=>{
+      if(k==="position"||k==="inset"||k==="z-index"||k==="pointer-events") return;      /* .tex already sets these */
+      t.style.setProperty(k, k==="background-color" ? (l.ownInk?l.ink:state.ink) : k==="opacity" ? (state.boost?1:l.opacity/100) : v);
+    });
+  });
+
+  /* average tone: layers composited in order, before any fade */
+  let tone=rgb(state.paper);
+  L.forEach(l=>{ const a=(state.boost?1:l.opacity/100)*l.pat.inkCoverage, ink=rgb(l.ownInk?l.ink:state.ink); tone=tone.map((c,k)=>c+(ink[k]-c)*a); });
+  const e=toHex(tone), anyFade=L.some(l=>l.fade!=="none");
+  $("effSw").style.background=e;
+  $("effTxt").textContent=`Average tone of the textured area${anyFade?" at full strength, before fade":""}: ${e} (paper ${state.paper}).`;
+
   /* CSS output */
-  const o=fmtOp(state.opacity), tag=`/* PMR texture: ${p.id} (${p.kind==="patent-drawing"?"from":"adapted from"} ${p.patent}) */`;
-  const rule=url=>`${tag}\n.texture{\n  position:absolute; inset:0; z-index:-1; pointer-events:none;\n  background-color:var(--tex-ink,${state.ink}); opacity:var(--tex-opacity,${o});\n  -webkit-mask-image:url("${url}"); mask-image:url("${url}");\n  -webkit-mask-size:${state.size}px auto; mask-size:${state.size}px auto;\n  -webkit-mask-repeat:repeat; mask-repeat:repeat;\n}\n:root{ --tex-ink:${state.ink}; --tex-opacity:${o}; }`;
-  $("cssSelf").value=rule(p.data);
-  $("selfSize").textContent=`About ${Math.round(p.data.length/1024)} KB of CSS, because the pattern is embedded.`;
-  const file=HOSTED_BASE+p.mask;
-  $("cssUrl").textContent=rule(file); $("maskFile").textContent=p.mask;
-  $("usage").textContent=`<!-- The page needs a positioned parent; the texture sits behind everything in it. -->\n<body style="position:relative">\n  <div class="texture" aria-hidden="true"></div>\n  ...your page...\n</body>\n\n/* Background color: set it on <body> or <html> (not only on an inner wrapper), or the\n   texture will be hidden behind it. Prefer position:absolute over position:fixed if the\n   page will be embedded in an iframe (e.g. Pinkbike). Keep ink strength low behind body text. */`;
-  const label=p.patent.replace("US Design Patent ","US Design Patent No. ");
-  const creditHtml=p.url?p.credit.replace(label,`<a href="${p.url}">${label}</a>`):p.credit;
-  $("credit").textContent=`${p.credit}\n\n<!-- as HTML -->\n<p class="texture-credit">${creditHtml}</p>`;
-  $("vars").textContent=`/* one block per color scheme; the .texture rule above reads these */\n[data-theme="YOUR-THEME"]{ --tex-ink:${state.ink}; --tex-opacity:${o}; }`;
+  const rules=(maskFor)=>L.map((l,i)=>{
+    const p=l.pat, d=declarations(l,i,maskFor(p)).map(([k,v])=>`  ${k}:${v};`).join("\n");
+    return `/* PMR texture layer ${i+1}: ${p.id}${p.patent?` (${p.kind==="adapted"?"adapted from":"from"} ${p.patent})`:" (procedural)"}${l.fade!=="none"?`, fades ${FADES.find(f=>f.id===l.fade).label.split(" (")[0].toLowerCase()}`:""} */\n.${layerClass(i)}{\n${d}\n}`;
+  }).join("\n\n");
+  /* layer 1 always owns --tex-ink; later layers use it unless they have their own */
+  const varList=[`--tex-ink:${state.ink}`].concat(L.flatMap((l,i)=>{
+    const pre=varPrefix(i), v=[];
+    if(i>0&&l.ownInk) v.push(`--${pre}-ink:${l.ink}`);
+    v.push(`--${pre}-opacity:${fmtOp(l.opacity)}`);
+    return v;
+  })).join("; ");
+  const rootVars=`:root{ ${varList}; }`;
+  $("cssSelf").value=rules(p=>p.data)+"\n\n"+rootVars;
+  const uniq=[...new Map(L.map(l=>[l.pat.id,l.pat])).values()];
+  $("selfSize").textContent=`About ${Math.round(uniq.reduce((s,p)=>s+p.data.length,0)/1024)} KB of CSS, because the patterns are embedded.`;
+  $("cssUrl").textContent=rules(p=>p.mask?HOSTED_BASE+p.mask:p.data)+"\n\n"+rootVars;
+  const files=uniq.filter(p=>p.mask).map(p=>p.mask);
+  $("urlHint").textContent=(files.length?`Copy ${files.join(", ")} into your project next to the page, or point the paths at wherever you host them. `:"")+"Procedural patterns are tiny, so they stay embedded in this form. Browsers do not load a mask image from a double-clicked local file; use the self-contained version for that.";
+  const divs=L.map((l,i)=>`  <div class="${layerClass(i)}" aria-hidden="true"></div>`).join("\n");
+  $("usage").textContent=`<!-- The page needs a positioned parent; the texture${L.length>1?" layers sit":" sits"} behind everything in it${L.length>1?", layer 1 lowest":""}. -->\n<body style="position:relative">\n${divs}\n  ...your page...\n</body>\n\n/* Background color: set it on <body> or <html> (not only on an inner wrapper), or the\n   texture will be hidden behind it. Prefer position:absolute over position:fixed if the\n   page will be embedded in an iframe (e.g. Pinkbike). Keep ink strength low behind body text.${anyFade?"\n   A fade runs across the whole element the texture sits on (the full page height on <body>).":""} */`;
+  const credited=uniq.filter(p=>p.credit);
+  if(credited.length){
+    const html=credited.map(p=>{ const label=p.patent.replace("US Design Patent ","US Design Patent No. "); return `<p class="texture-credit">${p.url?p.credit.replace(label,`<a href="${p.url}">${label}</a>`):p.credit}</p>`; }).join("\n");
+    $("credit").textContent=`${credited.map(p=>p.credit).join("\n")}\n\n<!-- as HTML -->\n${html}`;
+  } else $("credit").textContent="No credit line needed: these patterns are generated, not taken from a patent.";
+  $("vars").textContent=`/* one block per color scheme; the layer rules above read these */\n[data-theme="YOUR-THEME"]{ ${varList}; }`;
   $("tab-self").setAttribute("aria-pressed",state.tab==="self"); $("tab-url").setAttribute("aria-pressed",state.tab==="url");
   $("out-self").hidden=state.tab!=="self"; $("out-url").hidden=state.tab!=="url";
 }
@@ -203,9 +352,9 @@ function sync(){
 function bind(){
   const hexInput=(inp,key)=>{ $(inp).oninput=e=>{ state[key]=e.target.value; sync(); }; $(inp+"Hex").onchange=e=>{ const h=hex(e.target.value.startsWith("#")?e.target.value:"#"+e.target.value); if(h){state[key]=h;} sync(); }; };
   hexInput("ink","ink"); hexInput("paper","paper");
-  $("opacity").oninput=e=>{ state.opacity=+e.target.value; sync(); };
-  $("size").oninput=e=>{ state.size=+e.target.value; sync(); };
   $("boost").onchange=e=>{ state.boost=e.target.checked; sync(); };
+  $("random").onclick=randomColors;
+  $("addLayer").onclick=addLayer;
   $("tab-self").onclick=()=>{ state.tab="self"; sync(); }; $("tab-url").onclick=()=>{ state.tab="url"; sync(); };
   document.querySelectorAll(".copy").forEach(b=>b.onclick=async()=>{
     const el=$(b.dataset.copy), text=el.value!==undefined?el.value:el.textContent;
@@ -215,12 +364,14 @@ function bind(){
 }
 function buildCredits(){
   $("creditList").innerHTML=PATTERNS.map(p=>{
+    if(p.kind==="procedural") return `<li>${p.title}: generated noise, no source patent</li>`;
     const label=p.patent.replace("US Design Patent ","US Design Patent No. ");
     const ref=p.url?`<a href="${p.url}" target="_blank" rel="noopener">${label}</a>`:label;
-    return `<li>${ref}: ${p.inventor}, granted ${p.granted}${p.kind==="patent-drawing"?"":" (adapted)"}</li>`;
+    const who=[p.inventor, p.granted?("granted "+p.granted):null].filter(Boolean).join(", ");
+    return `<li>${ref}${who?": "+who:""}${p.kind==="patent-drawing"?"":" (adapted)"}</li>`;
   }).join("");
 }
-buildPatterns(); buildPresets(); buildCredits(); bind(); sync();
+buildPresets(); buildCredits(); bind(); buildLayer(state.layers[0]); sync();
 </script>
 </body>
 </html>
