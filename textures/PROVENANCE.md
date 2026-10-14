@@ -6,7 +6,7 @@ all had expired by 1898 at the latest: the patents are in the public domain.
 The drawing sheets are the USPTO / Google Patents scans (the 12,657 scan is
 stamped "Best Available Copy").
 
-Links: only 14,685 and 12,657 are linked in the README and studio, because those are the Google Patents pages that were opened and confirmed. The other three are cited by number until their pages are checked.
+Links: every Crowe patent links to its Google Patents page. 14,685 and 12,657 were opened and confirmed; the 13,102, 13,483 and 13,105 links were supplied by the site owner and not opened here (no network access in the build session).
 
 "Same inventor" here means the name on the drawing sheet. The 1884 and 1882
 (12,657) specifications name the Lowell Manufacturing Company as assignee. The

@@ -26,9 +26,9 @@ their names when they are used.
 |---|---|---|---|---|
 | `crowe-1884-14685` | [US D 14,685](https://patents.google.com/patent/USD14685S/en) | Eugene A. Crowe | Feb 19, 1884 | Patent drawing |
 | `crowe-1882-12657` | [US D 12,657](https://patents.google.com/patent/USD12657S/en) | Eugene A. Crowe | Jan 10, 1882 | Adapted |
-| `crowe-1882-13102` | US D 13,102 | Eugene A. Crowe | Aug 1, 1882 | Adapted |
-| `crowe-1882-13483` | US D 13,483 | Eugene A. Crowe | Dec 26, 1882 | Adapted |
-| `crowe-1882-13105` | US D 13,105 | Eugene A. Crowe | Aug 1, 1882 | Adapted |
+| `crowe-1882-13102` | [US D 13,102](https://patents.google.com/patent/USD13102S/en) | Eugene A. Crowe | Aug 1, 1882 | Adapted |
+| `crowe-1882-13483` | [US D 13,483](https://patents.google.com/patent/USD13483S/en) | Eugene A. Crowe | Dec 26, 1882 | Adapted |
+| `crowe-1882-13105` | [US D 13,105](https://patents.google.com/patent/USD13105S/en) | Eugene A. Crowe | Aug 1, 1882 | Adapted |
 | `us-d268339` (Comp III) | [US D 268,339](https://patents.google.com/patent/USD268339S/en) | Syoji Inae, Eiji Fukuchi | Mar 22, 1983 | Patent drawing (cropped) |
 | `pile-carpet`, `pile-grain` | none (procedural) | n/a | n/a | Generated noise, no credit needed |
 

@@ -1,5 +1,5 @@
 {
-  "_readme": "Registry of the texture masks. 'kind' is 'patent-drawing' only when the mask comes straight from a patent's own drawing; 'adapted' means the drawing was redrawn by an AI image model and its edges repaired so it tiles. Never describe an 'adapted' pattern as the patent's drawing. 'url' is set only where the Google Patents page was opened and confirmed; otherwise null (cite by number). 'credit' is the ready-to-paste attribution line shown in the studio. 'procedural' entries are generated SVG-noise tiles from masks/low-pile-carpet.css (read by tools/build_studio.py via 'cssVar'); they have no patent and need no credit. 'defaultSize' is the tile width in CSS px (default 520). inventor/granted are null for procedural entries (no patent).",
+  "_readme": "Registry of the texture masks. 'kind' is 'patent-drawing' only when the mask comes straight from a patent's own drawing; 'adapted' means the drawing was redrawn by an AI image model and its edges repaired so it tiles. Never describe an 'adapted' pattern as the patent's drawing. 'url' is the Google Patents page (null if unknown; cite by number). 'credit' is the ready-to-paste attribution line shown in the studio. 'procedural' entries are generated SVG-noise tiles from masks/low-pile-carpet.css (read by tools/build_studio.py via 'cssVar'); they have no patent and need no credit. 'defaultSize' is the tile width in CSS px (default 520). inventor/granted are null for procedural entries (no patent).",
   "patterns": [
     {
       "id": "crowe-1884-14685",
@@ -45,7 +45,7 @@
       "inkCoverage": 0.53,
       "defaultOpacity": 0.06,
       "note": "Swatch redrawn with an AI image model, edges repaired. The central bouquet is partly re-cut by the repair.",
-      "url": null,
+      "url": "https://patents.google.com/patent/USD13102S/en",
       "credit": "Background pattern adapted from US Design Patent No. 13,102 (Eugene A. Crowe, 1882); the patent has long expired."
     },
     {
@@ -60,7 +60,7 @@
       "inkCoverage": 0.66,
       "defaultOpacity": 0.045,
       "note": "Swatch redrawn with an AI image model, edges repaired. Densest pattern in the set; keep opacity low.",
-      "url": null,
+      "url": "https://patents.google.com/patent/USD13483S/en",
       "credit": "Background pattern adapted from US Design Patent No. 13,483 (Eugene A. Crowe, 1882); the patent has long expired."
     },
     {
@@ -75,7 +75,7 @@
       "inkCoverage": 0.54,
       "defaultOpacity": 0.06,
       "note": "Swatch redrawn with an AI image model, edges repaired. Its fine grid can blur when shown smaller than about 400 px.",
-      "url": null,
+      "url": "https://patents.google.com/patent/USD13105S/en",
       "credit": "Background pattern adapted from US Design Patent No. 13,105 (Eugene A. Crowe, 1882); the patent has long expired."
     },
     {
