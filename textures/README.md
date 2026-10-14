@@ -4,8 +4,8 @@ Texture studio can be found here:
 
 https://www.postmillenniumrenaissance.com/textures/studio/
 
-Recolorable background patterns for Post Millennium Renaissance tools: eight
-derived from 1880s carpet design patents (six by Eugene A. Crowe, two by Edwin Fisher), one cropped from the
+Recolorable background patterns for Post Millennium Renaissance tools: nine
+derived from 1880s carpet design patents (six by Eugene A. Crowe, two by Edwin Fisher, one by John Fisher), one cropped from the
 Tioga Comp III tire tread patent (US Design Patent 268,339), and two procedural pile/grain tiles. Each pattern is one
 alpha mask (ink opaque, paper transparent), so a single file serves every color
 scheme: CSS paints the ink in whatever color you choose.
@@ -13,9 +13,10 @@ scheme: CSS paints the ink in whatever color you choose.
 ## Credits
 
 Six of the carpet patterns are derived from US design patents for a carpet naming
-**Eugene A. Crowe** of Boston as inventor, granted 1882-1884, and two (D 13,108 and D 13,109)
-from patents naming **Edwin Fisher** of Boston. The five specifications that were read
-(12,657, 14,685, 13,106, 13,108 and 13,109) name the **Lowell Manufacturing Company** of
+**Eugene A. Crowe** of Boston as inventor, granted 1882-1884, two (D 13,108 and D 13,109)
+from patents naming **Edwin Fisher** of Boston, and one (D 13,110) naming **John Fisher**
+of New York. The six specifications that were read
+(12,657, 14,685, 13,106, 13,108, 13,109 and 13,110) name the **Lowell Manufacturing Company** of
 Lowell, Massachusetts as assignee. **Comp III** is US D 268,339, the Tioga Comp III tire tread: inventors
 **Syoji Inae and Eiji Fukuchi**, assigned to **Mitsuboshi Belting Ltd.**, granted
 Mar 22, 1983, expired Mar 22, 1997. The pile and grain tiles are generated and need
@@ -33,6 +34,7 @@ their names when they are used.
 | `crowe-1882-13106` | [US D 13,106](https://patents.google.com/patent/USD13106S/en) | Eugene A. Crowe | Aug 1, 1882 | Adapted |
 | `fisher-1882-13108` | [US D 13,108](https://patents.google.com/patent/USD13108S/en) | **Edwin Fisher** | Aug 1, 1882 | Adapted |
 | `fisher-1882-13109` | [US D 13,109](https://patents.google.com/patent/USD13109S/en) | **Edwin Fisher** | Aug 1, 1882 | Adapted |
+| `fisher-1882-13110` | [US D 13,110](https://patents.google.com/patent/USD13110S/en) | **John Fisher** | Aug 1, 1882 | Adapted |
 | `us-d268339` (Comp III) | [US D 268,339](https://patents.google.com/patent/USD268339S/en) | Syoji Inae, Eiji Fukuchi | Mar 22, 1983 | Patent drawing (cropped) |
 | `pile-carpet`, `pile-grain` | none (procedural) | n/a | n/a | Generated noise, no credit needed |
 
@@ -114,6 +116,7 @@ patent's drawing.** See `PROVENANCE.md`.
 | `masks/USD268339S.png` | Source scan for `us-d268339` (not served by the studio; kept to regenerate the mask) |
 | `patterns.json` | The registry: id, patent, status, ink coverage, default strength |
 | `studio/index.html` | The recolor-and-copy-CSS page (built; masks embedded) with layers, fades and a random-color button |
+| `ADD-A-PATTERN.md` | The step-by-step workflow for adding a pattern: what to provide, what to check, what to update |
 | `prompts/redraw-patent-as-tile.md` | The Gemini prompt used to redraw a single-swatch patent as a seamless tile, with notes and a revision log |
 | `tools/make_mask.py` | Black-on-white image to alpha mask (downscale, then Otsu with soft ramp) |
 | `tools/make_tileable_grid.py` | Same edge repair for a pattern with a strict fine grid: crops to a whole number of grid cells first so the grid lines meet at the join |
@@ -123,13 +126,9 @@ patent's drawing.** See `PROVENANCE.md`.
 
 ## Add a pattern
 
-1. Get a black-on-white image (a patent PDF page, or a redrawn version) (for a single swatch that does not repeat, use `prompts/redraw-patent-as-tile.md` in Gemini).
-2. If it does not already wrap, run `python3 tools/make_tileable.py in.png out.png 128`,
-   then shift the result half its width and height with wraparound and check that
-   no straight seam shows through the middle. If the pattern has a strict fine
-   square grid, use `tools/make_tileable_grid.py` instead so the grid lines meet at the join.
-3. `python3 tools/make_mask.py out.png masks/<id>.webp 800`
-4. Add an entry to `patterns.json` (set `kind` honestly) and a row to `PROVENANCE.md`.
-5. `python3 tools/build_studio.py`
+Follow **[ADD-A-PATTERN.md](ADD-A-PATTERN.md)**. You provide three things per patent:
+the patent PDF, the Gemini tile (the image Gemini returns after running
+`prompts/redraw-patent-as-tile.md`), and the Google Patents link. The document lists
+every step, the checks, the naming rules and the records to update.
 
 Needs Python 3 with Pillow and numpy.

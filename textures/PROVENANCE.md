@@ -1,13 +1,13 @@
 # Provenance
 
 The carpet patterns' source patents are US design patents from 1882-1884: six name
-Eugene A. Crowe of Boston as inventor, and D 13,108 and D 13,109 name Edwin Fisher of Boston.
+Eugene A. Crowe of Boston as inventor, D 13,108 and D 13,109 name Edwin Fisher of Boston, and D 13,110 names John Fisher of New York.
 Comp III (`us-d268339`) is a 1983 patent, covered below. Design patents of that era ran 3.5, 7 or 14 years, so
 all had expired by 1898 at the latest: the patents are in the public domain.
 The drawing sheets are the USPTO / Google Patents scans (the 12,657 scan is
 stamped "Best Available Copy").
 
-Links: every carpet patent links to its Google Patents page. 14,685 and 12,657 were opened and confirmed; the 13,102, 13,483, 13,105, 13,106, 13,108 and 13,109 links were supplied by the site owner and not opened here (no network access in the build session). For 13,106, 13,108 and 13,109 the site owner also supplied the patent PDFs, which were read (see below).
+Links: every carpet patent links to its Google Patents page. 14,685 and 12,657 were opened and confirmed; the 13,102, 13,483, 13,105, 13,106, 13,108, 13,109 and 13,110 links were supplied by the site owner and not opened here (no network access in the build session). For 13,106, 13,108, 13,109 and 13,110 the site owner also supplied the patent PDFs, which were read (see below).
 
 "Same inventor" here means the name on the drawing sheet. The 1884 and 1882
 (12,657) specifications name the Lowell Manufacturing Company as assignee. The
@@ -21,6 +21,7 @@ other three assignees were not read.
 | `crowe-1882-13483` | US D 13,483 | Dec 26, 1882 | Adapted | Same method; band 160 px. |
 | `crowe-1882-13105` | US D 13,105 | Aug 1, 1882 | Adapted | Same method; band 96 px. |
 | `crowe-1882-13106` | US D 13,106 | Aug 1, 1882 | Adapted | Same method (Gemini redraw of the patent PDF using `prompts/redraw-patent-as-tile.md`); the 1125 px result did not wrap (edge correlation 0.06 left-right, -0.12 top-bottom, against about 0.8-0.9 for neighbors), so edges were repaired with band 128 px (997 px tile; edge correlation afterward 0.89 and 0.86). Ink coverage 42%. |
+| `fisher-1882-13110` | US D 13,110 | Aug 1, 1882 | Adapted | Same Gemini method and the grid-aware repair, as for 13,109. The 1125 px result did not wrap (edge correlation 0.00 both axes); grid pitch 30.74 x 27.89 px; `make_tileable_grid.py` band 96 px gave a 1014 x 1004 px tile (33 x 36 cells), edge correlation 0.83 left-right and 0.80 top-bottom (neighbors 0.82 and 0.73). Bands 112 and 128 were worse (one axis at -0.01 and 0.40) and `make_tileable.py` at 128 gave 0.42 left-right, so they were not used. In a 2x2 view the four corner pieces join into one whole medallion and no seam shows. Mask 800x792 px. Ink coverage 66%, the darkest pattern in the set. |
 | `fisher-1882-13109` | US D 13,109 | Aug 1, 1882 | Adapted | Same Gemini method (`prompts/redraw-patent-as-tile.md`). The 1125 px result did not wrap (edge correlation 0.02 left-right, 0.12 top-bottom). This drawing has a strict fine grid with a 33.3 px by 28.06 px pitch, and the plain repair (`make_tileable.py`) left the grid about half a cell out of step at the join (a visible vertical seam and horizontal jog in a 2x2 view). `make_tileable_grid.py` crops to 30 x 36 whole cells first, band 96 px: 999 x 1010 px tile, edge correlation 0.85 left-right and 0.70 top-bottom (neighbors 0.78 and 0.65). A faint horizontal jog may still show in a 2x2 view. Mask 791x800 px. Ink coverage 57%. |
 | `fisher-1882-13108` | US D 13,108 | Aug 1, 1882 | Adapted | Same method as 13,106 (Gemini redraw using `prompts/redraw-patent-as-tile.md`). The 1125 px result did not wrap (edge correlation 0.05 left-right, -0.04 top-bottom, against about 0.85 for neighbors); edges repaired with band 96 px (1029 px tile; afterward 0.91 and 0.81). Seam ink-density steps are within normal variation. Ink coverage 59%. Inventor is Edwin Fisher (not Crowe); the id was renamed from `crowe-1882-13108`. |
 | `us-d268339` (Comp III) | US D 268,339 | Mar 22, 1983 | Patent drawing | Scan `masks/USD268339S.png` (1328x1108), cropped to x 197-1085, y 110-975 (888x865 px): exactly 3 horizontal repeats (period about 296 px, found by autocorrelation) starting between columns, and one vertical repeat whose top and bottom half-plates, cut by the drawing frame, join into whole plates. Frame lines and margin marks are outside the crop. Then `make_mask.py` at 800 px (ink coverage 10%). |
@@ -28,7 +29,7 @@ other three assignees were not read.
 
 Patent numbers and grant dates were read from the printed header of each
 drawing sheet. The match between each AI-redrawn image and its source patent was
-made by eye. An earlier attempt at US D 13,106 did not yield a usable tile; a later Gemini redraw did (below). For 13,106, 13,108 and 13,109 the patent PDFs were read and the sheet drawings compared with the redraws: the motifs match (13,106: five-petal flowers, leaf sprays, cloud shapes; 13,108: ferns, large leaves, the stepped block; 13,109: dark flowers, tulip-like blooms, a fan-shaped plant over a fine grid). The 13,108 sheet is a tall swatch and the redraw is square, so the redraw rearranges the layout.
+made by eye. An earlier attempt at US D 13,106 did not yield a usable tile; a later Gemini redraw did (below). For 13,106, 13,108, 13,109 and 13,110 the patent PDFs were read and the sheet drawings compared with the redraws: the motifs match (13,106: five-petal flowers, leaf sprays, cloud shapes; 13,108: ferns, large leaves, the stepped block; 13,109: dark flowers, tulip-like blooms, a fan-shaped plant over a fine grid; 13,110: scalloped medallions, a central leaf cluster, lattice and stippled fills). The 13,108 sheet is a tall swatch and the redraw is square, so the redraw rearranges the layout.
 
 ## Seam checks
 
@@ -51,6 +52,7 @@ swatches (13,102 especially) have their central motif partly re-cut.
 | 13,106 | 42% |
 | 13,108 | 59% |
 | 13,109 | 57% |
+| 13,110 | 66% |
 
 For comparison, the PMR site's existing 1898 carpet (US D 28,278) is about 45%.
 
@@ -65,12 +67,12 @@ title was not recorded. The tile was checked by eye shifted half its width and
 height with wraparound; no seam shows. The scan has rough, slightly fuzzy edges,
 which survive into the mask.
 
-## Facts read from the 13,106, 13,108 and 13,109 PDFs
+## Facts read from the 13,106, 13,108, 13,109 and 13,110 PDFs
 
-| | US D 13,106 | US D 13,108 | US D 13,109 |
-|---|---|---|---|
-| Title on sheet | Design, carpet | Design, carpet | Design, carpet |
-| Inventor | Eugene A. Crowe, of Boston | Edwin Fisher, of Boston | Edwin Fisher, of Boston |
-| Assignee | Lowell Manufacturing Company, of Lowell, Massachusetts | same | same |
-| Application filed | June 21, 1882 | June 21, 1882 | June 21, 1882 |
-| Dated / patented | Aug 1, 1882 | Aug 1, 1882 | Aug 1, 1882 |
+| | US D 13,106 | US D 13,108 | US D 13,109 | US D 13,110 |
+|---|---|---|---|---|
+| Title on sheet | Design, carpet | Design, carpet | Design, carpet | Design, carpet |
+| Inventor | Eugene A. Crowe, of Boston | Edwin Fisher, of Boston | Edwin Fisher, of Boston | John Fisher, of New York |
+| Assignee | Lowell Manufacturing Company, of Lowell, Massachusetts | same | same | same |
+| Application filed | June 21, 1882 | June 21, 1882 | June 21, 1882 | June 21, 1882 |
+| Dated / patented | Aug 1, 1882 | Aug 1, 1882 | Aug 1, 1882 | Aug 1, 1882 |

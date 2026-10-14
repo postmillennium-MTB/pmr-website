@@ -96,7 +96,7 @@
     },
     {
       "id": "fisher-1882-13108",
-      "title": "Fisher carpet, 1882 (ferns and stepped block)",
+      "title": "E. Fisher carpet, 1882 (ferns and stepped block)",
       "kind": "adapted",
       "patent": "US Design Patent 13,108",
       "inventor": "Edwin Fisher",
@@ -112,7 +112,7 @@
     },
     {
       "id": "fisher-1882-13109",
-      "title": "Fisher carpet, 1882 (blooms on fine grid)",
+      "title": "E. Fisher carpet, 1882 (blooms on fine grid)",
       "kind": "adapted",
       "patent": "US Design Patent 13,109",
       "inventor": "Edwin Fisher",
@@ -125,6 +125,22 @@
       "note": "Swatch redrawn with an AI image model (Google Gemini), then edges repaired with make_tileable_grid.py so the fine square grid lines meet at the join. Dark flowers, tulip-like blooms and a fan-shaped plant on thin stems over a dense grid of dotted cells and dashed hatching. Compared with the patent sheet: same motifs. Dark and busy, so keep strength low behind text.",
       "url": "https://patents.google.com/patent/USD13109S/en",
       "credit": "Background pattern adapted from US Design Patent No. 13,109 (Edwin Fisher, 1882); the patent has long expired."
+    },
+    {
+      "id": "fisher-1882-13110",
+      "title": "J. Fisher carpet, 1882 (medallion on trellis)",
+      "kind": "adapted",
+      "patent": "US Design Patent 13,110",
+      "inventor": "John Fisher",
+      "granted": "1882-08-01",
+      "assignee": "Lowell Manufacturing Company (per the patent specification)",
+      "mask": "masks/fisher-1882-13110.webp",
+      "pixels": "800x792",
+      "inkCoverage": 0.66,
+      "defaultOpacity": 0.05,
+      "note": "Swatch redrawn with an AI image model (Google Gemini), then edges repaired with make_tileable_grid.py so the fine square grid lines meet at the join. Scalloped dark medallions (four corner pieces join into one whole medallion when repeated), a central leaf cluster, small floral sprigs, stepped border motifs, and diagonal lattice and stippled fills over a fine grid. Compared with the patent sheet: same motifs. The inventor is John Fisher of New York, not Edwin Fisher of Boston. Very dark and busy, so keep strength low behind text.",
+      "url": "https://patents.google.com/patent/USD13110S/en",
+      "credit": "Background pattern adapted from US Design Patent No. 13,110 (John Fisher, 1882); the patent has long expired."
     },
     {
       "id": "us-d268339",
