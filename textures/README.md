@@ -4,9 +4,10 @@ Texture studio can be found here:
 
 https://www.postmillenniumrenaissance.com/textures/studio/
 
-Recolorable background patterns for Post Millennium Renaissance tools, derived
-from 1880s carpet design patents by Eugene A. Crowe. Each pattern is one alpha
-mask (ink opaque, paper transparent), so a single file serves every color
+Recolorable background patterns for Post Millennium Renaissance tools: five
+derived from 1880s carpet design patents by Eugene A. Crowe, one cropped from US
+Design Patent 268,339, and two procedural pile/grain tiles. Each pattern is one
+alpha mask (ink opaque, paper transparent), so a single file serves every color
 scheme: CSS paints the ink in whatever color you choose.
 
 ## Credits
@@ -25,6 +26,8 @@ the designs should carry their names when they are used.
 | `crowe-1882-13102` | US D 13,102 | Eugene A. Crowe | Aug 1, 1882 | Adapted |
 | `crowe-1882-13483` | US D 13,483 | Eugene A. Crowe | Dec 26, 1882 | Adapted |
 | `crowe-1882-13105` | US D 13,105 | Eugene A. Crowe | Aug 1, 1882 | Adapted |
+| `us-d268339` | US D 268,339 | not checked | not checked | Patent drawing (cropped) |
+| `pile-carpet`, `pile-grain` | none (procedural) | n/a | n/a | Generated noise, no credit needed |
 
 "Adapted" patterns were redrawn from the patent drawing with an AI image model
 (Google Gemini) and had their edges repaired so they tile; they are not the
@@ -35,16 +38,25 @@ text in each entry's `credit` field.
 ## Use it (no code editing)
 
 1. Open `studio/index.html` in a browser (double-click is fine).
-2. Pick a pattern, pick a color preset or set your own ink and paper colors, and
-   adjust ink strength until body text stays easy to read.
-3. Copy the **self-contained** CSS and paste it into the page's `<style>`.
-4. Add `<div class="texture" aria-hidden="true"></div>` as the first child of
-   `<body>` and give `<body>` `position:relative`. The "Put it on the page" box
-   in the studio has the exact text.
-5. Paste the credit line the studio generates into the page footer.
+2. Pick a color preset, or set your own ink and paper colors. **Random colors**
+   rolls a new ink and paper at random (always at least 4:1 contrast).
+3. Pick a pattern for layer 1 and adjust ink strength until body text stays easy
+   to read. **Add a layer** stacks up to three patterns; each has its own
+   strength, size, and optionally its own ink color.
+4. Optional **fade** per layer: top to bottom, bottom to top, left to right or
+   right to left, with a "full strength until" point and a "strength left at the
+   far edge" floor. Fade one layer out while another fades in to blend patterns.
+5. Copy the **self-contained** CSS and paste it into the page's `<style>`.
+6. Add the `<div>`s the studio lists (`texture`, then `texture-2`, `texture-3`
+   for extra layers) as the first children of `<body>` and give `<body>`
+   `position:relative`. The "Put it on the page" box in the studio has the exact
+   text.
+7. Paste the credit line the studio generates into the page footer (procedural
+   patterns need none).
 
-To recolor for another color scheme later, change only two CSS variables,
-`--tex-ink` and `--tex-opacity`, per theme. The "Per-theme colors" box gives the
+To recolor for another color scheme later, change only the CSS variables,
+`--tex-ink` and `--tex-opacity` (plus `--tex-2-opacity` etc. for extra layers, and
+`--tex-2-ink` if a layer has its own ink), per theme. The "Per-theme colors" box gives the
 block to paste for each theme.
 
 ## Which CSS form to use
@@ -64,8 +76,13 @@ self-contained form. That adds roughly 40-100 KB to `index.html` per pattern.
   is in `patterns.json`.
 - **Dark themes:** a light ink on a dark ground needs slightly more strength
   (the PMR site uses 6.5-7% on its dark themes vs 5.5% on light ones).
-- **One texture layer per page.** A second layer at a different size will moire
-  against the first.
+- **Layers:** one layer is the safe default. Two large patterns of similar scale can
+  moire against each other. Fade one across the other, or pair a large pattern
+  with a fine one (the procedural pile or grain, about 256 px).
+- **Fades** run across the whole element the texture sits on, so on `<body>` they
+  span the full page height. Fades use a second mask intersected with the pattern
+  (`mask-composite`); tested in Chromium only, and the CSS carries the
+  `-webkit-` form for Safari.
 - **Iframes:** use `position:absolute` on the layer, not `fixed` (Pinkbike
   embeds clip fixed layers).
 - **Background color goes on `<body>` or `<html>`.** If it is only on an inner
@@ -86,8 +103,10 @@ patent's drawing.** See `PROVENANCE.md`.
 | Path | What it is |
 |---|---|
 | `masks/*.webp` | The recolorable masks (lossless WebP with alpha, 800 px) |
+| `masks/low-pile-carpet.css` | The two procedural SVG tiles (carpet, grain); the studio reads them from here |
+| `masks/USD268339S.png` | Source scan for `us-d268339` (not served by the studio; kept to regenerate the mask) |
 | `patterns.json` | The registry: id, patent, status, ink coverage, default strength |
-| `studio/index.html` | The recolor-and-copy-CSS page (built; masks embedded) |
+| `studio/index.html` | The recolor-and-copy-CSS page (built; masks embedded) with layers, fades and a random-color button |
 | `tools/make_mask.py` | Black-on-white image to alpha mask (downscale, then Otsu with soft ramp) |
 | `tools/make_tileable.py` | Forces an image to wrap on all four edges (min-error-cut quilting) |
 | `tools/build_studio.py` + `tools/studio_template.html` | Rebuild the studio after adding a pattern |
