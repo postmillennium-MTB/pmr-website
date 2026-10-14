@@ -110,6 +110,7 @@ patent's drawing.** See `PROVENANCE.md`.
 | `masks/USD268339S.png` | Source scan for `us-d268339` (not served by the studio; kept to regenerate the mask) |
 | `patterns.json` | The registry: id, patent, status, ink coverage, default strength |
 | `studio/index.html` | The recolor-and-copy-CSS page (built; masks embedded) with layers, fades and a random-color button |
+| `prompts/redraw-patent-as-tile.md` | The Gemini prompt used to redraw a single-swatch patent as a seamless tile, with notes and a revision log |
 | `tools/make_mask.py` | Black-on-white image to alpha mask (downscale, then Otsu with soft ramp) |
 | `tools/make_tileable.py` | Forces an image to wrap on all four edges (min-error-cut quilting) |
 | `tools/build_studio.py` + `tools/studio_template.html` | Rebuild the studio after adding a pattern |
@@ -117,7 +118,7 @@ patent's drawing.** See `PROVENANCE.md`.
 
 ## Add a pattern
 
-1. Get a black-on-white image (a patent PDF page, or a redrawn version).
+1. Get a black-on-white image (a patent PDF page, or a redrawn version) (for a single swatch that does not repeat, use `prompts/redraw-patent-as-tile.md` in Gemini).
 2. If it does not already wrap, run `python3 tools/make_tileable.py in.png out.png 128`,
    then shift the result half its width and height with wraparound and check that
    no straight seam shows through the middle.
