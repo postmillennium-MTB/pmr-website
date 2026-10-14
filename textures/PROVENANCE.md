@@ -19,12 +19,13 @@ other three assignees were not read.
 | `crowe-1882-13102` | US D 13,102 | Aug 1, 1882 | Adapted | Same method; band 128 px. The center bouquet is partly re-cut by the repair. |
 | `crowe-1882-13483` | US D 13,483 | Dec 26, 1882 | Adapted | Same method; band 160 px. |
 | `crowe-1882-13105` | US D 13,105 | Aug 1, 1882 | Adapted | Same method; band 96 px. |
+| `crowe-1882-13106` | US D 13,106 | not checked | Adapted | Same method (Gemini redraw of the patent PDF using `prompts/redraw-patent-as-tile.md`); the 1125 px result did not wrap (edge correlation 0.06 left-right, -0.12 top-bottom, against about 0.8-0.9 for neighbors), so edges were repaired with band 128 px (997 px tile; edge correlation afterward 0.89 and 0.86). Ink coverage 42%. |
 | `us-d268339` (Comp III) | US D 268,339 | Mar 22, 1983 | Patent drawing | Scan `masks/USD268339S.png` (1328x1108), cropped to x 197-1085, y 110-975 (888x865 px): exactly 3 horizontal repeats (period about 296 px, found by autocorrelation) starting between columns, and one vertical repeat whose top and bottom half-plates, cut by the drawing frame, join into whole plates. Frame lines and margin marks are outside the crop. Then `make_mask.py` at 800 px (ink coverage 10%). |
 | `pile-carpet`, `pile-grain` | none | n/a | Procedural | SVG `feTurbulence` tiles (256 px, `stitchTiles`) from `masks/low-pile-carpet.css`; ink coverage measured in Chromium (11% and 6%). |
 
 Patent numbers and grant dates were read from the printed header of each
 drawing sheet. The match between each AI-redrawn image and its source patent was
-made by eye. US D 13,106 was tried and did not yield a usable tile.
+made by eye. An earlier attempt at US D 13,106 did not yield a usable tile; a later Gemini redraw did (below). The 13,106 match to its patent was supplied by the site owner and not checked against the sheet, and its inventor and grant date were not read.
 
 ## Seam checks
 
@@ -44,6 +45,7 @@ swatches (13,102 especially) have their central motif partly re-cut.
 | 13,102 | 53% |
 | 13,483 | 66% |
 | 13,105 | 54% |
+| 13,106 | 42% |
 
 For comparison, the PMR site's existing 1898 carpet (US D 28,278) is about 45%.
 

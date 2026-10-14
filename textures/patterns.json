@@ -79,6 +79,22 @@
       "credit": "Background pattern adapted from US Design Patent No. 13,105 (Eugene A. Crowe, 1882); the patent has long expired."
     },
     {
+      "id": "crowe-1882-13106",
+      "title": "Carpet, 1882 (wildflowers)",
+      "kind": "adapted",
+      "patent": "US Design Patent 13,106",
+      "inventor": null,
+      "granted": null,
+      "assignee": null,
+      "mask": "masks/crowe-1882-13106.webp",
+      "pixels": "800x800",
+      "inkCoverage": 0.42,
+      "defaultOpacity": 0.06,
+      "note": "Swatch redrawn with an AI image model (Google Gemini), then edges repaired with make_tileable.py. Five-petal flowers, leaf sprays and cloud shapes on a brick-like grid. Inventor and grant date were not read; cite by number.",
+      "url": "https://patents.google.com/patent/USD13106S/en",
+      "credit": "Background pattern adapted from US Design Patent No. 13,106; the patent has long expired."
+    },
+    {
       "id": "us-d268339",
       "title": "Comp III",
       "kind": "patent-drawing",

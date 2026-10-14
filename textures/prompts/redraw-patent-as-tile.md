@@ -2,7 +2,7 @@
 
 Saved 2026-10-14. **Used in Google Gemini** (image generation, with the patent PDF
 attached) to make the "adapted" Crowe patterns: `crowe-1882-12657`, `-13102`,
-`-13483` and `-13105`. See `../PROVENANCE.md` for what was done to each result
+`-13483`, `-13105` and `-13106`. See `../PROVENANCE.md` for what was done to each result
 afterward.
 
 ## How to use
@@ -56,7 +56,7 @@ From `../PROVENANCE.md`: the "left and right edges must match exactly" instructi
 not met on its own. Every adapted tile needed its edges repaired with
 `tools/make_tileable.py`, and the repairs left doubled grid lines where a cut crossed
 them and partly re-cut the central motif (13,102 most of all). The match between each
-result and its source patent was made by eye. US D 13,106 did not give a usable tile.
+result and its source patent was made by eye. US D 13,106 did not give a usable tile on the first attempt; a later run did (see the log).
 Only designs that are a single swatch need this prompt: a drawing that already repeats
 (like US D 14,685) is cropped directly instead.
 
@@ -78,3 +78,4 @@ These are suggestions, not tested changes. Change one at a time and log it below
 | Date | Change | Result |
 |---|---|---|
 | 2026-10-14 | First version saved (the text above, as used in Gemini). | Used for the four adapted patterns. |
+| 2026-10-14 | Same text re-run on US D 13,106. | Returned a 1125x1125 image, not the 2048x2048 requested, with no edge match (left-right correlation 0.06). `make_tileable.py` at 128 px fixed the seams; no visible seam in the half-shifted view. |
