@@ -8,7 +8,7 @@ Jon can start it, and so Claude (or anyone with Python) can finish it.
 | # | Item | Where it comes from | Why it is needed |
 |---|---|---|---|
 | 1 | **The patent PDF** | Google Patents page for the patent, "Download PDF". Two pages: page 1 is the drawing sheet, page 2 is the specification. Name it `USD<number>.pdf` (for example `USD13110.pdf`). | The inventor, assignee and grant date are read from it, and the drawing is compared with the redraw. Never guess these: US D 13,108 and 13,109 are Edwin Fisher of Boston, but 13,110 is John Fisher of New York. |
-| 2 | **The "Gemini tile"** | The image Gemini returns after you attach the PDF and run `prompts/redraw-patent-as-tile.md` unchanged. PNG if Gemini offers it, otherwise JPEG is fine. Any size: Gemini has returned 1125 x 1125 every time, not the 2048 the prompt asks for, and that is fine. | It becomes the mask. |
+| 2 | **The "Gemini tile"** | The image Gemini returns after you attach the PDF and run `prompts/redraw-patent-as-tile.md` unchanged. PNG if Gemini offers it, otherwise JPEG is fine. **Send it at full size and do not resize, screenshot or re-export it.** Every tile so far reached the build at 1125 x 1125 px instead of the 2048 the prompt asks for; that was an oversight on the sender's side, not Gemini ignoring the size. A smaller tile still works because the masks are made at 800 px, but full size is better. | It becomes the mask. |
 | 3 | **The Google Patents link** | `https://patents.google.com/patent/USD<number>S` | It goes in the registry and makes the patent number in the credit line a link. The build environment cannot open Google Patents, so the link is recorded as given and not opened. |
 
 ### Five things that make it go smoothly
@@ -125,8 +125,11 @@ above, add the entry to `patterns.json` and rows to `PROVENANCE.md`, then
 
 ## Things that went wrong before
 
-- **Gemini ignores the size and the edge-matching instructions.** The four tiles so far
-  (13,106 to 13,110) all came back 1125 x 1125 with no edge match. Treat the edge repair as a required step.
+- **Gemini does not match the edges.** Every tile from prompt v1 (13,106 to 13,110 and the
+  first D 74,141) had no edge match. Treat the edge repair as a required step.
+- **Tiles arrived downscaled.** All of them reached the build at 1125 x 1125, an oversight
+  on the sender's side. Whether Gemini honors the 2048 px line has not been tested. Send
+  the original file.
 - **Gemini can paste strips together.** The first D 74,141 tile (prompt v1) had two
   straight vertical cuts that the edge repair cannot heal. Check for them (step 3) before
   you invest in the repair. Re-running with the v2 prompt gave a clean tile.

@@ -68,7 +68,7 @@ generating it, show a 2×2 repetition of the tile beneath it so I can check the 
 full-height straight cut; one short straight edge (about 120 px) remains in a
 cross-hatched panel. The left and right edges matched (correlation 0.92 against about
 0.80 for neighboring columns), the first of the tiles measured in this workflow to wrap on an axis without repair. The
-top and bottom did not match (0.02), and the image was 1125 x 1125, not 2048.
+top and bottom did not match (0.02). The image reached the build at 1125 x 1125 (see "About the image size").
 
 **v1** (nine runs): see "What it did not do reliably" below and the log.
 
@@ -78,11 +78,20 @@ From `../PROVENANCE.md`: the "left and right edges must match exactly" instructi
 not met by v1 on its own, and only partly by v2. Every adapted tile needed its edges
 repaired with `tools/make_tileable.py` (or `make_tileable_grid.py`), and the repairs
 left doubled grid lines where a cut crossed them and partly re-cut the central motif
-(13,102 most of all). The 2048 x 2048 size was never honored (1125 x 1125 every time).
+(13,102 most of all).
 The match between each result and its source patent was checked against the patent
 sheet. US D 13,106 did not give a usable tile on the first attempt; a later run did.
 Only designs that are a single swatch need this prompt: a drawing that already repeats
 (like US D 14,685) is cropped directly instead.
+
+## About the image size
+
+Every tile so far reached the build at 1125 x 1125 px, not the 2048 x 2048 the prompt
+asks for. That was an oversight on the sender's side (confirmed by the site owner), not
+Gemini ignoring the instruction, so **whether Gemini honors the size line is untested**.
+The size does not affect edge matching, and masks are made at 800 px, so the results
+here stand; a full-size original would probably give slightly cleaner thin lines before the
+downscale. Send the original, un-resized file from now on.
 
 ## Ideas to try (untested)
 
@@ -91,7 +100,8 @@ number, and log it below.
 
 - Say "pattern drawing" in the Task line, not "carpet pattern drawing".
 - Ask for 1024x1024 instead of 2048: the mask pipeline downsamples to 800 px anyway, and
-  a smaller canvas may hold the edge match better.
+  a smaller canvas may hold the edge match better. (Only worth testing once full-size
+  tiles are being sent; see "About the image size".)
 - Ask for the 2x2 check as a separate second image, so the tile itself is delivered
   clean with no preview attached.
 - Ask for the output with a fixed ink-density target taken from the original (a mask's
@@ -106,11 +116,11 @@ number, and log it below.
 | Date | Version | Change | Result |
 |---|---|---|---|
 | 2026-10-14 | v1 | First version saved. | Used for the eight adapted patterns listed at the top. |
-| 2026-10-14 | v1 | Same text re-run on US D 13,106. | Returned a 1125x1125 image, not the 2048x2048 requested, with no edge match (left-right correlation 0.06). `make_tileable.py` at 128 px fixed the seams; no visible seam in the half-shifted view. |
-| 2026-10-14 | v1 | Same text re-run on US D 13,108. | Again 1125x1125 with no edge match (left-right correlation 0.05). `make_tileable.py` at 96 px fixed it. Two runs in a row ignored the 2048 px size and the exact-edge instruction. |
-| 2026-10-14 | v1 | Same text re-run on US D 13,109. | Again 1125x1125 with no edge match (left-right correlation 0.02). This drawing has a strict fine square grid; the plain repair left the grid out of step at the join, so `make_tileable_grid.py` was added. Three runs in a row ignored the 2048 px size and the exact-edge instruction. |
-| 2026-10-14 | v1 | Same text re-run on US D 13,110. | Again 1125x1125, no edge match (correlation 0.00). The tile came back with the four corner pieces already forming one medallion across the wrap, as the prompt asks, but the edges still did not match. `make_tileable_grid.py` fixed it. Four runs in a row ignored the 2048 px size and the exact-edge instruction. |
-| 2026-10-14 | v1 | Same text run on US D 74,141. This is a 1927 textile fabric design, not an 1880s carpet; whether the wording was adapted was not stated. | 1125x1125 again, no edge match (left-right correlation 0.34). It also came back with two straight vertical cuts inside the tile where strips look pasted. `make_tileable.py` at 128 fixed the edges but not those cuts. Five runs in a row ignored the 2048 px size and the exact-edge instruction. |
+| 2026-10-14 | v1 | Same text re-run on US D 13,106. | Returned a 1125x1125 image (downscaled before it reached the build, see "About the image size") with no edge match (left-right correlation 0.06). `make_tileable.py` at 128 px fixed the seams; no visible seam in the half-shifted view. |
+| 2026-10-14 | v1 | Same text re-run on US D 13,108. | Again 1125x1125 with no edge match (left-right correlation 0.05). `make_tileable.py` at 96 px fixed it. Two runs in a row had no edge match. |
+| 2026-10-14 | v1 | Same text re-run on US D 13,109. | Again 1125x1125 with no edge match (left-right correlation 0.02). This drawing has a strict fine square grid; the plain repair left the grid out of step at the join, so `make_tileable_grid.py` was added. Three runs in a row had no edge match. |
+| 2026-10-14 | v1 | Same text re-run on US D 13,110. | Again 1125x1125, no edge match (correlation 0.00). The tile came back with the four corner pieces already forming one medallion across the wrap, as the prompt asks, but the edges still did not match. `make_tileable_grid.py` fixed it. Four runs in a row had no edge match. |
+| 2026-10-14 | v1 | Same text run on US D 74,141. This is a 1927 textile fabric design, not an 1880s carpet; whether the wording was adapted was not stated. | 1125x1125 again, no edge match (left-right correlation 0.34). It also came back with two straight vertical cuts inside the tile where strips look pasted. `make_tileable.py` at 128 fixed the edges but not those cuts. Five v1 runs in a row had no edge match. |
 | 2026-10-14 | v2 | Added the "one continuous drawing" sentence and generalized the opening (see above). Re-run on US D 74,141. | 1125x1125 again. No pasted-strip cuts this time (one short straight edge, about 120 px). Left-right edges matched (correlation 0.92); top-bottom did not (0.02). `make_tileable.py --axes=y` at 176 px fixed the vertical edge (top-bottom correlation 0.90). |
 
 ## v1 (kept for provenance)
