@@ -7,11 +7,11 @@ all had expired by 1898 at the latest: the patents are in the public domain.
 The drawing sheets are the USPTO / Google Patents scans (the 12,657 scan is
 stamped "Best Available Copy").
 
-Links: every carpet patent links to its Google Patents page. 14,685 and 12,657 were opened and confirmed; the 13,102, 13,483, 13,105, 13,106, 13,108, 13,109 and 13,110 links were supplied by the site owner and not opened here (no network access in the build session). For 13,106, 13,108, 13,109 and 13,110 the site owner also supplied the patent PDFs, which were read (see below).
+Links: every carpet patent links to its Google Patents page. 14,685 and 12,657 were opened and confirmed; the 13,102, 13,483, 13,105, 13,106, 13,108, 13,109 and 13,110 links were supplied by the site owner and not opened here (no network access in the build session). For 13,102, 13,105, 13,106, 13,108, 13,109, 13,110, 13,483 and 12,657 the site owner also supplied the patent PDFs, which were read (see below); the 14,685 PDF was not supplied here, its specification was read in an earlier session.
 
 "Same inventor" here means the name on the drawing sheet. The 1884 and 1882
-(12,657) specifications name the Lowell Manufacturing Company as assignee. The
-other three assignees were not read.
+(12,657) specifications name the Lowell Manufacturing Company as assignee, and so do
+the 13,102, 13,105, 13,106, 13,108, 13,109, 13,110 and 13,483 specifications (read from the PDFs).
 
 | Pattern id | Patent | Granted | Kind | How it was made |
 |---|---|---|---|---|
@@ -28,8 +28,8 @@ other three assignees were not read.
 | `pile-carpet`, `pile-grain` | none | n/a | Procedural | SVG `feTurbulence` tiles (256 px, `stitchTiles`) from `masks/low-pile-carpet.css`; ink coverage measured in Chromium (11% and 6%). |
 
 Patent numbers and grant dates were read from the printed header of each
-drawing sheet. The match between each AI-redrawn image and its source patent was
-made by eye. An earlier attempt at US D 13,106 did not yield a usable tile; a later Gemini redraw did (below). For 13,106, 13,108, 13,109 and 13,110 the patent PDFs were read and the sheet drawings compared with the redraws: the motifs match (13,106: five-petal flowers, leaf sprays, cloud shapes; 13,108: ferns, large leaves, the stepped block; 13,109: dark flowers, tulip-like blooms, a fan-shaped plant over a fine grid; 13,110: scalloped medallions, a central leaf cluster, lattice and stippled fills). The 13,108 sheet is a tall swatch and the redraw is square, so the redraw rearranges the layout.
+drawing sheet. Every AI-redrawn image was compared with its patent sheet (the PDFs were read for all eight adapted
+patents). An earlier attempt at US D 13,106 did not yield a usable tile; a later Gemini redraw did (below). The motifs match on every one (12,657: dark rosette panels, scroll shapes and a central flower over lattice; 13,102: a central leaf bouquet with ferns, key-pattern frames and lattice; 13,105: a patchwork of fine grid, key and basket-weave panels around a leaf-and-berry bouquet; 13,483: dense foliage with large leaves and corner roses; 13,106: five-petal flowers, leaf sprays, cloud shapes; 13,108: ferns, large leaves, the stepped block; 13,109: dark flowers, tulip-like blooms, a fan-shaped plant over a fine grid; 13,110: scalloped medallions, a central leaf cluster, lattice and stippled fills). The 13,108 sheet is a tall swatch and the redraw is square, so the redraw rearranges the layout.
 
 ## Seam checks
 
@@ -76,3 +76,16 @@ which survive into the mask.
 | Assignee | Lowell Manufacturing Company, of Lowell, Massachusetts | same | same | same |
 | Application filed | June 21, 1882 | June 21, 1882 | June 21, 1882 | June 21, 1882 |
 | Dated / patented | Aug 1, 1882 | Aug 1, 1882 | Aug 1, 1882 | Aug 1, 1882 |
+
+## Facts read from the 12,657, 13,102, 13,105 and 13,483 PDFs
+
+| | US D 12,657 | US D 13,102 | US D 13,105 | US D 13,483 |
+|---|---|---|---|---|
+| Title on sheet | Design, carpet | Design, carpet | Design, carpet | Design, carpet |
+| Inventor | Eugene A. Crowe, of Boston | Eugene A. Crowe, of Boston | Eugene A. Crowe, of Boston | Eugene A. Crowe, of Boston |
+| Assignee | Lowell Manufacturing Company, of Lowell, Massachusetts | same | same | same |
+| Application filed | Dec 12, 1881 | June 21, 1882 | June 21, 1882 | Nov 9, 1882 |
+| Dated / patented | Jan 10, 1882 | Aug 1, 1882 | Aug 1, 1882 | Dec 26, 1882 |
+
+The registry already had the right inventor and grant date for all four; checking the PDFs
+added the assignee and the application dates. The 12,657 sheet is stamped "Best Available Copy".

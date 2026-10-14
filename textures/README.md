@@ -15,9 +15,8 @@ scheme: CSS paints the ink in whatever color you choose.
 Six of the carpet patterns are derived from US design patents for a carpet naming
 **Eugene A. Crowe** of Boston as inventor, granted 1882-1884, two (D 13,108 and D 13,109)
 from patents naming **Edwin Fisher** of Boston, and one (D 13,110) naming **John Fisher**
-of New York. The six specifications that were read
-(12,657, 14,685, 13,106, 13,108, 13,109 and 13,110) name the **Lowell Manufacturing Company** of
-Lowell, Massachusetts as assignee. **Comp III** is US D 268,339, the Tioga Comp III tire tread: inventors
+of New York. The specifications of all nine carpet patents name the **Lowell Manufacturing
+Company** of Lowell, Massachusetts as assignee. **Comp III** is US D 268,339, the Tioga Comp III tire tread: inventors
 **Syoji Inae and Eiji Fukuchi**, assigned to **Mitsuboshi Belting Ltd.**, granted
 Mar 22, 1983, expired Mar 22, 1997. The pile and grain tiles are generated and need
 no credit. The patents have expired, and the drawing scans come from the US Patent

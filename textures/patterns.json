@@ -29,7 +29,7 @@
       "pixels": "800x800",
       "inkCoverage": 0.49,
       "defaultOpacity": 0.06,
-      "note": "The patent drawing is a single swatch that does not tile. Redrawn with an AI image model, then edges repaired with make_tileable.py.",
+      "note": "The patent drawing is a single swatch that does not tile. Redrawn with an AI image model, then edges repaired with make_tileable.py. Compared with the patent sheet: same motifs.",
       "url": "https://patents.google.com/patent/USD12657S/en",
       "credit": "Background pattern adapted from US Design Patent No. 12,657 (Eugene A. Crowe, 1882); the patent has long expired."
     },
@@ -44,9 +44,10 @@
       "pixels": "800x800",
       "inkCoverage": 0.53,
       "defaultOpacity": 0.06,
-      "note": "Swatch redrawn with an AI image model, edges repaired. The central bouquet is partly re-cut by the repair.",
+      "note": "Swatch redrawn with an AI image model, edges repaired. The central bouquet is partly re-cut by the repair. Compared with the patent sheet: same motifs.",
       "url": "https://patents.google.com/patent/USD13102S/en",
-      "credit": "Background pattern adapted from US Design Patent No. 13,102 (Eugene A. Crowe, 1882); the patent has long expired."
+      "credit": "Background pattern adapted from US Design Patent No. 13,102 (Eugene A. Crowe, 1882); the patent has long expired.",
+      "assignee": "Lowell Manufacturing Company (per the patent specification)"
     },
     {
       "id": "crowe-1882-13483",
@@ -59,9 +60,10 @@
       "pixels": "800x800",
       "inkCoverage": 0.66,
       "defaultOpacity": 0.045,
-      "note": "Swatch redrawn with an AI image model, edges repaired. Densest pattern in the set; keep opacity low.",
+      "note": "Swatch redrawn with an AI image model, edges repaired. Densest pattern in the set; keep opacity low. Compared with the patent sheet: same motifs.",
       "url": "https://patents.google.com/patent/USD13483S/en",
-      "credit": "Background pattern adapted from US Design Patent No. 13,483 (Eugene A. Crowe, 1882); the patent has long expired."
+      "credit": "Background pattern adapted from US Design Patent No. 13,483 (Eugene A. Crowe, 1882); the patent has long expired.",
+      "assignee": "Lowell Manufacturing Company (per the patent specification)"
     },
     {
       "id": "crowe-1882-13105",
@@ -74,9 +76,10 @@
       "pixels": "800x800",
       "inkCoverage": 0.54,
       "defaultOpacity": 0.06,
-      "note": "Swatch redrawn with an AI image model, edges repaired. Its fine grid can blur when shown smaller than about 400 px.",
+      "note": "Swatch redrawn with an AI image model, edges repaired. Its fine grid can blur when shown smaller than about 400 px. Compared with the patent sheet: same motifs.",
       "url": "https://patents.google.com/patent/USD13105S/en",
-      "credit": "Background pattern adapted from US Design Patent No. 13,105 (Eugene A. Crowe, 1882); the patent has long expired."
+      "credit": "Background pattern adapted from US Design Patent No. 13,105 (Eugene A. Crowe, 1882); the patent has long expired.",
+      "assignee": "Lowell Manufacturing Company (per the patent specification)"
     },
     {
       "id": "crowe-1882-13106",
