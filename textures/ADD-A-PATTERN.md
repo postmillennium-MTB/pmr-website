@@ -20,7 +20,7 @@ Jon can start it, and so Claude (or anyone with Python) can finish it.
 3. **Say each time whether to push to `main` or open a pull request.** Nothing is
    merged unless you ask. The default is a branch and a note that it is ready.
 4. **Tell Claude if you changed the prompt text.** The prompt in
-   `prompts/redraw-patent-as-tile.md` is used unchanged by default. If you edited it,
+   `prompts/redraw-patent-as-tile.md` (currently **v2**) is used unchanged by default. If you edited it,
    say what you changed: it gets a new row in that file's revision log, so each
    pattern's provenance records which prompt version made it.
 5. **The Google Patents link is recorded as given, not opened.** The build
@@ -32,7 +32,7 @@ A message you can paste:
 ```text
 New texture: US D <number>.
 PDF attached, Gemini tile attached (PNG), link https://patents.google.com/patent/USD<number>S
-Prompt: unchanged   (or: changed - <what you changed>)
+Prompt: v2 unchanged   (or: changed - <what you changed>)
 Merge: push to main / open a PR / both / leave on the branch
 ```
 
@@ -46,23 +46,31 @@ Merge: push to main / open a PR / both / leave on the branch
    no invented motifs, none dropped. Note any that moved.
 3. **Test whether the tile already wraps.** Compare the correlation of the last
    column with the first (and last row with first) against the correlation between
-   neighboring columns (about 0.8-0.9). Every Gemini tile so far scored 0.0-0.1, so it
-   does not wrap even though the prompt asks it to. Also look for **straight cuts inside
+   neighboring columns (about 0.8-0.9). Check **each axis separately**. Nine tiles scored
+   0.0-0.1 on both axes, but the prompt-v2 tile for US D 74,141 already matched left to
+   right (0.92) and only failed top to bottom (0.02). Also look for **straight cuts inside
    the tile**: a full-height vertical (or horizontal) line where motifs start abruptly,
-   as if strips were pasted together (US D 74,141 had two). Find them by plotting the
+   as if strips were pasted together (the first D 74,141 tile, from prompt v1, had two; the
+   v2 tile had none). Find them by plotting the
    correlation between each pair of adjacent columns and rows and looking for dips, then
    confirm in a zoom.
 4. **Repair the edges.**
    - Fine square grid (13,109 and 13,110): `python3 tools/make_tileable_grid.py in.png out.png 96`.
      It measures the grid pitch and crops to a whole number of cells first, so the
      grid lines meet at the join.
-   - No strict grid: `python3 tools/make_tileable.py in.png out.png 128`. If the ground
-     has fine ruling lines (US D 74,141 has horizontal ruling every 5.63 px), pick the
-     band so the tile height is a whole number of ruling pitches, or the ruling jogs at the join.
-   - Cuts inside the Gemini tile are **not** removed by either repair. Record them in
-     `PROVENANCE.md` and the pattern's `note`, and consider re-running Gemini.
-   - Try bands 96, 128 and 160 and keep the one with the best edge correlation and no
-     visible seam. A good result scores at or above the neighbor correlation on both
+   - No strict grid: `python3 tools/make_tileable.py in.png out.png 128`.
+   - **Only one axis fails:** repair just that axis, `--axes=y` (top/bottom) or
+     `--axes=x` (left/right). Quilting an axis that already wraps adds a mismatch of one
+     band width and breaks it. US D 74,141 (v2 tile): `--axes=y` at band 176.
+   - If the ground has fine ruling lines (D 74,141: horizontal ruling every 5.45 px),
+     pick the band so the tile height is a whole number of ruling pitches, or the ruling
+     jogs at the join. Scan bands (for example 64 to 192 in steps of 8) and compare the
+     edge correlation and the ruling misalignment.
+   - Cuts inside the Gemini tile are **not** removed by any repair. Record them in
+     `PROVENANCE.md` and the pattern's `note`, and re-run Gemini (the v2 prompt's
+     "one continuous drawing" sentence removed them for D 74,141).
+   - Try several bands (96, 128, 160, more if one axis is already fine) and keep the one
+     with the best edge correlation and no visible seam. A good result scores at or above the neighbor correlation on both
      axes.
 5. **Check the seams.** View the tile shifted half its width and height with
    wraparound, and as a 2x2. No straight seam, no doubled or jogged grid lines in the
@@ -119,8 +127,9 @@ above, add the entry to `patterns.json` and rows to `PROVENANCE.md`, then
 
 - **Gemini ignores the size and the edge-matching instructions.** The four tiles so far
   (13,106 to 13,110) all came back 1125 x 1125 with no edge match. Treat the edge repair as a required step.
-- **Gemini can paste strips together.** The D 74,141 tile had two straight vertical cuts
-  that the edge repair cannot heal. Check for them (step 3) before you invest in the repair.
+- **Gemini can paste strips together.** The first D 74,141 tile (prompt v1) had two
+  straight vertical cuts that the edge repair cannot heal. Check for them (step 3) before
+  you invest in the repair. Re-running with the v2 prompt gave a clean tile.
 - **Not every patent is a carpet from the 1880s.** D 74,141 is a 1927 textile fabric; the
   prompt text says "a carpet from the 1880s", and the inventor, assignee and dates in the
   PDF are different in kind (a corporation assignee, an application serial number). Read

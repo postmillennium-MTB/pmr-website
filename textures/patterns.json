@@ -154,10 +154,10 @@
       "granted": "1927-12-27",
       "assignee": "Pennsylvania Textile Mills, Inc., of Clifton, New Jersey (per the patent specification)",
       "mask": "masks/day-1927-74141.webp",
-      "pixels": "800x800",
-      "inkCoverage": 0.6,
+      "pixels": "800x675",
+      "inkCoverage": 0.59,
       "defaultOpacity": 0.05,
-      "note": "A textile fabric design, not a carpet. Large ogee damask: a dark central medallion with a tulip crown, paisley-shaped panels with cross-hatched fills, scrolls and leafy sprays, on a ground of fine horizontal ruling. Redrawn with an AI image model (Google Gemini), then edges repaired with make_tileable.py. Compared with the patent sheet: same motifs. Known flaw: the Gemini tile had two straight vertical cuts where strips look pasted (about 24% and 76% of its width). The edge repair does not remove them, so faint straight vertical lines show in a repeated view. Re-running Gemini may give a cleaner tile. Dark and busy, so keep strength low behind text.",
+      "note": "A textile fabric design, not a carpet. Large ogee damask: a dark central medallion with a tulip crown, paisley-shaped panels with cross-hatched fills, scrolls and leafy sprays, on a ground of fine horizontal ruling. Redrawn with an AI image model (Google Gemini, prompt v2), then the top and bottom edges repaired with make_tileable.py --axes=y (the left and right edges already matched). Compared with the patent sheet: same motifs. One short straight edge (about 120 px) remains in a cross-hatched panel near column 884 of the tile. Dark and busy, so keep strength low behind text.",
       "url": "https://patents.google.com/patent/USD74141S/en",
       "credit": "Background pattern adapted from US Design Patent No. 74,141 (Harry S. Day, 1927); the patent has long expired."
     },

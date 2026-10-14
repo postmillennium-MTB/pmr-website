@@ -123,7 +123,7 @@ patent's drawing.** See `PROVENANCE.md`.
 | `prompts/redraw-patent-as-tile.md` | The Gemini prompt used to redraw a single-swatch patent as a seamless tile, with notes and a revision log |
 | `tools/make_mask.py` | Black-on-white image to alpha mask (downscale, then Otsu with soft ramp) |
 | `tools/make_tileable_grid.py` | Same edge repair for a pattern with a strict fine grid: crops to a whole number of grid cells first so the grid lines meet at the join |
-| `tools/make_tileable.py` | Forces an image to wrap on all four edges (min-error-cut quilting) |
+| `tools/make_tileable.py` | Forces an image to wrap on all four edges, or just one axis with `--axes=y` or `--axes=x` (min-error-cut quilting) |
 | `tools/build_studio.py` + `tools/studio_template.html` | Rebuild the studio after adding a pattern |
 | `PROVENANCE.md` | Where each pattern came from and how it was made |
 
