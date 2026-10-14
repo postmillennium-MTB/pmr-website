@@ -11,15 +11,29 @@ Jon can start it, and so Claude (or anyone with Python) can finish it.
 | 2 | **The "Gemini tile"** | The image Gemini returns after you attach the PDF and run `prompts/redraw-patent-as-tile.md` unchanged. PNG if Gemini offers it, otherwise JPEG is fine. Any size: Gemini has returned 1125 x 1125 every time, not the 2048 the prompt asks for, and that is fine. | It becomes the mask. |
 | 3 | **The Google Patents link** | `https://patents.google.com/patent/USD<number>S` | It goes in the registry and makes the patent number in the credit line a link. The build environment cannot open Google Patents, so the link is recorded as given and not opened. |
 
-Send all three in one message. Optional: a title idea, and whether you want the
-result pushed to `main` or opened as a pull request.
+### Five things that make it go smoothly
+
+1. **Send the Gemini tile as PNG if Gemini offers it.** JPEG works, but it carries
+   compression noise (the mask step thresholds most of it away). PNG is cleaner.
+2. **One patent per message.** Send the PDF, the tile and the link together, and
+   keep each tile with its own PDF so the tile is never matched to the wrong patent.
+3. **Say each time whether to push to `main` or open a pull request.** Nothing is
+   merged unless you ask. The default is a branch and a note that it is ready.
+4. **Tell Claude if you changed the prompt text.** The prompt in
+   `prompts/redraw-patent-as-tile.md` is used unchanged by default. If you edited it,
+   say what you changed: it gets a new row in that file's revision log, so each
+   pattern's provenance records which prompt version made it.
+5. **The Google Patents link is recorded as given, not opened.** The build
+   environment cannot reach Google Patents. The inventor, assignee and dates come from
+   the PDF, so the PDF is the authority and the link is only a pointer.
 
 A message you can paste:
 
 ```text
 New texture: US D <number>.
-PDF attached, Gemini tile attached, link https://patents.google.com/patent/USD<number>S
-Push to main / open a PR (pick one).
+PDF attached, Gemini tile attached (PNG), link https://patents.google.com/patent/USD<number>S
+Prompt: unchanged   (or: changed - <what you changed>)
+Merge: push to main / open a PR / both / leave on the branch
 ```
 
 ## What happens next
@@ -53,8 +67,11 @@ Push to main / open a PR (pick one).
    `studio/index.html`, pick the new pattern, check the provenance text and the credit
    line, and look at it at full strength ("Show at full strength") for a visible seam
    at the tile boundary.
-9. **Commit and push.** `main` directly if you said so, otherwise a branch and a pull
-   request.
+9. **Commit and push, then merge as you asked.** Push to the working branch always.
+   "Push to main" means a fast-forward or merge into `main`. "Open a PR" means a pull
+   request from the branch into `main`. "Both" means open the PR, then merge it, so the
+   PR record exists and `main` is updated. With no instruction, the branch is left
+   unmerged and Claude says it is ready.
 
 ## Naming and defaults
 
