@@ -70,6 +70,9 @@ These are suggestions, not tested changes. Change one at a time and log it below
   clean with no preview attached.
 - Ask for the output with a fixed ink-density target taken from the original (a mask's
   "ink coverage" in `../patterns.json` is 49-66% for the current set).
+- Add a line such as: "The tile must be one continuous drawing: no straight vertical or
+  horizontal cuts, pasted strips or repeated blocks inside it." The D 74,141 tile had two
+  pasted-strip cuts that the edge repair cannot remove.
 - If a seam still shows, re-prompt with the shifted-by-half check image and ask for only
   the seam region to be redrawn.
 
@@ -82,3 +85,4 @@ These are suggestions, not tested changes. Change one at a time and log it below
 | 2026-10-14 | Same text re-run on US D 13,108. | Again 1125x1125 with no edge match (left-right correlation 0.05). `make_tileable.py` at 96 px fixed it. Two runs in a row ignored the 2048 px size and the exact-edge instruction. |
 | 2026-10-14 | Same text re-run on US D 13,109. | Again 1125x1125 with no edge match (left-right correlation 0.02). This drawing has a strict fine square grid; the plain repair left the grid out of step at the join, so `make_tileable_grid.py` was added. Three runs in a row ignored the 2048 px size and the exact-edge instruction. |
 | 2026-10-14 | Same text re-run on US D 13,110. | Again 1125x1125, no edge match (correlation 0.00). The tile came back with the four corner pieces already forming one medallion across the wrap, as the prompt asks, but the edges still did not match. `make_tileable_grid.py` fixed it. Four runs in a row ignored the 2048 px size and the exact-edge instruction. |
+| 2026-10-14 | Same text run on US D 74,141. This is a 1927 textile fabric design, not an 1880s carpet; whether the wording was adapted was not stated. | 1125x1125 again, no edge match (left-right correlation 0.34). It also came back with two straight vertical cuts inside the tile where strips look pasted. `make_tileable.py` at 128 fixed the edges but not those cuts. Five runs in a row ignored the 2048 px size and the exact-edge instruction. |

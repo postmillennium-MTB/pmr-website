@@ -5,7 +5,8 @@ Texture studio can be found here:
 https://www.postmillenniumrenaissance.com/textures/studio/
 
 Recolorable background patterns for Post Millennium Renaissance tools: nine
-derived from 1880s carpet design patents (six by Eugene A. Crowe, two by Edwin Fisher, one by John Fisher), one cropped from the
+derived from 1880s carpet design patents (six by Eugene A. Crowe, two by Edwin Fisher, one by John Fisher), one from
+a 1927 textile design patent (D 74,141, Harry S. Day), one cropped from the
 Tioga Comp III tire tread patent (US Design Patent 268,339), and two procedural pile/grain tiles. Each pattern is one
 alpha mask (ink opaque, paper transparent), so a single file serves every color
 scheme: CSS paints the ink in whatever color you choose.
@@ -16,7 +17,9 @@ Six of the carpet patterns are derived from US design patents for a carpet namin
 **Eugene A. Crowe** of Boston as inventor, granted 1882-1884, two (D 13,108 and D 13,109)
 from patents naming **Edwin Fisher** of Boston, and one (D 13,110) naming **John Fisher**
 of New York. The specifications of all nine carpet patents name the **Lowell Manufacturing
-Company** of Lowell, Massachusetts as assignee. **Comp III** is US D 268,339, the Tioga Comp III tire tread: inventors
+Company** of Lowell, Massachusetts as assignee. **US D 74,141** is a 1927 textile fabric
+design (not a carpet) by **Harry S. Day** of Hawthorne, New Jersey, assigned to
+**Pennsylvania Textile Mills, Inc.** of Clifton, New Jersey, granted Dec 27, 1927. **Comp III** is US D 268,339, the Tioga Comp III tire tread: inventors
 **Syoji Inae and Eiji Fukuchi**, assigned to **Mitsuboshi Belting Ltd.**, granted
 Mar 22, 1983, expired Mar 22, 1997. The pile and grain tiles are generated and need
 no credit. The patents have expired, and the drawing scans come from the US Patent
@@ -34,6 +37,7 @@ their names when they are used.
 | `fisher-1882-13108` | [US D 13,108](https://patents.google.com/patent/USD13108S/en) | **Edwin Fisher** | Aug 1, 1882 | Adapted |
 | `fisher-1882-13109` | [US D 13,109](https://patents.google.com/patent/USD13109S/en) | **Edwin Fisher** | Aug 1, 1882 | Adapted |
 | `fisher-1882-13110` | [US D 13,110](https://patents.google.com/patent/USD13110S/en) | **John Fisher** | Aug 1, 1882 | Adapted |
+| `day-1927-74141` | [US D 74,141](https://patents.google.com/patent/USD74141S/en) | **Harry S. Day** | Dec 27, 1927 | Adapted (textile fabric, not a carpet) |
 | `us-d268339` (Comp III) | [US D 268,339](https://patents.google.com/patent/USD268339S/en) | Syoji Inae, Eiji Fukuchi | Mar 22, 1983 | Patent drawing (cropped) |
 | `pile-carpet`, `pile-grain` | none (procedural) | n/a | n/a | Generated noise, no credit needed |
 

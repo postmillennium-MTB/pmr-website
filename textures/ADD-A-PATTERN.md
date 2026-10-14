@@ -47,12 +47,20 @@ Merge: push to main / open a PR / both / leave on the branch
 3. **Test whether the tile already wraps.** Compare the correlation of the last
    column with the first (and last row with first) against the correlation between
    neighboring columns (about 0.8-0.9). Every Gemini tile so far scored 0.0-0.1, so it
-   does not wrap even though the prompt asks it to.
+   does not wrap even though the prompt asks it to. Also look for **straight cuts inside
+   the tile**: a full-height vertical (or horizontal) line where motifs start abruptly,
+   as if strips were pasted together (US D 74,141 had two). Find them by plotting the
+   correlation between each pair of adjacent columns and rows and looking for dips, then
+   confirm in a zoom.
 4. **Repair the edges.**
    - Fine square grid (13,109 and 13,110): `python3 tools/make_tileable_grid.py in.png out.png 96`.
      It measures the grid pitch and crops to a whole number of cells first, so the
      grid lines meet at the join.
-   - No strict grid: `python3 tools/make_tileable.py in.png out.png 128`.
+   - No strict grid: `python3 tools/make_tileable.py in.png out.png 128`. If the ground
+     has fine ruling lines (US D 74,141 has horizontal ruling every 5.63 px), pick the
+     band so the tile height is a whole number of ruling pitches, or the ruling jogs at the join.
+   - Cuts inside the Gemini tile are **not** removed by either repair. Record them in
+     `PROVENANCE.md` and the pattern's `note`, and consider re-running Gemini.
    - Try bands 96, 128 and 160 and keep the one with the best edge correlation and no
      visible seam. A good result scores at or above the neighbor correlation on both
      axes.
@@ -111,6 +119,12 @@ above, add the entry to `patterns.json` and rows to `PROVENANCE.md`, then
 
 - **Gemini ignores the size and the edge-matching instructions.** The four tiles so far
   (13,106 to 13,110) all came back 1125 x 1125 with no edge match. Treat the edge repair as a required step.
+- **Gemini can paste strips together.** The D 74,141 tile had two straight vertical cuts
+  that the edge repair cannot heal. Check for them (step 3) before you invest in the repair.
+- **Not every patent is a carpet from the 1880s.** D 74,141 is a 1927 textile fabric; the
+  prompt text says "a carpet from the 1880s", and the inventor, assignee and dates in the
+  PDF are different in kind (a corporation assignee, an application serial number). Read
+  the PDF and name the pattern for what it is ("textile").
 - **A strict grid breaks the plain repair.** The grid meets half a cell out of step.
   Use `make_tileable_grid.py`.
 - **A guessed inventor was wrong.** The sheet and specification decide.

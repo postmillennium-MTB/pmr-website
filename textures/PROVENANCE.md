@@ -7,7 +7,7 @@ all had expired by 1898 at the latest: the patents are in the public domain.
 The drawing sheets are the USPTO / Google Patents scans (the 12,657 scan is
 stamped "Best Available Copy").
 
-Links: every carpet patent links to its Google Patents page. 14,685 and 12,657 were opened and confirmed; the 13,102, 13,483, 13,105, 13,106, 13,108, 13,109 and 13,110 links were supplied by the site owner and not opened here (no network access in the build session). For 13,102, 13,105, 13,106, 13,108, 13,109, 13,110, 13,483 and 12,657 the site owner also supplied the patent PDFs, which were read (see below); the 14,685 PDF was not supplied here, its specification was read in an earlier session.
+Links: every carpet patent links to its Google Patents page. 14,685 and 12,657 were opened and confirmed; the 13,102, 13,483, 13,105, 13,106, 13,108, 13,109 and 13,110 links were supplied by the site owner and not opened here (no network access in the build session). For 13,102, 13,105, 13,106, 13,108, 13,109, 13,110, 13,483 and 12,657 the site owner also supplied the patent PDFs, which were read (see below); the 14,685 PDF was supplied later and read too (see below).
 
 "Same inventor" here means the name on the drawing sheet. The 1884 and 1882
 (12,657) specifications name the Lowell Manufacturing Company as assignee, and so do
@@ -21,6 +21,7 @@ the 13,102, 13,105, 13,106, 13,108, 13,109, 13,110 and 13,483 specifications (re
 | `crowe-1882-13483` | US D 13,483 | Dec 26, 1882 | Adapted | Same method; band 160 px. |
 | `crowe-1882-13105` | US D 13,105 | Aug 1, 1882 | Adapted | Same method; band 96 px. |
 | `crowe-1882-13106` | US D 13,106 | Aug 1, 1882 | Adapted | Same method (Gemini redraw of the patent PDF using `prompts/redraw-patent-as-tile.md`); the 1125 px result did not wrap (edge correlation 0.06 left-right, -0.12 top-bottom, against about 0.8-0.9 for neighbors), so edges were repaired with band 128 px (997 px tile; edge correlation afterward 0.89 and 0.86). Ink coverage 42%. |
+| `day-1927-74141` | US D 74,141 | Dec 27, 1927 | Adapted | A 1927 textile fabric design, not a carpet. Same Gemini method (`prompts/redraw-patent-as-tile.md`). The 1125 px tile did not wrap (edge correlation 0.34 left-right, -0.02 top-bottom) and also had two straight vertical cuts inside it at about x=268 and x=850 where strips look pasted (weak adjacent-column correlation, 0.55-0.63, and visible in a zoom). The plain repair `make_tileable.py`, band 128, gave a 997 px tile with edge correlation 0.86 and 0.69 (neighbors 0.77 and 0.63); bands 96 and 160 scored worse (top-bottom 0.45 and 0.52). The fine horizontal ruling has a 5.63 px pitch and 997 px is 177.1 pitches, so the ruling stays in step at the join. **The two internal cuts are not removed**: they show as faint straight vertical lines in a 2x2 view. `make_tileable_grid.py` does not fit (no vertical grid), and no glitch-free block of the Gemini tile wraps on its own (best 0.25). The patent sheet itself does not wrap either (edge correlation -0.37 and -0.61: a mirrored 2:1 unit). Ink coverage 60%. Re-running Gemini may give a cleaner tile. |
 | `fisher-1882-13110` | US D 13,110 | Aug 1, 1882 | Adapted | Same Gemini method and the grid-aware repair, as for 13,109. The 1125 px result did not wrap (edge correlation 0.00 both axes); grid pitch 30.74 x 27.89 px; `make_tileable_grid.py` band 96 px gave a 1014 x 1004 px tile (33 x 36 cells), edge correlation 0.83 left-right and 0.80 top-bottom (neighbors 0.82 and 0.73). Bands 112 and 128 were worse (one axis at -0.01 and 0.40) and `make_tileable.py` at 128 gave 0.42 left-right, so they were not used. In a 2x2 view the four corner pieces join into one whole medallion and no seam shows. Mask 800x792 px. Ink coverage 66%, the darkest pattern in the set. |
 | `fisher-1882-13109` | US D 13,109 | Aug 1, 1882 | Adapted | Same Gemini method (`prompts/redraw-patent-as-tile.md`). The 1125 px result did not wrap (edge correlation 0.02 left-right, 0.12 top-bottom). This drawing has a strict fine grid with a 33.3 px by 28.06 px pitch, and the plain repair (`make_tileable.py`) left the grid about half a cell out of step at the join (a visible vertical seam and horizontal jog in a 2x2 view). `make_tileable_grid.py` crops to 30 x 36 whole cells first, band 96 px: 999 x 1010 px tile, edge correlation 0.85 left-right and 0.70 top-bottom (neighbors 0.78 and 0.65). A faint horizontal jog may still show in a 2x2 view. Mask 791x800 px. Ink coverage 57%. |
 | `fisher-1882-13108` | US D 13,108 | Aug 1, 1882 | Adapted | Same method as 13,106 (Gemini redraw using `prompts/redraw-patent-as-tile.md`). The 1125 px result did not wrap (edge correlation 0.05 left-right, -0.04 top-bottom, against about 0.85 for neighbors); edges repaired with band 96 px (1029 px tile; afterward 0.91 and 0.81). Seam ink-density steps are within normal variation. Ink coverage 59%. Inventor is Edwin Fisher (not Crowe); the id was renamed from `crowe-1882-13108`. |
@@ -53,6 +54,7 @@ swatches (13,102 especially) have their central motif partly re-cut.
 | 13,108 | 59% |
 | 13,109 | 57% |
 | 13,110 | 66% |
+| 74,141 | 60% |
 
 For comparison, the PMR site's existing 1898 carpet (US D 28,278) is about 45%.
 
@@ -89,3 +91,18 @@ which survive into the mask.
 
 The registry already had the right inventor and grant date for all four; checking the PDFs
 added the assignee and the application dates. The 12,657 sheet is stamped "Best Available Copy".
+
+## Facts read from the 14,685 and 74,141 PDFs
+
+| | US D 14,685 | US D 74,141 |
+|---|---|---|
+| Title on sheet | Design, carpet | Textile fabric (specification: "Design for a textile fabric") |
+| Inventor | Eugene A. Crowe, of Boston | Harry S. Day, of Hawthorne, New Jersey |
+| Assignee | Lowell Manufacturing Company, of Lowell, Massachusetts | Pennsylvania Textile Mills, Inc., of Clifton, New Jersey (a New Jersey corporation) |
+| Application filed | Nov 23, 1883 | July 9, 1927 (Serial No. 22,710) |
+| Dated / patented | Feb 19, 1884 | Dec 27, 1927 |
+
+14,685 is the only pattern that is a patent's own drawing. Its sheet is a strip of two
+repeats side by side, and the studio mask shows the same motifs, so the registry entry
+(inventor, date) was already right. The 74,141 sheet is a mirrored 2:1 damask unit that
+does not wrap by translation, so it was redrawn like the carpets.
