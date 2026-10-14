@@ -100,7 +100,8 @@ Merge: push to main / open a PR / both / leave on the branch
 | `credit` | `Background pattern adapted from US Design Patent No. <n> (<inventor>, <year>); the patent has long expired.` | |
 | `url` | `https://patents.google.com/patent/USD<number>S/en` | |
 
-Use the inventor's surname from the PDF, and two people with the same surname get
+The Comp III pattern, `us-d268339`, predates this rule and keeps its id so that any page
+already using its hosted mask URL keeps working. Use the inventor's surname from the PDF, and two people with the same surname get
 distinct initials in the title (E. Fisher and J. Fisher). Rename an id that turns out
 wrong before it spreads; `crowe-1882-13108` became `fisher-1882-13108`.
 

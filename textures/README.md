@@ -4,12 +4,13 @@ Texture studio can be found here:
 
 https://www.postmillenniumrenaissance.com/textures/studio/
 
-Recolorable background patterns for Post Millennium Renaissance tools: nine
-derived from 1880s carpet design patents (six by Eugene A. Crowe, two by Edwin Fisher, one by John Fisher), one from
-a 1927 textile design patent (D 74,141, Harry S. Day), one cropped from the
-Tioga Comp III tire tread patent (US Design Patent 268,339), and two procedural pile/grain tiles. Each pattern is one
-alpha mask (ink opaque, paper transparent), so a single file serves every color
-scheme: CSS paints the ink in whatever color you choose.
+Recolorable background patterns for Post Millennium Renaissance tools. Thirteen in
+all: nine redrawn or cropped from 1880s carpet design patents (six by Eugene A. Crowe,
+two by Edwin Fisher, one by John Fisher), one from a 1927 textile design patent
+(D 74,141, Harry S. Day), one cropped from the Tioga Comp III tire tread patent (US
+Design Patent 268,339), and two procedural pile/grain tiles. Each pattern is one alpha
+mask (ink opaque, paper transparent), so a single file serves every color scheme: CSS
+paints the ink in whatever color you choose.
 
 ## Credits
 
