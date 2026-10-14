@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """Force a pattern image to wrap on all four edges (minimum-error-cut quilting).
 
-    python3 tools/make_tileable.py input.png output.png [band_px]
+    python3 tools/make_tileable.py input.png output.png [band_px] [--axes=xy|y|x]
 
 Joins the bottom band to the top band along the lowest-error path, then does the
 same left to right. Output is band_px smaller each way. Check the result by
 shifting it half its width and height with wraparound: no straight seam should
-show through the middle. band_px 96-160 works best; try a few and compare.
+show through the middle. band_px 96-160 works best; try a few and compare. --axes=y repairs only the top/bottom
+edges (use it when the left/right edges already match; see ADD-A-PATTERN.md).
 """
 import sys
 import numpy as np
@@ -42,15 +43,28 @@ def quilt_rows(A, B):
     return np.vstack([M, A[B:H - B].astype(float)])
 
 
-def make_tileable(A, B):
-    """A: 2-D uint8 array. Returns the float array tiled on both axes (B px smaller each way)."""
-    T = quilt_rows(A, B)
-    return quilt_rows(T.T, B).T
+def make_tileable(A, B, axes="xy"):
+    """A: 2-D uint8 array. Returns the float array tiled on the chosen axes (B px smaller on each).
+
+    axes "xy" repairs both, "y" only top/bottom, "x" only left/right. Repair only an axis
+    that does not already wrap: quilting an axis that already wraps adds a mismatch of B px.
+    """
+    T = A
+    if "y" in axes:
+        T = quilt_rows(T, B)
+    if "x" in axes:
+        T = quilt_rows(T.T, B).T
+    return T
 
 
 if __name__ == "__main__":
-    src, dst = sys.argv[1], sys.argv[2]
-    B = int(sys.argv[3]) if len(sys.argv) > 3 else 128
-    T = make_tileable(np.asarray(Image.open(src).convert("L")), B)
+    args = [x for x in sys.argv[1:] if not x.startswith("--")]
+    axes = "xy"
+    for x in sys.argv[1:]:
+        if x.startswith("--axes="):
+            axes = x.split("=", 1)[1]
+    src, dst = args[0], args[1]
+    B = int(args[2]) if len(args) > 2 else 128
+    T = make_tileable(np.asarray(Image.open(src).convert("L")), B, axes)
     Image.fromarray(((T > 127) * 255).astype(np.uint8)).save(dst)
     print(f"{dst}: {T.shape[1]}x{T.shape[0]}")

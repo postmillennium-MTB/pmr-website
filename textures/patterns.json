@@ -13,7 +13,7 @@
       "pixels": "800x352",
       "inkCoverage": 0.62,
       "defaultOpacity": 0.05,
-      "note": "Genuine drawing, deskewed 0.5 degrees and cropped to a repeat that wraps both ways. The drawing shows two horizontal repeats, used together. Fine horizontal dashes are scan artifacts of the original engraving.",
+      "note": "Genuine drawing, deskewed 0.5 degrees and cropped to a repeat that wraps both ways. The drawing shows two horizontal repeats, used together. Fine horizontal dashes are scan artifacts of the original engraving. Compared with the patent sheet (PDF read): same motifs, two repeats side by side.",
       "url": "https://patents.google.com/patent/USD14685S/en",
       "credit": "Background pattern from US Design Patent No. 14,685 (Eugene A. Crowe, 1884); the patent has long expired."
     },
@@ -29,7 +29,7 @@
       "pixels": "800x800",
       "inkCoverage": 0.49,
       "defaultOpacity": 0.06,
-      "note": "The patent drawing is a single swatch that does not tile. Redrawn with an AI image model, then edges repaired with make_tileable.py.",
+      "note": "The patent drawing is a single swatch that does not tile. Redrawn with an AI image model, then edges repaired with make_tileable.py. Compared with the patent sheet: same motifs.",
       "url": "https://patents.google.com/patent/USD12657S/en",
       "credit": "Background pattern adapted from US Design Patent No. 12,657 (Eugene A. Crowe, 1882); the patent has long expired."
     },
@@ -44,9 +44,10 @@
       "pixels": "800x800",
       "inkCoverage": 0.53,
       "defaultOpacity": 0.06,
-      "note": "Swatch redrawn with an AI image model, edges repaired. The central bouquet is partly re-cut by the repair.",
+      "note": "Swatch redrawn with an AI image model, edges repaired. The central bouquet is partly re-cut by the repair. Compared with the patent sheet: same motifs.",
       "url": "https://patents.google.com/patent/USD13102S/en",
-      "credit": "Background pattern adapted from US Design Patent No. 13,102 (Eugene A. Crowe, 1882); the patent has long expired."
+      "credit": "Background pattern adapted from US Design Patent No. 13,102 (Eugene A. Crowe, 1882); the patent has long expired.",
+      "assignee": "Lowell Manufacturing Company (per the patent specification)"
     },
     {
       "id": "crowe-1882-13483",
@@ -59,9 +60,10 @@
       "pixels": "800x800",
       "inkCoverage": 0.66,
       "defaultOpacity": 0.045,
-      "note": "Swatch redrawn with an AI image model, edges repaired. Densest pattern in the set; keep opacity low.",
+      "note": "Swatch redrawn with an AI image model, edges repaired. Densest pattern in the set; keep opacity low. Compared with the patent sheet: same motifs.",
       "url": "https://patents.google.com/patent/USD13483S/en",
-      "credit": "Background pattern adapted from US Design Patent No. 13,483 (Eugene A. Crowe, 1882); the patent has long expired."
+      "credit": "Background pattern adapted from US Design Patent No. 13,483 (Eugene A. Crowe, 1882); the patent has long expired.",
+      "assignee": "Lowell Manufacturing Company (per the patent specification)"
     },
     {
       "id": "crowe-1882-13105",
@@ -74,9 +76,10 @@
       "pixels": "800x800",
       "inkCoverage": 0.54,
       "defaultOpacity": 0.06,
-      "note": "Swatch redrawn with an AI image model, edges repaired. Its fine grid can blur when shown smaller than about 400 px.",
+      "note": "Swatch redrawn with an AI image model, edges repaired. Its fine grid can blur when shown smaller than about 400 px. Compared with the patent sheet: same motifs.",
       "url": "https://patents.google.com/patent/USD13105S/en",
-      "credit": "Background pattern adapted from US Design Patent No. 13,105 (Eugene A. Crowe, 1882); the patent has long expired."
+      "credit": "Background pattern adapted from US Design Patent No. 13,105 (Eugene A. Crowe, 1882); the patent has long expired.",
+      "assignee": "Lowell Manufacturing Company (per the patent specification)"
     },
     {
       "id": "crowe-1882-13106",
@@ -141,6 +144,22 @@
       "note": "Swatch redrawn with an AI image model (Google Gemini), then edges repaired with make_tileable_grid.py so the fine square grid lines meet at the join. Scalloped dark medallions (four corner pieces join into one whole medallion when repeated), a central leaf cluster, small floral sprigs, stepped border motifs, and diagonal lattice and stippled fills over a fine grid. Compared with the patent sheet: same motifs. The inventor is John Fisher of New York, not Edwin Fisher of Boston. Very dark and busy, so keep strength low behind text.",
       "url": "https://patents.google.com/patent/USD13110S/en",
       "credit": "Background pattern adapted from US Design Patent No. 13,110 (John Fisher, 1882); the patent has long expired."
+    },
+    {
+      "id": "day-1927-74141",
+      "title": "H. S. Day textile, 1927 (ogee damask)",
+      "kind": "adapted",
+      "patent": "US Design Patent 74,141",
+      "inventor": "Harry S. Day",
+      "granted": "1927-12-27",
+      "assignee": "Pennsylvania Textile Mills, Inc., of Clifton, New Jersey (per the patent specification)",
+      "mask": "masks/day-1927-74141.webp",
+      "pixels": "800x675",
+      "inkCoverage": 0.59,
+      "defaultOpacity": 0.05,
+      "note": "A textile fabric design, not a carpet. Large ogee damask: a dark central medallion with a tulip crown, paisley-shaped panels with cross-hatched fills, scrolls and leafy sprays, on a ground of fine horizontal ruling. Redrawn with an AI image model (Google Gemini, prompt v2), then the top and bottom edges repaired with make_tileable.py --axes=y (the left and right edges already matched). Compared with the patent sheet: same motifs. One short straight edge (about 120 px) remains in a cross-hatched panel near column 884 of the tile. Dark and busy, so keep strength low behind text.",
+      "url": "https://patents.google.com/patent/USD74141S/en",
+      "credit": "Background pattern adapted from US Design Patent No. 74,141 (Harry S. Day, 1927); the patent has long expired."
     },
     {
       "id": "us-d268339",

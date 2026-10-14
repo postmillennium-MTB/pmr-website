@@ -4,20 +4,23 @@ Texture studio can be found here:
 
 https://www.postmillenniumrenaissance.com/textures/studio/
 
-Recolorable background patterns for Post Millennium Renaissance tools: nine
-derived from 1880s carpet design patents (six by Eugene A. Crowe, two by Edwin Fisher, one by John Fisher), one cropped from the
-Tioga Comp III tire tread patent (US Design Patent 268,339), and two procedural pile/grain tiles. Each pattern is one
-alpha mask (ink opaque, paper transparent), so a single file serves every color
-scheme: CSS paints the ink in whatever color you choose.
+Recolorable background patterns for Post Millennium Renaissance tools. Thirteen in
+all: nine redrawn or cropped from 1880s carpet design patents (six by Eugene A. Crowe,
+two by Edwin Fisher, one by John Fisher), one from a 1927 textile design patent
+(D 74,141, Harry S. Day), one cropped from the Tioga Comp III tire tread patent (US
+Design Patent 268,339), and two procedural pile/grain tiles. Each pattern is one alpha
+mask (ink opaque, paper transparent), so a single file serves every color scheme: CSS
+paints the ink in whatever color you choose.
 
 ## Credits
 
 Six of the carpet patterns are derived from US design patents for a carpet naming
 **Eugene A. Crowe** of Boston as inventor, granted 1882-1884, two (D 13,108 and D 13,109)
 from patents naming **Edwin Fisher** of Boston, and one (D 13,110) naming **John Fisher**
-of New York. The six specifications that were read
-(12,657, 14,685, 13,106, 13,108, 13,109 and 13,110) name the **Lowell Manufacturing Company** of
-Lowell, Massachusetts as assignee. **Comp III** is US D 268,339, the Tioga Comp III tire tread: inventors
+of New York. The specifications of all nine carpet patents name the **Lowell Manufacturing
+Company** of Lowell, Massachusetts as assignee. **US D 74,141** is a 1927 textile fabric
+design (not a carpet) by **Harry S. Day** of Hawthorne, New Jersey, assigned to
+**Pennsylvania Textile Mills, Inc.** of Clifton, New Jersey, granted Dec 27, 1927. **Comp III** is US D 268,339, the Tioga Comp III tire tread: inventors
 **Syoji Inae and Eiji Fukuchi**, assigned to **Mitsuboshi Belting Ltd.**, granted
 Mar 22, 1983, expired Mar 22, 1997. The pile and grain tiles are generated and need
 no credit. The patents have expired, and the drawing scans come from the US Patent
@@ -35,6 +38,7 @@ their names when they are used.
 | `fisher-1882-13108` | [US D 13,108](https://patents.google.com/patent/USD13108S/en) | **Edwin Fisher** | Aug 1, 1882 | Adapted |
 | `fisher-1882-13109` | [US D 13,109](https://patents.google.com/patent/USD13109S/en) | **Edwin Fisher** | Aug 1, 1882 | Adapted |
 | `fisher-1882-13110` | [US D 13,110](https://patents.google.com/patent/USD13110S/en) | **John Fisher** | Aug 1, 1882 | Adapted |
+| `day-1927-74141` | [US D 74,141](https://patents.google.com/patent/USD74141S/en) | **Harry S. Day** | Dec 27, 1927 | Adapted (textile fabric, not a carpet) |
 | `us-d268339` (Comp III) | [US D 268,339](https://patents.google.com/patent/USD268339S/en) | Syoji Inae, Eiji Fukuchi | Mar 22, 1983 | Patent drawing (cropped) |
 | `pile-carpet`, `pile-grain` | none (procedural) | n/a | n/a | Generated noise, no credit needed |
 
@@ -55,13 +59,18 @@ text in each entry's `credit` field.
 4. Optional **fade** per layer: top to bottom, bottom to top, left to right or
    right to left, with a "full strength until" point and a "strength left at the
    far edge" floor. Fade one layer out while another fades in to blend patterns.
-5. Copy the **self-contained** CSS and paste it into the page's `<style>`.
-6. Add the `<div>`s the studio lists (`texture`, then `texture-2`, `texture-3`
-   for extra layers) as the first children of `<body>` and give `<body>`
-   `position:relative`. The "Put it on the page" box in the studio has the exact
-   text.
-7. Paste the credit line the studio generates into the page footer (procedural
-   patterns need none).
+5. **Using it in a project with Claude Code:** copy the **Paste into Claude Code**
+   block and paste it into the conversation. It holds the instructions, the CSS, the
+   `<div>`s, the per-theme variables and the credit line, and is about 4 KB with the
+   default **Short** form (the masks load from the hosted site). The
+   **Self-contained** tab gives the same block with the masks embedded (100 KB or
+   more), for single-file tools that must work offline or double-clicked.
+6. **Doing it by hand:** copy the CSS from "CSS only", add the `<div>`s the studio
+   lists (`texture`, then `texture-2`, `texture-3` for extra layers) as the first
+   children of `<body>`, and give `<body>` `position:relative`. The "Put it on the
+   page" box has the exact text.
+7. Put the credit line the studio generates in the page footer (procedural patterns
+   need none).
 
 To recolor for another color scheme later, change only the CSS variables,
 `--tex-ink` and `--tex-opacity` (plus `--tex-2-opacity` etc. for extra layers, and
@@ -73,7 +82,7 @@ block to paste for each theme.
 | Form | Use when | Why |
 |---|---|---|
 | Self-contained (data URI) | The tool is a single file that must work when double-clicked, or is embedded in an iframe | Browsers do not load a mask image from a local file. Tested: a relative `mask-image: url(m.webp)` renders nothing from `file://`; the same mask as a data URI renders. |
-| File link | The page is served from a web server (GitHub Pages, etc.) | Smaller CSS. Needs the `.webp` copied next to the page. Cross-site links also need the host to send CORS headers (GitHub Pages does). |
+| Short (file link, the studio default) | The page is served from the web | About 1-2 KB of CSS per layer. The masks load from `https://www.postmillenniumrenaissance.com/textures/masks/<id>.webp`; GitHub Pages sends the CORS header mask images need, so any web page can use them. Tested against a local server sending the same CORS header (the short CSS painted on a page from a different origin); not yet tested against the live site. A new pattern only loads once it is on the live site (after the branch is merged). The procedural pile and grain stay embedded (about 1 KB each). |
 
 The Patent Atlas must keep working when double-clicked, so it should use the
 self-contained form. That adds roughly 40-100 KB to `index.html` per pattern.
@@ -120,7 +129,7 @@ patent's drawing.** See `PROVENANCE.md`.
 | `prompts/redraw-patent-as-tile.md` | The Gemini prompt used to redraw a single-swatch patent as a seamless tile, with notes and a revision log |
 | `tools/make_mask.py` | Black-on-white image to alpha mask (downscale, then Otsu with soft ramp) |
 | `tools/make_tileable_grid.py` | Same edge repair for a pattern with a strict fine grid: crops to a whole number of grid cells first so the grid lines meet at the join |
-| `tools/make_tileable.py` | Forces an image to wrap on all four edges (min-error-cut quilting) |
+| `tools/make_tileable.py` | Forces an image to wrap on all four edges, or just one axis with `--axes=y` or `--axes=x` (min-error-cut quilting) |
 | `tools/build_studio.py` + `tools/studio_template.html` | Rebuild the studio after adding a pattern |
 | `PROVENANCE.md` | Where each pattern came from and how it was made |
 
