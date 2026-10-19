@@ -977,6 +977,10 @@
   .group-mark svg { width: 14px; height: 14px; transition: transform 0.3s ease; }
   .group-card.open .group-mark svg { transform: rotate(45deg); }
   .tool-child[hidden] { display: none; }
+  /* optional country/emblem icon: bottom-right, so it adds no height */
+  .tool-icon { position: absolute; right: 1.5rem; bottom: 1.5rem; width: 38px; height: 38px; color: var(--accent); pointer-events: none; transition: color 0.5s ease; }
+  .tool-icon svg { display: block; width: 100%; height: 100%; fill: currentColor; }
+  .has-icon .tool-desc { padding-right: 3.5rem; }
   .tool-child.reveal { animation: childReveal 0.35s ease both; }
   .tool-child.reveal + .tool-child.reveal { animation-delay: 0.07s; }
   @keyframes childReveal { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
@@ -1033,6 +1037,7 @@
     .tool-desc { display: none; }
     .share-btn { top: 0.6rem; right: 0.6rem; width: 26px; height: 26px; }
     .group-mark { top: 0.6rem; right: 0.6rem; width: 26px; height: 26px; }
+    .tool-icon { right: 0.9rem; bottom: 0.9rem; width: 28px; height: 28px; }
     .group-mark svg { width: 12px; height: 12px; }
     .share-btn svg { width: 12px; height: 12px; }
     .copied-label { font-size: 0.52rem; padding: 3px 6px; right: calc(100% + 6px); }
@@ -1453,7 +1458,10 @@
         { path: "/parks-ca/",
           tag:  "Bike Parks",
           name: "Canadian Bike Parks",
-          desc: "Canadian lift served bike parks: stats & maps." } ] },
+          desc: "Canadian lift served bike parks: stats & maps.",
+          // optional inline SVG (trusted markup, not escaped). Font Awesome
+          // Free, CC BY 4.0: keep the attribution comment inside the SVG.
+          icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" aria-hidden="true" focusable="false"><!--!Font Awesome Free v7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M447.8 415.7C450.3 413.2 553 323.3 553 323.3L535.5 315.8C525.5 310.9 528.1 304.3 530.5 298.4C532.9 290.8 550.6 231.1 550.6 231.1C550.6 231.1 502.9 241.1 492.9 243.6C485.4 246 482.9 241.1 480.4 236.1C477.9 231.1 465.4 203.7 465.4 203.7C465.4 203.7 412.8 263.6 410.3 266C400.3 273.5 390.2 266 392.7 256C392.7 246 420.3 126.4 420.3 126.4C420.3 126.4 390.2 143.8 380.2 148.8C372.7 153.8 367.6 153.8 362.6 143.8C357.5 136.3 319.9 64 319.9 64C319.9 64 282.4 136.3 277.4 143.8C272.4 153.8 267.4 153.8 259.8 148.8C249.8 143.8 219.7 126.4 219.7 126.4C219.7 126.4 247.3 246 247.3 256C249.8 266 239.8 273.5 229.7 266C227.2 263.5 174.6 203.7 174.6 203.7C174.6 203.7 162.1 231 159.6 236C157.1 241 154.6 245.9 147.1 243.5C137 241 89.4 231 89.4 231C89.4 231 107 290.7 109.5 298.3C111.9 304.3 114.5 310.8 104.5 315.7L87 323.3C87 323.3 189.6 413.2 192.2 415.7C197.3 420.7 202.2 423.2 197.3 438.2C192.2 453.2 187.2 473.3 187.2 473.3C187.2 473.3 282.4 453.2 292.5 450.7C301.2 449.8 310.8 453.2 310.8 463.2C310.8 473.2 305 576 305 576L335 576C335 576 329.2 473.3 329.2 463.2C329.2 453.1 338.7 449.8 347.6 450.7C357.6 453.2 452.8 473.3 452.8 473.3C452.8 473.3 447.8 453.2 442.8 438.2C437.8 423.2 442.8 420.7 447.8 415.7z"/></svg>' } ] },
     { path: "/geometry/",
       tag:  "Geometry",
       name: "MTB Steering Geometry",
@@ -1540,12 +1548,13 @@
     function cardHTML(tool, parentId) {
       var path = esc(tool.path), name = esc(tool.name);
       return '' +
-        '<div class="tool-card' + (parentId ? ' tool-child' : '') + '" data-tool-id="' + path + '"' +
+        '<div class="tool-card' + (parentId ? ' tool-child' : '') + (tool.icon ? ' has-icon' : '') + '" data-tool-id="' + path + '"' +
           (parentId ? ' data-parent="group:' + esc(parentId) + '" hidden' : '') + '>' +
           '<a href="' + path + '" class="card-hit" draggable="false" aria-label="Open ' + name + '"></a>' +
           '<div class="tool-tag">'  + esc(tool.tag)  + '</div>' +
           '<div class="tool-name">' + name           + '</div>' +
           '<p class="tool-desc">'   + esc(tool.desc) + '</p>' +
+          (tool.icon ? '<span class="tool-icon">' + tool.icon + '</span>' : '') +
           '<button class="share-btn" type="button" data-path="' + path + '" ' +
                   'data-title="' + name + '" aria-label="Share ' + name + '">' +
             '<span class="copied-label">Link copied</span>' +
