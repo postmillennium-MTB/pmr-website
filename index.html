@@ -2198,10 +2198,9 @@
     // sheet is never much wider than the stage.
     var FADE_FROM = narrow ? 200 : 380, FADE_TO = narrow ? 380 : 600;
     var cam = prog * ((D.length - 1) * GAP + REST);
-    // The whole stack starts low in the frame and rises to the middle over
-    // the first third of the fly-through (ease-out), instead of opening
-    // dead centre.
-    var rise = Math.min(1, prog / 0.35), lift = (narrow ? 70 : 130) * (1 - rise * (2 - rise));
+    // The stack sits a little below centre for the whole fly-through, so the
+    // cards open in the lower part of the frame and simply come forward.
+    var lift = narrow ? 20 : 40;
     var DEPTH = GAP * D.length;
     els.forEach(function (el, i) {
       var zz = -i * GAP + cam;
