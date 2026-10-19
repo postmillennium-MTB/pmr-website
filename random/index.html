@@ -21,7 +21,7 @@
   <script> #1  ENGINE ............. math helpers + the four stateful generators
   <script> #2
     ==== ALL DATA LIVES IN ONE CONTIGUOUS BLOCK ====
-    · CATEGORIES ................. the three Core 1 groups (chaos / copulas / financial)
+    · CATEGORIES ................. the four Core 1 groups (generators / attractors / copulas / financial)
     · MODELS ..................... 15 core + 24 advanced (adv:true) generators, one entry each
     · FORGE_PARAMS ............... the three Core 3 sliders
     · ICON_PATHS ................. the Lucide icons used (toggle, play, chevron, power-off)
@@ -619,6 +619,7 @@ function frankTau(theta){
      color  heading color (decorative chrome only)                              */
 const CATEGORIES=[
   {id:"seq", label:"Randomness & Chaos Generators", color:"var(--pink)"},
+  {id:"att", label:"Strange Attractors",             color:"var(--yellow)"},
   {id:"cop", label:"Copulas",                        color:"#c77dff"},
   {id:"fin", label:"Financial Stochastics",          color:"var(--green)"},
 ];
@@ -665,7 +666,7 @@ const MODELS=[
   // Hénon map (a=1.4): a 2-D strange attractor. The Attraction dial sets b, the area-contraction
   // factor per step: smaller b = stronger pull (the attractor thins toward a curve).
   // Start near the origin, discard the transient, then record the orbit.
-  {id:"henon",    cat:"seq", name:"Hénon Map (Strange Attractor)", type:"scatter", color:"#4dffd2",
+  {id:"henon",    cat:"att", name:"Hénon Map (Strange Attractor)", type:"scatter", color:"#4dffd2",
    dials:[{id:"pull", label:"Attraction", weak:0.31, strong:0.02, classic:0.30, fmt:b=>"b = "+b.toFixed(3),
      help:"Sets the contraction factor b: more attraction = smaller b, so the orbit is squeezed onto a thinner curve. Classic is b = 0.30. Weaker than b ≈ 0.31 the attractor dies and orbits escape to infinity, so the dial stops there."}],
    gen:()=>{ const b=dialParam("henon","pull");
@@ -679,7 +680,7 @@ const MODELS=[
   // familiar butterfly, as a line so the lobes read as one orbit. The Attraction dial sets beta,
   // which (with sigma) is the volume-contraction rate sigma+1+beta: more attraction = larger beta.
   // Beyond beta ≈ 3.2 the chaos dies and the orbit spirals into a fixed point.
-  {id:"lorenz",   cat:"seq", name:"Lorenz Attractor (x–z)",     type:"line", color:"#ff8c66",
+  {id:"lorenz",   cat:"att", name:"Lorenz Attractor (x–z)",     type:"line", color:"#ff8c66",
    dials:[{id:"pull", label:"Attraction", weak:0.5, strong:6, classic:8/3, fmt:b=>"β = "+b.toFixed(2),
      help:"Sets β, the dissipation: more attraction = larger β. Classic is β = 8/3. Weak: a looser, larger butterfly. Strong (β above about 3.2): the chaos dies and the orbit spirals into a single point."}],
    gen:()=>{ const beta=dialParam("lorenz","pull");
@@ -758,7 +759,7 @@ const MODELS=[
 
   // ---- Randomness & chaos: chaotic maps and flows ----
   // Rössler: x'=-y-z, y'=x+ay, z'=b+z(x-c), a=b=0.2. The dial is c: ~3 period-2, ~4 period-4, 5.7 chaos.
-  {id:"rossler", adv:true, cat:"seq", name:"Rössler Attractor (x–y)", type:"scatter", color:"#ff9d4d",
+  {id:"rossler", adv:true, cat:"att", name:"Rössler Attractor (x–y)", type:"scatter", color:"#ff9d4d",
    dials:[{id:"c", label:"Control parameter c", weak:2.5, strong:9, classic:5.7, fmt:c=>"c = "+c.toFixed(2),
      help:"Walk c upward to watch order break down: a single loop, then period-doubling (2, 4, 8 loops) into chaos near the classic c = 5.7, then wider bands."}],
    gen:()=>{ const c=dialParam("rossler","c"), f=([x,y,z])=>[-y-z, x+ROSSLER_A*y, ROSSLER_B+z*(x-c)];
@@ -768,7 +769,7 @@ const MODELS=[
       return pts; }},
   // Thomas' cyclically symmetric attractor: x'=sin y - b x (and cyclic). b is damping: large b = sink/cycle,
   // chaos below b ≈ 0.208, b = 0 is conservative (the orbit wanders ergodically).
-  {id:"thomas", adv:true, cat:"seq", name:"Thomas Attractor (x–y)", type:"scatter", color:"#d24dff",
+  {id:"thomas", adv:true, cat:"att", name:"Thomas Attractor (x–y)", type:"scatter", color:"#d24dff",
    dials:[{id:"b", label:"Damping b", weak:0.35, strong:0.02, classic:0.19, fmt:b=>"b = "+b.toFixed(3),
      help:"Less damping (right) takes the orbit from a limit cycle through chaos (onset b ≈ 0.208) toward a labyrinth that fills space as b → 0."}],
    gen:()=>{ const b=dialParam("thomas","b"), f=([x,y,z])=>[Math.sin(y)-b*x, Math.sin(z)-b*y, Math.sin(x)-b*z];
@@ -786,7 +787,7 @@ const MODELS=[
         for(let i=0;i<per;i++){ p=(p+K*Math.sin(th))%TAU; if(p<0)p+=TAU; th=(th+p)%TAU; pts.push({x:th,y:p}); } }
       return pts; }},
   // Ikeda map (laser in a ring cavity): z' = 1 + u z exp(i(0.4 - 6/(1+|z|²))). u is the dissipation.
-  {id:"ikeda", adv:true, cat:"seq", name:"Ikeda Map (spiral attractor)", type:"scatter", color:"#ff4dc4",
+  {id:"ikeda", adv:true, cat:"att", name:"Ikeda Map (spiral attractor)", type:"scatter", color:"#ff4dc4",
    dials:[{id:"u", label:"Dissipation u", weak:0.6, strong:0.99, classic:0.9, fmt:u=>"u = "+u.toFixed(3),
      help:"u is the fraction of the field kept each pass. Lower u: the orbit settles toward a point or small cycle. Higher u: it fills out the spiral strange attractor."}],
    gen:()=>{ const u=dialParam("ikeda","u"); let x=0.1+0.1*attractorStart[0], y=0.1*attractorStart[1]; const pts=[];
