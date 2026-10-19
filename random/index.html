@@ -21,6 +21,7 @@
   <script> #1  ENGINE ............. math helpers + the four stateful generators
   <script> #2
     ==== ALL DATA LIVES IN ONE CONTIGUOUS BLOCK ====
+    · CATEGORIES ................. the three Core 1 groups (chaos / copulas / financial)
     · MODELS ..................... the 15 generators, one entry each
     · FORGE_PARAMS ............... the three Core 3 sliders
     · MS_MODES ................... the Middle-Square collapse switch (reseed / report / pure)
@@ -228,10 +229,8 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
     <div class="col">
       <div class="panel panel-1">
         <div class="panel-head"><h2 id="h-core1">Core 1: Models</h2><span class="tag" id="pts-tag"></span></div>
-        <h3 style="color:var(--pink)">Randomness &amp; Chaos Generators</h3>
-        <div id="seq-box"></div>
-        <h3 style="color:var(--green)">Financial Stochastics</h3>
-        <div id="fin-box"></div>
+        <!-- Group headings and model rows are BUILT FROM the `CATEGORIES` and `MODELS` registries in the script below. -->
+        <div id="model-box"></div>
         <!-- Attraction dials: BUILT FROM each model's `dials` in the `MODELS` registry; a dial shows only while its model is checked. -->
         <div id="dial-box" hidden></div>
         <div class="model-row" style="margin-top:.5rem; border-top:1px solid rgba(0,255,255,.25)">
@@ -430,13 +429,25 @@ function nextLogistic(){ lmState=LOGISTIC_R*lmState*(1-lmState); return lmState;
 </script>
 
 <script>
+/* ==== CATEGORIES REGISTRY — the groups the models are listed under. ==========
+   TO ADD A GROUP: add ONE entry here (list order = display order), then set `cat` on its models.
+
+     id     value used in a model's `cat`
+     label  group heading in Core 1 and group label in the Core 2 dropdowns
+     color  heading color (decorative chrome only)                              */
+const CATEGORIES=[
+  {id:"seq", label:"Randomness & Chaos Generators", color:"var(--pink)"},
+  {id:"cop", label:"Copulas",                        color:"#c77dff"},
+  {id:"fin", label:"Financial Stochastics",          color:"var(--green)"},
+];
+
 /* ==== MODELS REGISTRY — the single source of truth for every generator. =====
    TO ADD A MODEL: write a generator (returns [{x,y},…] of length NUM_POINTS),
    then add ONE entry here. Core 1 row, both Core 2 dropdowns and the render
    dispatch all derive from it.
 
      id     unique key (used for DOM ids)
-     cat    "seq" = randomness & chaos column, "fin" = financial column
+     cat    id of a CATEGORIES entry: which group the model sits in (Core 1 list, Core 2 dropdown groups)
      name   display label
      type   "scatter" or "line" (line models draw as a connected path)
      color  default plot color (user can change per model in Core 1)
@@ -492,12 +503,12 @@ const MODELS=[
         s=lorenzStep(s,beta); if(i%LORENZ_STEPS_PER_POINT===0) pts.push({x:s[0],y:s[2]}); }
       return pts; }},
 
-  {id:"gauss",    cat:"fin", name:"Gaussian Copula (ρ=0.8)",    type:"scatter", color:"#aa00ff", copula:true,
+  {id:"gauss",    cat:"cop", name:"Gaussian Copula (ρ=0.8)",    type:"scatter", color:"#aa00ff", copula:true,
    gen:()=>{ const pts=[]; for(let i=0;i<NUM_POINTS;i++){ const z1=randn_bm(),z2=randn_bm();
       pts.push({x:z1,y:COPULA_RHO*z1+Math.sqrt(1-COPULA_RHO*COPULA_RHO)*z2}); } return pts; }},
   // Student-t via normal / sqrt(chi-square/nu). Chi-square(4) is exactly the sum
   // of four squared standard normals, so nu=4 needs no approximation.
-  {id:"tcopula",  cat:"fin", name:"Student-t Copula (ν=4)",     type:"scatter", color:"#0055ff", on:true, copula:true,
+  {id:"tcopula",  cat:"cop", name:"Student-t Copula (ν=4)",     type:"scatter", color:"#0055ff", on:true, copula:true,
    toNormal:x=>probit(tCdf4(x)),
    gen:()=>{ const pts=[]; for(let i=0;i<NUM_POINTS;i++){
       const z1=randn_bm(),z2=randn_bm();
@@ -530,7 +541,7 @@ const MODELS=[
   // Lower-tail dependent: joint crashes cluster in the bottom-left corner. Plotted on
   // UNIFORM margins natively; the "Normal margins" setting maps them to N(0,1) via probit
   // so the tail shape is comparable with the Gaussian and Student-t copulas.
-  {id:"clayton",  cat:"fin", name:"Clayton Copula (θ=2)", type:"scatter", color:"#7cff4d", copula:true,
+  {id:"clayton",  cat:"cop", name:"Clayton Copula (θ=2)", type:"scatter", color:"#7cff4d", copula:true,
    toNormal:probit,
    gen:()=>{ const pts=[], inv=-1/CLAYTON_THETA;
       for(let i=0;i<NUM_POINTS;i++){
@@ -872,23 +883,32 @@ function buildDials(){
 function init(){
   $("pts-tag").textContent=NUM_POINTS+" PT/SEQ";
 
-  for(const m of MODELS){
-    const row=document.createElement("div"); row.className="model-row";
-    const label=document.createElement("label");
-    const chk=document.createElement("input");
-    chk.type="checkbox"; chk.id="chk-"+m.id; chk.checked=!!m.on;
-    const span=document.createElement("span"); span.textContent=m.name;
-    label.append(chk,span);
-    const col=document.createElement("input");
-    col.type="color"; col.id="col-"+m.id; col.value=m.color; col.style.color=m.color;
-    col.setAttribute("aria-label","Color for "+m.name);
-    row.append(label,col);
-    (m.cat==="seq"?$("seq-box"):$("fin-box")).appendChild(row);
+  // One group per CATEGORIES entry: a heading + rows in Core 1, an <optgroup> in each Core 2 dropdown.
+  for(const cat of CATEGORIES){
+    const h=document.createElement("h3"); h.textContent=cat.label; h.style.color=cat.color;
+    const box=document.createElement("div");
+    $("model-box").append(h,box);
+    const groups=["a","b"].map(slot=>{
+      const g=document.createElement("optgroup"); g.label=cat.label; $("blend-"+slot).appendChild(g); return g; });
 
-    for(const slot of ["a","b"]){
-      const o=document.createElement("option"); o.value=m.id; o.textContent=m.name;
-      if(slot==="a"?m.defA:m.defB) o.selected=true;
-      $("blend-"+slot).appendChild(o);
+    for(const m of MODELS.filter(x=>x.cat===cat.id)){
+      const row=document.createElement("div"); row.className="model-row";
+      const label=document.createElement("label");
+      const chk=document.createElement("input");
+      chk.type="checkbox"; chk.id="chk-"+m.id; chk.checked=!!m.on;
+      const span=document.createElement("span"); span.textContent=m.name;
+      label.append(chk,span);
+      const col=document.createElement("input");
+      col.type="color"; col.id="col-"+m.id; col.value=m.color; col.style.color=m.color;
+      col.setAttribute("aria-label","Color for "+m.name);
+      row.append(label,col);
+      box.appendChild(row);
+
+      ["a","b"].forEach((slot,i)=>{
+        const o=document.createElement("option"); o.value=m.id; o.textContent=m.name;
+        if(slot==="a"?m.defA:m.defB) o.selected=true;
+        groups[i].appendChild(o);
+      });
     }
   }
 
