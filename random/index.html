@@ -23,7 +23,7 @@
   <script> #2
     ==== ALL DATA LIVES IN ONE CONTIGUOUS BLOCK ====
     · CATEGORIES ................. the four Core 1 groups (generators / attractors / copulas / financial)
-    · MODELS ..................... 15 core + 34 advanced (adv:true) generators, one entry each
+    · MODELS ..................... 15 core + 42 advanced (adv:true) generators, one entry each
     · FORGE_PARAMS ............... the three Core 3 sliders
     · VIEW3D_PARAMS .............. the Core 4 view sliders (azimuth, elevation, speed, zoom, perspective, size)
     · FIN_TERMS .................. the disclaimer points a visitor must accept before Financial models appear
@@ -723,6 +723,42 @@ function marshallOlkin2(a,rng){ const z12=a>0?expSample(rng)/a:Infinity,
     x=Math.min(expSample(rng)/(1-a||1e-12),z12), y=Math.min(expSample(rng)/(1-a||1e-12),z12);
   return [Math.exp(-x),Math.exp(-y)]; }
 
+// Duffing oscillator (double well) x'' + δx' - x + x³ = γ cos(ωt) as a Poincaré section: RK4 over each forcing period,
+// recording (x, x') once per period after DUFF_BURN_PERIODS periods are discarded. Scalar arithmetic, so 1,700 periods are fast.
+function duffingSection(gamma,n,x0,v0){
+  const T=2*Math.PI/DUFF_W, dt=T/DUFF_STEPS_PER_PERIOD, d=DUFF_DELTA, w=DUFF_W, pts=[];
+  let x=x0, v=v0, t=0;
+  const acc=(x,v,t)=>-d*v+x-x*x*x+gamma*Math.cos(w*t);
+  for(let p=-DUFF_BURN_PERIODS;p<n;p++){
+    for(let k=0;k<DUFF_STEPS_PER_PERIOD;k++){
+      const a1=acc(x,v,t), x2=x+dt/2*v, v2=v+dt/2*a1, a2=acc(x2,v2,t+dt/2),
+            x3=x+dt/2*v2, v3=v+dt/2*a2, a3=acc(x3,v3,t+dt/2), x4=x+dt*v3, v4=v+dt*a3, a4=acc(x4,v4,t+dt);
+      x+=dt/6*(v+2*v2+2*v3+v4); v+=dt/6*(a1+2*a2+2*a3+a4); t+=dt;
+    }
+    if(p>=0) pts.push({x,y:v});
+  }
+  return pts;
+}
+
+// Double pendulum with equal masses and arm lengths (m = L = 1), RK4. State [θ1, θ2, ω1, ω2]; both arms are released
+// from rest at `deg` degrees, plus a tiny `jitter` (radians) on θ1 so Re-roll shows a different chaotic path. Returns the
+// path of the lower bob. Energy is conserved to ~2e-7 (relative) over 30 s at the step used (checked).
+function doublePendulumPath(deg,every,jitter){
+  const th=deg*Math.PI/180, g=PEND_G, dt=PEND_DT;
+  const f=([t1,t2,w1,w2])=>{ const d=t1-t2, den=3-Math.cos(2*d);
+    return [w1,w2,
+      (-3*g*Math.sin(t1)-g*Math.sin(t1-2*t2)-2*Math.sin(d)*(w2*w2+w1*w1*Math.cos(d)))/den,
+      (2*Math.sin(d)*(2*w1*w1+2*g*Math.cos(t1)+w2*w2*Math.cos(d)))/den]; };
+  const add=(a,b,k)=>a.map((v,i)=>v+b[i]*k);
+  let s=[th+jitter,th,0,0]; const pts=[];
+  for(let i=0;i<NUM_POINTS*every;i++){
+    const k1=f(s), k2=f(add(s,k1,dt/2)), k3=f(add(s,k2,dt/2)), k4=f(add(s,k3,dt));
+    s=s.map((v,j)=>v+dt/6*(k1[j]+2*k2[j]+2*k3[j]+k4[j]));
+    if(i%every===0) pts.push({x:Math.sin(s[0])+Math.sin(s[1]), y:-Math.cos(s[0])-Math.cos(s[1])});
+  }
+  return pts;
+}
+
 // Frank's Kendall tau, 1 - 4/theta * (1 - D1(theta)), D1 the Debye function (Simpson, 200 intervals).
 function frankTau(theta){
   const n=200, h=theta/n, f=t=>t<1e-9?1:t/(Math.exp(t)-1); let s=f(0)+f(theta);
@@ -999,6 +1035,82 @@ const MODELS=[
      help:"The difference between the two disks. Shifts the orbit and the length of its runs between polarity flips; chaotic across 2 to 8."}, SPAN_DIAL],
    gen3:()=>{ const mu=dialParam("rikitake","mu"), a=dialParam("rikitake","a"), f=([x,y,z])=>[-mu*x+y*z,-mu*y+(z-a)*x,1-x*y];
       return integrateFlow(f,[1+0.1*attractorStart[0],0.1*attractorStart[1],0],RIKITAKE_DT,spanSteps(RIKITAKE_STEPS_PER_POINT,"rikitake"),RIKITAKE_BURN_IN,NUM_POINTS); }},
+  // Sprott's "simplest" chaotic jerk flows (third derivative of x as a function of x, x', x''), written as x'=y, y'=z, z'=...
+  // Quadratic: z' = -Az + y² - x, A = 2.017. The basin is tiny: the orbit stays bounded only from near (-1, 0, 0)
+  // and only for A of about 2.017–2.07, so the start is fixed, the dial stops there and a runaway restarts. Chaos is weak.
+  {id:"sprottq", adv:true, cat:"att", name:"Sprott Jerk Flow, quadratic (x–y)", type:"line", color:"#9dffc8", proj:["x","y"],
+   dials:[{id:"A", label:"Damping A", weak:2.017, strong:2.07, classic:2.017, fmt:A=>"A = "+A.toFixed(3),
+     help:"One of the simplest chaotic flows known: a single quadratic term. Chaotic only in a thin band starting at the classic 2.017; it runs away to infinity below that, and is regular above about 2.07."}, SPAN_DIAL],
+   gen3:()=>{ const A=dialParam("sprottq","A"), f=([x,y,z])=>[y,z,-A*z+y*y-x];
+      const burn=SPROTTQ_BURN_IN+Math.floor(attractorStart[0]*SPROTTQ_BURN_JITTER);
+      return integrateFlow(f,SPROTTQ_START,SPROTTQ_DT,spanSteps(SPROTTQ_STEPS_PER_POINT,"sprottq"),burn,NUM_POINTS); }},
+  // Piecewise-linear: z' = -Az - y + |x| - 1, A = 0.6 (x''' + Ax'' + x' - |x| + 1 = 0). No product terms at all.
+  {id:"sprottpl", adv:true, cat:"att", name:"Sprott Jerk Flow, piecewise-linear (x–y)", type:"line", color:"#ffc89d", proj:["x","y"],
+   dials:[{id:"A", label:"Damping A", weak:0.56, strong:0.66, classic:0.6, fmt:A=>"A = "+A.toFixed(3),
+     help:"Chaotic in a narrow window around the classic 0.6 (strongest near 0.58 and 0.62); regular outside it, and below about 0.5 the orbit can run away."}, SPAN_DIAL],
+   gen3:()=>{ const A=dialParam("sprottpl","A"), f=([x,y,z])=>[y,z,-A*z-y+Math.abs(x)-1];
+      return integrateFlow(f,[0.05+0.05*attractorStart[0],0.05,0.05],SPROTTPL_DT,spanSteps(SPROTTPL_STEPS_PER_POINT,"sprottpl"),SPROTTPL_BURN_IN,NUM_POINTS); }},
+  // Clifford attractor: x' = sin(ay) + c cos(ax), y' = sin(bx) + d cos(by). Classic (a,b,c,d) = (-1.4, 1.6, 1.0, 0.7).
+  // Every parameter changes the filigree; chaos holds over the dial ranges except in narrow periodic windows.
+  {id:"clifford", adv:true, cat:"att", name:"Clifford Attractor", type:"scatter", color:"#c8b0ff",
+   dials:[{id:"a", label:"Parameter a", weak:-1.85, strong:-1.3, classic:-1.4, fmt:v=>"a = "+v.toFixed(2),
+     help:"Controls the folding in x. Chaotic across this range; toward −1.2 and beyond the attractor collapses to a thin curve."},
+    {id:"b", label:"Parameter b", weak:1.55, strong:2.1, classic:1.6, fmt:v=>"b = "+v.toFixed(2),
+     help:"Controls the folding in y. Below about 1.5 the motion is regular."},
+    {id:"c", label:"Parameter c", weak:0.6, strong:1.4, classic:1, fmt:v=>"c = "+v.toFixed(2),
+     help:"Strength of the cosine term in x. Larger c = stronger chaos and a wider picture; near 0.4 it goes regular."},
+    {id:"d", label:"Parameter d", weak:0.3, strong:1.1, classic:0.7, fmt:v=>"d = "+v.toFixed(2),
+     help:"Strength of the cosine term in y. Chaotic across the whole range."}],
+   gen:()=>{ const a=dialParam("clifford","a"), b=dialParam("clifford","b"), c=dialParam("clifford","c"), d=dialParam("clifford","d");
+      let x=0.1+0.05*attractorStart[0], y=0.1+0.05*attractorStart[1]; const pts=[];
+      for(let i=-MAP_BURN_IN;i<NUM_POINTS;i++){ const nx=Math.sin(a*y)+c*Math.cos(a*x); y=Math.sin(b*x)+d*Math.cos(b*y); x=nx; if(i>=0) pts.push({x,y}); }
+      return pts; }},
+  // de Jong attractor (Peter de Jong): x' = sin(ay) - cos(bx), y' = sin(cx) - cos(dy). Classic (1.641, 1.902, 0.316, 1.525).
+  {id:"dejong", adv:true, cat:"att", name:"de Jong Attractor", type:"scatter", color:"#ffb0c8",
+   dials:[{id:"a", label:"Parameter a", weak:1.2, strong:2, classic:1.641, fmt:v=>"a = "+v.toFixed(3),
+     help:"Chaotic across the range; moves the main loops sideways."},
+    {id:"b", label:"Parameter b", weak:1.5, strong:2.3, classic:1.902, fmt:v=>"b = "+v.toFixed(3),
+     help:"Chaotic across the range; changes how tightly the filaments wind."},
+    {id:"c", label:"Parameter c", weak:0.1, strong:1.2, classic:0.316, fmt:v=>"c = "+v.toFixed(3),
+     help:"Chaotic across the range; larger c fills the picture out."},
+    {id:"d", label:"Parameter d", weak:1.5, strong:1.9, classic:1.525, fmt:v=>"d = "+v.toFixed(3),
+     help:"Chaotic over this range; below about 1.4 the motion becomes regular."}],
+   gen:()=>{ const a=dialParam("dejong","a"), b=dialParam("dejong","b"), c=dialParam("dejong","c"), d=dialParam("dejong","d");
+      let x=0.1+0.05*attractorStart[0], y=0.1+0.05*attractorStart[1]; const pts=[];
+      for(let i=-MAP_BURN_IN;i<NUM_POINTS;i++){ const nx=Math.sin(a*y)-Math.cos(b*x); y=Math.sin(c*x)-Math.cos(d*y); x=nx; if(i>=0) pts.push({x,y}); }
+      return pts; }},
+  // Lozi map: x' = 1 - a|x| + y, y' = bx. Hénon with the square replaced by an absolute value, so it is piecewise linear.
+  {id:"lozi", adv:true, cat:"att", name:"Lozi Map (piecewise-linear Hénon)", type:"scatter", color:"#80d0ff",
+   dials:[{id:"a", label:"Parameter a", weak:1.1, strong:1.72, classic:1.7, fmt:v=>"a = "+v.toFixed(3),
+     help:"Walk a up: a 2-point cycle (to about 1.45), a 4-point cycle near 1.5, then chaos from about 1.55. The orbit escapes beyond a diagonal boundary (a = 1.76 at b = 0.5), so the dial stops at 1.72."},
+    {id:"b", label:"Parameter b", weak:0.2, strong:0.55, classic:0.5, fmt:v=>"b = "+v.toFixed(2),
+     help:"Contraction, as in Hénon: smaller b thins the attractor toward a line. Larger b together with a near 1.72 or more makes the orbit escape, so the dial stops at 0.55."}],
+   gen:()=>{ const a=dialParam("lozi","a"), b=dialParam("lozi","b"); let x=0.1+0.05*attractorStart[0], y=0.1+0.05*attractorStart[1]; const pts=[];
+      for(let i=-MAP_BURN_IN;i<NUM_POINTS;i++){ const nx=1-a*Math.abs(x)+y; y=b*x; x=nx;
+        if(!isFinite(x)||Math.abs(x)>MAP_ESCAPE){ x=0.1; y=0.1; }          // escaped: restart rather than plot garbage
+        if(i>=0) pts.push({x,y}); }
+      return pts; }},
+  // Gingerbreadman map: x' = 1 - y + |x|, y' = x. Area-preserving (like Chirikov, no attractor): which invariant set you
+  // land on depends on the start. From x0 between about -0.3 and -0.1 (y0 = 0) the orbit fills the gingerbread-man shaped
+  // chaotic sea; from x0 between 0 and 1 it is trapped on a tiny periodic island.
+  {id:"ginger", adv:true, cat:"seq", name:"Gingerbreadman Map", type:"scatter", color:"#ffd27a",
+   dials:[{id:"x0", label:"Starting x", weak:-0.35, strong:1, classic:-0.1, fmt:v=>"x₀ = "+v.toFixed(2),
+     help:"Nothing changes except where the orbit starts (y₀ = 0). Between about −0.3 and −0.1 it fills the gingerbread-man chaotic sea; from 0 to 1 it is stuck on a tiny periodic island. A map with no attractor: the start decides the picture."}],
+   gen:()=>{ let x=dialParam("ginger","x0"), y=0; const pts=[];
+      for(let i=0;i<NUM_POINTS;i++){ const nx=1-y+Math.abs(x); y=x; x=nx; pts.push({x,y}); }
+      return pts; }},
+  // Duffing oscillator, double-well form: x'' + δx' - x + x³ = γ cos(ωt), δ=0.3, ω=1.2. Plotted as a Poincaré section:
+  // (x, x') sampled once per forcing period, which turns the chaotic flow into a folded, filamentary strange attractor.
+  {id:"duffing", adv:true, cat:"att", name:"Duffing Oscillator (Poincaré section)", type:"scatter", color:"#7affc8",
+   dials:[{id:"gamma", label:"Forcing amplitude γ", weak:0.2, strong:0.7, classic:0.5, fmt:g=>"γ = "+g.toFixed(2),
+     help:"How hard the oscillator is pushed. Small γ: a single periodic orbit (1–2 points); chaos from about 0.4 (a small window near 0.35 is periodic); larger γ stretches the attractor."}],
+   gen:()=>duffingSection(dialParam("duffing","gamma"),NUM_POINTS,1+0.05*attractorStart[0],0.05*attractorStart[1])},
+  // Double pendulum (equal masses and lengths): the path of the lower bob. Hamiltonian chaos (no attractor).
+  // The dial is the release angle: regular for small angles, chaotic from about 90 degrees.
+  {id:"dpend", adv:true, cat:"seq", name:"Double Pendulum (lower-bob path)", type:"line", color:"#ff9d9d",
+   dials:[{id:"theta", label:"Release angle", weak:10, strong:170, classic:120, fmt:d=>d.toFixed(0)+"° (both arms)",
+     help:"Both arms are released from rest at this angle. Small angles give a regular, repeating pattern; from about 90° the motion is chaotic, and a difference of one part in 100 million becomes a completely different path within seconds."}, SPAN_DIAL],
+   gen:()=>doublePendulumPath(dialParam("dpend","theta"),spanSteps(PEND_STEPS_PER_POINT,"dpend"),PEND_JITTER*attractorStart[0])},
   // Tinkerbell map: x'=x²-y²+ax+by, y'=2xy+cx+dy. A tiny basin: most starting points and parameters escape to
   // infinity, so the start is fixed and the dials stop at the edge (a >= 0.91 or b <= -0.605 escapes). Re-roll
   // picks a different stretch of the SAME orbit (a random burn-in), since the orbit itself is deterministic.
@@ -1243,6 +1355,14 @@ const RF_DT=0.002, RF_STEPS_PER_POINT=10, RF_BURN_IN=5000, RF_BURN_JITTER=5000; 
 const DADRAS_A=3, DADRAS_B=2.7, DADRAS_D=2;                           // Dadras–Momeni (2009) values; c and e are dials
 const DADRAS_DT=0.005, DADRAS_STEPS_PER_POINT=8, DADRAS_BURN_IN=6000; // ~60 time units across the 1,500 points
 const RIKITAKE_DT=0.01, RIKITAKE_STEPS_PER_POINT=10, RIKITAKE_BURN_IN=3000;   // slow flips: 1,500 points span ~150 time units
+const SPROTTQ_START=[-1,0,0];                                          // the only start known to stay bounded for the quadratic jerk flow
+const SPROTTQ_DT=0.01, SPROTTQ_STEPS_PER_POINT=4, SPROTTQ_BURN_IN=10000, SPROTTQ_BURN_JITTER=10000;   // jitter = random extra burn-in (Re-roll)
+const SPROTTPL_DT=0.01, SPROTTPL_STEPS_PER_POINT=4, SPROTTPL_BURN_IN=10000;
+const MAP_BURN_IN=100, MAP_ESCAPE=1e3;  // iterations discarded for the Clifford / de Jong / Lozi maps; escape radius that restarts Lozi
+const DUFF_DELTA=0.3, DUFF_W=1.2;       // damping and forcing frequency (γ is the dial)
+const DUFF_STEPS_PER_PERIOD=80, DUFF_BURN_PERIODS=200;   // RK4 steps per forcing period; periods discarded
+const PEND_G=9.81, PEND_DT=0.002, PEND_STEPS_PER_POINT=8;   // RK4 step; 1,500 points span ~24 s. Larger steps lose energy: 0.01 drifts 3e-4, 0.002 only 2e-7 (relative)
+const PEND_JITTER=1e-4;         // radians of random nudge on the first arm (Re-roll); amplified only where the motion is chaotic
 const TINKERBELL_C=2, TINKERBELL_D=0.5;                             // classic constants; a and b are dials
 const TINKERBELL_X0=-0.72, TINKERBELL_Y0=-0.64;                      // standard start inside the basin
 const TINKERBELL_BURN_IN=100, TINKERBELL_ESCAPE=1e3;                 // iterations discarded; escape radius that triggers a restart
