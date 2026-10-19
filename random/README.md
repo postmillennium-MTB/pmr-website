@@ -23,14 +23,18 @@ A line with no tag has not been checked at all.
 1. [Conventions used by the tool](#conventions-used-by-the-tool)
 2. [Randomness & Chaos generators](#randomness--chaos-generators)
 3. [Strange attractors](#strange-attractors)
-4. [Core 4 — the 3-D viewer](#core-4--the-3-d-viewer)
-5. [Copulas](#copulas)
-6. [Financial stochastic processes](#financial-stochastic-processes)
-7. [Shared numerical methods](#shared-numerical-methods)
-8. [Verification log](#verification-log)
-9. [Not yet included](#not-yet-included)
-10. [Adding a model](#adding-a-model)
-11. [Disclaimer](#disclaimer)
+4. [Core 2 — the Formula Blender](#core-2--the-formula-blender)
+5. [Core 3 — the Algorithmic Forge](#core-3--the-algorithmic-forge)
+6. [Core 4 — the 3-D viewer](#core-4--the-3-d-viewer)
+7. [Copulas](#copulas)
+8. [Financial stochastic processes](#financial-stochastic-processes)
+9. [Related resources](#related-resources)
+10. [Shared numerical methods](#shared-numerical-methods)
+11. [Verification log](#verification-log)
+12. [Not yet included](#not-yet-included)
+13. [Adding a model](#adding-a-model)
+14. [Disclaimer](#disclaimer)
+15. [License](#license)
 
 ## Conventions used by the tool
 
@@ -41,12 +45,15 @@ A line with no tag has not been checked at all.
   is printed beside it. The slider starts at the "classic" (published or textbook) value.
 - Advanced stochastic models use a **seeded** random stream, so moving a dial changes only the
   parameter, not the random draws. The "Re-roll" buttons change the seed.
-- Copula models are on **uniform margins** natively. "Normal margins" maps them to standard normal
+- Copula models are on **uniform margins** natively, except two: the Gaussian copula is generated with standard-normal margins and the Student-t copula with t₄ margins (both use the textbook "correlated normals" construction). "Normal margins" maps the others to standard normal
   (probit) and puts all active copulas on one shared axis range so tails can be compared directly.
 - Parameter values are **illustrative teaching values**, not calibrated to any market, unless noted.
 - Every strange-attractor model has at least one dial. Most 3-D flows also have an **Orbit length** dial (0.25×–4×), which scales how much of the trajectory the 1,500 points cover.
 - **Re-roll** picks a new random start. For the two models whose orbit is deterministic from a fixed start (Halvorsen, Tinkerbell) it instead picks a different stretch of the same orbit, so the picture still changes.
-- **Core 4** (below) shows the 3-D models as a rotating 3-D plot.
+- **Core 2** (blender), **Core 3** (forge) and **Core 4** (3-D viewer) are described below.
+- **On by default in Core 1:** Logistic Map, Halton Sequence, and the three core copulas (Gaussian, Student-t, Clayton). Core 2 starts with Logistic (A) and Lorenz (B).
+- **Collapsible panels:** Cores 2, 3 and 4 each have a chevron button in the header that folds the panel down to its title bar. Panels start open every visit; the state is not remembered.
+- **Page layout:** the *Add financial stochastic models…* button sits at the bottom of the page, just above the legal disclaimer.
 
 ---
 
@@ -262,6 +269,35 @@ Systems whose long-run behavior settles onto a bounded set with fractal structur
 
 ---
 
+## Core 2 — the Formula Blender
+
+Crossfades two models into one picture. Pick **Formula A** (left base) and **Formula B** (right target) from the dropdowns; the plot shows A's points on the left, B's on the right, and a blended band between them. Every point is a weighted average of the matching A and B points, so the picture is a literal interpolation, not a statistical mixture.
+
+- **Fade bar** (−100 to +100): where the middle of the transition sits along the 1,500 points. −100 is all B, +100 is all A, 0 is the centre.
+- **Blend smoothness** (0–100): width of the transition band. 0 is a hard cut; higher values use a smoothstep over a wider band.
+- **Color A / Color B:** one color per formula. Both start as the same yellow, so the default looks like a single color. If they differ, each point's color is the same A→B blend as its position. For line plots the color changes segment by segment.
+- **Re-roll A & B** draws fresh samples for both selected models. **Surprise Me! [ RNG Overload ]** also picks two new models, a new fade position and smoothness, and random colors for A and B.
+- **Seeds:** each slot keeps its own seed and attractor start, so slot A and slot B differ even when they hold the same model, and moving a model dial morphs the picture instead of re-drawing it.
+- **Line vs. dots:** the result is drawn as a connected line only when both models are line models; otherwise as dots.
+- **Normalization:** each sequence is normalized to a common range before blending. The Core 1 "Normal margins" switch also applies here.
+
+---
+
+## Core 3 — the Algorithmic Forge
+
+A deliberately breakable random-number generator, drawn as a scatter of consecutive pairs. It shows why small or weak generators produce visible geometric patterns.
+
+- **Generator:** an LCG, `X' = (a·X + c) mod 2ᵇ`, with the Numerical Recipes constants (`a = 1664525`, `c = 1013904223`) and a fixed seed (8675309), so the picture is reproducible between slider moves. Each plotted point `(x, y)` uses two successive states, each divided by `2ᵇ`. It draws 2,250 points (1.5 × 1,500) to fill the plane.
+- **Memory (state space), 5–32 bits:** the value of *b*. Fewer bits means the sequence repeats sooner, so points land on a few lattice positions and clump. A warning is logged to the terminal at 8 bits or fewer. At 32 bits the state space is about 4.29 billion values.
+- **Statistical Randomness, 0–10 shifts:** how many xorshift passes (`X ^= X<<13; X ^= X>>>17; X ^= X<<5`, the Marsaglia triplet) are applied to each output before plotting. 0 shows the raw LCG's straight-line lattice; more passes spread the points out.
+- **Compute Weight, 1×–1000×:** simulates a heavier algorithm.
+  - **Timing part:** every point runs `weight × 20` throwaway `Math.sqrt()` calls whose result is discarded. This changes only the **RENDER** timer (it turns red above 50 ms). The 20 per notch was cut from an earlier 200, which froze the page for seconds at the top of the slider.
+  - **Real part:** every full 100 notches adds one extra hash round to each output (`v = imul(v, 0x45d9f3b) & mask; v ^= v >>> ⌊b/2⌋`). So 1–99× changes only the timer, 101× adds one round, and 1000× adds ten. The constant is a widely used integer-hash multiplier; it has not been tested here for quality.
+- **Readouts:** **RENDER** is the time to generate the points in milliseconds. **WORK** shows the sqrt calls per point and the hash rounds currently applied.
+- **Status:** this section was written from the code in `index.html`. Nothing here is tagged **[N]**: no numeric test of the generator quality was run.
+
+---
+
 ## Core 4 — the 3-D viewer
 
 A fourth panel that draws the real 3-D orbit of a model and lets you turn it. It lists every model that has a 3-D form: Lorenz, Rössler, Thomas, Chen, Aizawa, Chua, Halvorsen, Lü, Burke–Shaw, Rabinovich–Fabrikant, Dadras, Rikitake and the two Sprott jerk flows (flows) and RANDU (its raw triples, so the 15 planes can be found by rotating).
@@ -270,13 +306,13 @@ A fourth panel that draws the real 3-D orbit of a model and lets you turn it. It
 - **Controls:** *Auto-rotate* switch (Lucide `toggle-left` / `toggle-right`), *rotation speed* (0–90°/s), *azimuth*, *elevation*, *zoom*, *perspective* and *line / point size*, all generated from the `VIEW3D_PARAMS` list. The model's own dials (attraction, orbit length and so on) are mirrored below the view and stay in step with the same dials in Core 1.
 - **Animation:** it runs only while Auto-rotate is on with a speed above zero, the plot is on screen and the tab is visible; otherwise it redraws only when a control changes. With the system "reduce motion" setting on, it starts with Auto-rotate off.
 - **Why it matters:** a 2-D projection can hide structure. RANDU's planes only show from a particular angle; the Lorenz and Rössler folds are flattened in any single projection.
-- **Check:** all 8 original 3-D models (and the 3 added later) produce 1,500 finite 3-D points, normalized to a maximum radius of exactly 1; auto-rotation advanced 18° in 1.5 s at 12°/s and 60° in 1 s at 60°/s; it paused when the plot was off screen or Auto-rotate was off. **[N]**
+- **Check:** all 15 models in the viewer (14 flows plus RANDU) were checked for 1,500 finite 3-D points (the first 8 originally, the rest as they were added), normalized to a maximum radius of exactly 1; auto-rotation advanced 18° in 1.5 s at 12°/s and 60° in 1 s at 60°/s; it paused when the plot was off screen or Auto-rotate was off. **[N]**
 
 ---
 
 ## Copulas
 
-All copula models are plotted on uniform margins. Sklar's theorem (A. Sklar, 1959) **[R]** is the reason a joint distribution can be split into margins plus a copula.
+Copula models are plotted on uniform margins, except the Gaussian (standard-normal margins) and Student-t (t₄ margins) copulas. Sklar's theorem (A. Sklar, 1959) **[R]** is the reason a joint distribution can be split into margins plus a copula.
 
 ### Core models
 
@@ -336,7 +372,7 @@ Sampling for the Archimedean families uses one template (Marshall & Olkin 1988 *
 
 Time-step models use 252 steps per year unless noted. Simulated paths illustrate model behavior; they are not forecasts.
 
-**Hidden by default.** The whole financial group (its Core 1 rows, its Advanced-menu switches and its Core 2 choices) is hidden until you press *Add financial stochastic models…* at the bottom of Core 1 and accept a six-point disclaimer: education only; no advice; no firm affiliation; hypothetical, simulated results; no reliance for trading, allocation or private-debt analysis; "as is". The OK button stays disabled until the *I agree* box is ticked. Acceptance lasts for the browser tab's session (`sessionStorage`, key `pmrFinanceAccepted`); *Hide financial stochastic models* removes the models again and a new accept is required. Core 2 defaults to Logistic (A) and Lorenz (B) so it works while the group is hidden. The six points live in `FIN_TERMS` in `index.html`. Two sentences go beyond the original wording (no advisory or fiduciary relationship; no representation that any investor would achieve similar results) and can be removed. A one-line notice (*Educational simulation only: hypothetical results, not investment advice*) sits between Core 1 and Core 2 and links to the full disclaimer in the footer.
+**Hidden by default.** The whole financial group (its Core 1 rows, its Advanced-menu switches and its Core 2 choices) is hidden until you press *Add financial stochastic models…* at the bottom of the page (above the legal disclaimer) and accept a six-point disclaimer: education only; no advice; no firm affiliation; hypothetical, simulated results; no reliance for trading, allocation or private-debt analysis; "as is". The OK button stays disabled until the *I agree* box is ticked. Acceptance lasts for the browser tab's session (`sessionStorage`, key `pmrFinanceAccepted`); *Hide financial stochastic models* removes the models again and a new accept is required. Core 2 defaults to Logistic (A) and Lorenz (B) so it works while the group is hidden. The six points live in `FIN_TERMS` in `index.html`. Two sentences go beyond the original wording (no advisory or fiduciary relationship; no representation that any investor would achieve similar results) and can be removed. A one-line notice (*Educational simulation only: hypothetical results, not investment advice*) sits between Core 1 and Core 2 and links to the full disclaimer in the footer.
 
 ### Core models
 
@@ -411,7 +447,7 @@ Time-step models use 252 steps per year unless noted. Simulated paths illustrate
 | Marsaglia–Tsang gamma sampler | Clayton, Student-t, Variance Gamma | G. Marsaglia & W. W. Tsang, *ACM TOMS* 26(3) (2000) 363–372 **[R]** |
 | Acklam probit (inverse normal CDF) | Normal-margins view | P. J. Acklam, "An algorithm for computing the inverse normal cumulative distribution function" (2003), relative error ≈ 1.2×10⁻⁹ **[R]**. Matches reference quantiles to 5×10⁻⁹. **[N]** |
 | Chambers–Mallows–Stuck stable variates | Gumbel copula | see Gumbel above **[R]** |
-| RK4 integration | Lorenz, Rössler, Thomas | standard fourth-order Runge–Kutta **[R]** |
+| RK4 integration | all continuous flows (Lorenz through the Sprott jerk flows) and the double pendulum | standard fourth-order Runge–Kutta **[R]** |
 | mulberry32 | seeded stream for advanced models | T. Ettinger (public domain) **[R]** |
 | Ogata thinning | Hawkes process | see Hawkes above **[R]** |
 
@@ -423,7 +459,7 @@ Run during the build that added the Advanced models (headless browser plus a sep
 - Copula samplers reproduce their theoretical Kendall's τ (Gumbel, Clayton, Frank, Joe) and the Marshall–Olkin diagonal mass.
 - The stochastic financial models reproduce their theoretical moments (Hawkes mean rate, GJR volatility, variance-gamma increment variance, Student-t volatility, Kou compensator, regime variance).
 - Every dial's default position reproduces its stated classic value.
-- All 29 advanced models returned 1,500 finite points; the five attractors added later (Chen, Aizawa, Chua, Halvorsen, Tinkerbell) were also checked across every dial position.
+- All advanced models (42 at the last count) returned 1,500 finite points when they were added (29 at the time of this check); the five attractors added later (Chen, Aizawa, Chua, Halvorsen, Tinkerbell) were also checked across every dial position.
 - Sprott (two flows), Clifford, de Jong, Lozi, Gingerbreadman, Duffing and the double pendulum: every dial at 0 / 50 / 100 % over 25 random re-roll seeds was finite and bounded, and every default reproduced its classic value. The Lozi corners were tested separately.
 - Dadras and Rikitake: all dial positions (0 / 50 / 100 %) over 40 random re-roll seeds were finite and bounded (largest coordinate seen 31.9 and 11.5), and every default reproduced its classic value.
 - Lü, Burke–Shaw and Rabinovich–Fabrikant were run at every dial position (0 / 50 / 100 %) for 40 random re-roll seeds each: all finite, none ran away (largest coordinate seen 70.6 for Lü, 5.5 for Burke–Shaw, 2.4 for Rabinovich–Fabrikant), and every default reproduced its classic value.
