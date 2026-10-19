@@ -131,6 +131,18 @@ A line with no tag has not been checked at all.
 - **Origin:** B. V. Chirikov, "A universal instability of many-dimensional oscillator systems", *Physics Reports* 52(5) (1979) 263–379. **[V]** (citation). Last invariant curve breaks near `K ≈ 0.9716` (J. M. Greene, *J. Math. Phys.* 20 (1979) 1183). **[R]**
 - **Check:** the range of *p* along one orbit grows monotonically with *K* (0.37 at K = 0.2, 1.24 at K = 1, 11 at K = 3). **[N]**
 
+#### ⚙ Gingerbreadman Map — dial: starting x
+- **Formula:** `x' = 1 − y + |x|`, `y' = x`. Area-preserving and piecewise linear; it has no attractor, so *where the orbit starts* decides the picture. The dial is `x₀` with `y₀ = 0` (−0.35 to 1; classic −0.1).
+- **Origin:** R. L. Devaney, "A piecewise linear model for the zones of instability of an area-preserving map", *Physica D* 10 (1984) 387–393. **[R]**
+- **Check:** from `x₀` between −0.3 and −0.1 the orbit visited about 800 distinct points among 1,500 (the gingerbread-man-shaped chaotic sea); from `x₀` = 0.2–0.7 it stayed on a 6-point island, from 0 and 1 on a 3-point island. **[N]** (The Lyapunov estimate is unreliable for this non-smooth map and was not used.)
+
+#### ⚙ Double Pendulum (lower-bob path) — dials: release angle, orbit length
+- **Formula:** two equal masses on two equal rigid arms (`m = L = 1`, `g = 9.81`), state `[θ₁, θ₂, ω₁, ω₂]` from the Lagrangian: with `Δ = θ₁ − θ₂` and `D = 3 − cos 2Δ`, `θ₁'' = [−3g sin θ₁ − g sin(θ₁ − 2θ₂) − 2 sin Δ (ω₂² + ω₁² cos Δ)] / D` and `θ₂'' = [2 sin Δ (2ω₁² + 2g cos θ₁ + ω₂² cos Δ)] / D`. Plotted: the path of the lower bob. Both arms are released from rest at the dial angle (10°–170°; 120° default). RK4, step 0.002.
+- **Origin:** textbook mechanics; chaos in the double pendulum: T. Shinbrot, C. Grebogi, J. Wisdom & J. A. Yorke, "Chaos in a double pendulum", *Am. J. Phys.* 60(6) (1992) 491–499. **[R]**
+- **Check:** relative energy drift over 30 s was 1.2×10⁻² at step 0.02, 3×10⁻⁴ at 0.01, 2×10⁻⁵ at 0.005 and **1.7×10⁻⁷ at 0.002 (used)**. A one-part-in-10⁸ perturbation of the release angle stayed at about 10⁻⁸ for release angles up to 75° (regular) and grew to order 1 within about 20 s from 90°, and within 10 s from 120° and above (chaotic). **[N]** An earlier test of this system failed because of a wrong denominator (`2 − cos 2Δ` instead of `3 − cos 2Δ` for equal masses); the energy test is what caught it.
+- **Re-roll** nudges the first arm by up to 10⁻⁴ rad; in the chaotic regime that gives a visibly different path, while in the regular regime the pattern is nearly unchanged (as it should be).
+
+
 ## Strange attractors
 
 Systems whose long-run behavior settles onto a bounded set with fractal structure (a *strange attractor*). Plotted as a scatter of the orbit or a line along it. Each has a dial that moves one parameter through its regimes (for example from regular motion to chaos, or from a thin to a wide attractor).
@@ -213,6 +225,36 @@ Systems whose long-run behavior settles onto a bounded set with fractal structur
 - **Origin:** T. Rikitake, "Oscillations of a system of disk dynamos", *Math. Proc. Cambridge Philos. Soc.* 54(1) (1958) 89–105, a toy model of the reversals of the Earth's magnetic field; its chaotic behavior was recognized later (A. E. Cook & P. H. Roberts, 1970). **[R]** Several parameter sets are quoted (for example `μ = 1, a = 5` and `μ = 2, a = 5`); both were chaotic in the test, and `μ = 1, a = 5` was used. The geomagnetic reading is an analogy, not a claim that this model describes the Earth.
 - **Check:** Lyapunov estimate 0.20 at `μ = 1`, 0.14 at 1.5, 0.12 at 2, ≈ 0 (regular) at 0.5 and at 3; across `a = 2–8` (at μ = 1–2) it was 0.07–0.19. The sign of *x* flipped 21 times over the 1,500 default points. **[N]**
 
+#### ⚙ Sprott Jerk Flow, quadratic (x–y) — dials: damping *A*, orbit length
+- **Formula:** `x''' = −A·x'' + (x')² − x`, written as `x' = y`, `y' = z`, `z' = −Az + y² − x`; `A = 2.017` (dial 2.017–2.07). RK4, step 0.01. Fixed start `(−1, 0, 0)`; Re-roll discards a random number of extra steps.
+- **Origin:** J. C. Sprott, "Some simple chaotic flows", *Phys. Rev. E* 50(2) (1994) R647–R650 **[R]**; the equation and `A = 2.017` as listed on Sprott's page <https://sprott.physics.wisc.edu/chaos/comchaos.htm> **[V]**. Also in J. C. Sprott, *Elegant Chaos* (World Scientific, 2010). **[R]**
+- **Check, and a warning:** the basin is tiny. From 14 other starting points (including small offsets from the origin) the orbit ran away to infinity; from `(−1, 0, 0)` it stayed bounded only for `A ≥ 2.017` (it ran away at 2.01 and below). The Lyapunov estimate was 0.054 at 2.017, 0.043 at 2.02, 0.049 at 2.03, 0.022 at 2.05 and ≈ 0 from 2.08. **[N]** The chaos is weak, and the plotted attractor is a set of nested loops; this is a famous system more than a spectacular picture.
+
+#### ⚙ Sprott Jerk Flow, piecewise-linear (x–y) — dials: damping *A*, orbit length
+- **Formula:** `x''' + A·x'' + x' − |x| + 1 = 0`, i.e. `x' = y`, `y' = z`, `z' = −Az − y + |x| − 1`; `A = 0.6` (dial 0.56–0.66). RK4, step 0.01. Only a single absolute value, no products.
+- **Origin:** J. C. Sprott, "Simplest dissipative chaotic flow", *Phys. Lett. A* 228 (1997) 271–274. **[R]** The research pass quoted this system with the opposite sign on the `|x|` and constant terms; that form is the same system reflected through the origin (`x, y, z → −x, −y, −z`), which a test confirmed gives identical dynamics with mirrored coordinates. **[N]**
+- **Check:** Lyapunov estimate 0.064 at `A = 0.58`, 0.036 at 0.60, 0.059 at 0.62, and ≈ 0 at 0.55, 0.65 and 0.68. The orbit stayed bounded from all four starts tried for `A = 0.55–0.68` and ran away at 0.4–0.5 from some. **[N]** Weak chaos in a narrow window.
+
+#### ⚙ Clifford Attractor — dials: *a*, *b*, *c*, *d*
+- **Formula:** `x' = sin(a·y) + c·cos(a·x)`, `y' = sin(b·x) + d·cos(b·y)`; `(a, b, c, d) = (−1.4, 1.6, 1.0, 0.7)`. Dials: *a* −1.85 to −1.3, *b* 1.55–2.1, *c* 0.6–1.4, *d* 0.3–1.1.
+- **Origin:** named for Clifford A. Pickover, *Chaos in Wonderland* (St. Martin's Press, 1994); the parameter set is the one widely reproduced from Paul Bourke's attractor pages. **[R]**
+- **Check:** Lyapunov estimate 0.29 at the classic values; positive across the dial ranges (for example 0.39 at *a* = −1.8, 0.31 at *b* = 1.8, 0.43 at *c* = 1.3, 0.25–0.36 across *d*), ≈ 0 at *a* = −1.2, and negative at *b* = 1.2–1.4 and *c* = 0.4 (just outside the ranges). **[N]** With only 1,500 points the filigree is sparse; renderers that accumulate millions of points show far more detail.
+
+#### ⚙ de Jong Attractor — dials: *a*, *b*, *c*, *d*
+- **Formula:** `x' = sin(a·y) − cos(b·x)`, `y' = sin(c·x) − cos(d·y)`; `(a, b, c, d) = (1.641, 1.902, 0.316, 1.525)`. Dials: *a* 1.2–2.0, *b* 1.5–2.3, *c* 0.1–1.2, *d* 1.5–1.9.
+- **Origin:** attributed to Peter de Jong and popularized in Pickover's *Chaos in Wonderland* (1994). **[R]** Parameter set recalled.
+- **Check:** Lyapunov estimate 0.28 at the classic values; 0.16–0.28 across *a*, 0.22–0.28 across *b*, 0.17–0.33 across *c*, and 0.28–0.32 across *d* from 1.525 to 1.9 (it was −0.06 at *d* = 1.4 and 0.13 at 1.2, outside the range). **[N]**
+
+#### ⚙ Lozi Map (piecewise-linear Hénon) — dials: *a*, *b*
+- **Formula:** `x' = 1 − a·|x| + y`, `y' = b·x`; `a = 1.7`, `b = 0.5` (dials: *a* 1.1–1.72; *b* 0.2–0.55).
+- **Origin:** R. Lozi, "Un attracteur étrange (?) du type attracteur de Hénon", *J. Phys. (Paris) Colloq.* 39 (1978) C5-9–C5-10. **[R]**
+- **Check:** at `b = 0.5` the orbit is a 2-point cycle for *a* = 1.1–1.45, a 4-point cycle at 1.5 and chaotic from about 1.55 (Lyapunov estimate 0.35 at 1.6, 0.47 at 1.7). The orbit escapes beyond a diagonal boundary: at (a, b) = (1.72, 0.55) all 40 starts stayed bounded, but at (1.72, 0.6), (1.74, 0.55) and (1.76, 0.5) all 40 escaped, so the dial ranges stop inside the safe rectangle. **[N]** An earlier version of the ranges (a to 1.74, b to 0.6) produced a degenerate picture in one corner and was caught by testing the corners.
+
+#### ⚙ Duffing Oscillator (Poincaré section) — dial: forcing amplitude *γ*
+- **Formula:** `x'' + δ·x' − x + x³ = γ·cos(ω·t)`, double-well form, `δ = 0.3`, `ω = 1.2`, `γ = 0.5` (dial 0.2–0.7). Plotted as a Poincaré section: `(x, x')` once per forcing period, after 200 periods are discarded. RK4, 80 steps per period.
+- **Origin:** G. Duffing, *Erzwungene Schwingungen bei veränderlicher Eigenfrequenz und ihre technische Bedeutung* (Vieweg, 1918); the chaotic double-well case: F. C. Moon & P. J. Holmes, "A magnetoelastic strange attractor", *J. Sound Vib.* 65(2) (1979) 275–296; Y. Ueda, *J. Stat. Phys.* 20 (1979) 181–196. **[R]** The parameter set is commonly quoted, recalled.
+- **Check:** the section is 1 point at `γ = 0.2`, 2 points at 0.28, 5 points at 0.35 (a periodic window), and chaotic from about 0.4 (292 distinct points among the last 300 at 0.5). The Lyapunov estimate of the continuous flow was 0.125 at `γ = 0.5` and 0.109 at 0.6, and −0.15 at 0.28 and 0.35. **[N]**
+
 #### ⚙ Tinkerbell Map — dials: parameter *a*, parameter *b*
 - **Formula:** `x' = x² − y² + ax + by`, `y' = 2xy + cx + dy`; `a = 0.9`, `b = −0.6013`, `c = 2`, `d = 0.5`; start `(−0.72, −0.64)`; dials on *a* (0.75–0.9) and *b* (−0.45 to −0.6013). Re-roll discards a random number of extra iterations (up to 3,000), a different stretch of the same deterministic orbit.
 - **Origin:** the name comes from K. T. Alligood, T. D. Sauer & J. A. Yorke, *Chaos: An Introduction to Dynamical Systems* (Springer, 1997). **[R]** Parameters as commonly quoted, recalled.
@@ -222,7 +264,7 @@ Systems whose long-run behavior settles onto a bounded set with fractal structur
 
 ## Core 4 — the 3-D viewer
 
-A fourth panel that draws the real 3-D orbit of a model and lets you turn it. It lists every model that has a 3-D form: Lorenz, Rössler, Thomas, Chen, Aizawa, Chua, Halvorsen, Lü, Burke–Shaw, Rabinovich–Fabrikant, Dadras, Rikitake (flows) and RANDU (its raw triples, so the 15 planes can be found by rotating).
+A fourth panel that draws the real 3-D orbit of a model and lets you turn it. It lists every model that has a 3-D form: Lorenz, Rössler, Thomas, Chen, Aizawa, Chua, Halvorsen, Lü, Burke–Shaw, Rabinovich–Fabrikant, Dadras, Rikitake and the two Sprott jerk flows (flows) and RANDU (its raw triples, so the 15 planes can be found by rotating).
 
 - **How it draws:** there is no 3-D library. Each point is rotated about the vertical axis by *azimuth*, tilted by *elevation*, optionally shrunk with distance (*perspective*), and drawn on an ordinary 2-D canvas. The orbit is first centered on its bounding box and scaled to unit radius so every model fills the view the same way. Near parts are drawn brighter and thicker than far parts (six depth layers). A small x/y/z key in the corner shows the orientation.
 - **Controls:** *Auto-rotate* switch (Lucide `toggle-left` / `toggle-right`), *rotation speed* (0–90°/s), *azimuth*, *elevation*, *zoom*, *perspective* and *line / point size*, all generated from the `VIEW3D_PARAMS` list. The model's own dials (attraction, orbit length and so on) are mirrored below the view and stay in step with the same dials in Core 1.
@@ -380,6 +422,7 @@ Run during the build that added the Advanced models (headless browser plus a sep
 - The stochastic financial models reproduce their theoretical moments (Hawkes mean rate, GJR volatility, variance-gamma increment variance, Student-t volatility, Kou compensator, regime variance).
 - Every dial's default position reproduces its stated classic value.
 - All 29 advanced models returned 1,500 finite points; the five attractors added later (Chen, Aizawa, Chua, Halvorsen, Tinkerbell) were also checked across every dial position.
+- Sprott (two flows), Clifford, de Jong, Lozi, Gingerbreadman, Duffing and the double pendulum: every dial at 0 / 50 / 100 % over 25 random re-roll seeds was finite and bounded, and every default reproduced its classic value. The Lozi corners were tested separately.
 - Dadras and Rikitake: all dial positions (0 / 50 / 100 %) over 40 random re-roll seeds were finite and bounded (largest coordinate seen 31.9 and 11.5), and every default reproduced its classic value.
 - Lü, Burke–Shaw and Rabinovich–Fabrikant were run at every dial position (0 / 50 / 100 %) for 40 random re-roll seeds each: all finite, none ran away (largest coordinate seen 70.6 for Lü, 5.5 for Burke–Shaw, 2.4 for Rabinovich–Fabrikant), and every default reproduced its classic value.
 - When the extra attractor dials and Core 4 were added, every dial of every model was run at 0 %, 50 % and 100 % in both its 2-D and 3-D form (all finite, 1,500 points), and every dial's default reproduced its classic value.
@@ -388,7 +431,7 @@ Run during the build that added the Advanced models (headless browser plus a sep
 
 ## Not yet included
 
-Candidates from the research pass that are **not** implemented (attractors still open: Sprott's simplest flows, Clifford / de Jong, Lozi, Gingerbreadman, Duffing, double pendulum; 3-D views for the 2-D maps and the copulas), usually because the equations or parameters were not verified against primary sources: rough volatility (rough Bergomi, rough Heston), fractional Brownian motion, multifractal random walk, SABR, Bates, local volatility, the Merton structural credit model, the Vasicek one-factor loan-loss model, Geltner / Getmansky–Lo–Makarov return smoothing, nested and vine copulas, Hüsler–Reiss and Galambos extreme-value copulas, Brock–Hommes heterogeneous-agent map, the 2-D sine-logistic and logistic-adjusted-sine maps, Poisson-disk sampling, xoshiro, Philox, and Owen-scrambled Sobol.
+Candidates from the research pass that are **not** implemented (3-D views for the 2-D maps and the copulas; a denser point renderer for Clifford and de Jong), usually because the equations or parameters were not verified against primary sources: rough volatility (rough Bergomi, rough Heston), fractional Brownian motion, multifractal random walk, SABR, Bates, local volatility, the Merton structural credit model, the Vasicek one-factor loan-loss model, Geltner / Getmansky–Lo–Makarov return smoothing, nested and vine copulas, Hüsler–Reiss and Galambos extreme-value copulas, Brock–Hommes heterogeneous-agent map, the 2-D sine-logistic and logistic-adjusted-sine maps, Poisson-disk sampling, xoshiro, Philox, and Owen-scrambled Sobol.
 
 ## Adding a model
 
