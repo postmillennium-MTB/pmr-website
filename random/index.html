@@ -22,16 +22,19 @@
   <script> #2
     ==== ALL DATA LIVES IN ONE CONTIGUOUS BLOCK ====
     · CATEGORIES ................. the three Core 1 groups (chaos / copulas / financial)
-    · MODELS ..................... the 15 generators, one entry each
+    · MODELS ..................... 15 core + 24 advanced (adv:true) generators, one entry each
     · FORGE_PARAMS ............... the three Core 3 sliders
+    · ICON_PATHS ................. the Lucide icons used (toggle, play, chevron, power-off)
     · MS_MODES ................... the Middle-Square collapse switch (reseed / report / pure)
     ==== END OF DATA ====
     · tuning constants ........... point counts, sizes, load factor
     · renderers .................. renderStandard / renderBlender / renderForge
     · init() ..................... builds the UI from the registries
 
-  TO ADD A MODEL:  write its generator, add ONE entry to MODELS. The Core 1 row,
-                   both Core 2 dropdown options and the render dispatch derive from it.
+  TO ADD A MODEL:  write its generator, add ONE entry to MODELS (adv:true puts it in the collapsed
+                   "Advanced models" menu). The Core 1 row, both Core 2 dropdown options and the
+                   render dispatch derive from it. Document it in random/README.md (formula, origin,
+                   confidence tag) — that file is the audit trail for every model's source.
   TO ADD A FORGE SLIDER: add ONE entry to FORGE_PARAMS and read its value in
                    renderForge() — the control and its readout are generated.
 
@@ -133,6 +136,27 @@ h3{margin:.5rem 0 .25rem; font-size:.8rem; text-transform:uppercase}
 .model-row:hover{background:rgba(0,255,255,.1)}
 .model-row label{display:flex; align-items:center; gap:.5rem; flex:1; cursor:pointer; font-size:.8rem; color:var(--ink)}
 
+.model-row[hidden]{display:none}
+
+/* Advanced models menu: native <details>, collapsed by default; each model is a switch with a Lucide toggle icon. */
+.adv{margin-top:.75rem; border-top:1px solid rgba(0,255,255,.25)}
+.adv summary{display:flex; align-items:center; gap:.5rem; min-height:44px; cursor:pointer; list-style:none; color:var(--ink); font-size:.8rem}
+.adv summary::-webkit-details-marker{display:none}
+.adv-count{margin-left:auto; font-size:.7rem; color:var(--ink-dim)}
+#adv-chev svg{width:18px; height:18px; display:block; transition:transform .2s}
+.adv[open] #adv-chev svg{transform:rotate(180deg)}
+.adv-box h4, #adv-box h4{margin:.6rem 0 .1rem; font-size:.75rem; text-transform:uppercase}
+.adv-row{display:flex; align-items:center; gap:.6rem; width:100%; min-height:40px; padding:.15rem .5rem; background:none; border:0;
+  border-bottom:1px solid rgba(0,255,255,.1); color:var(--ink-dim); font-family:var(--mono); font-size:.8rem; text-align:left; cursor:pointer}
+.adv-row:hover{background:rgba(0,255,255,.1)}
+.adv-ico svg{width:28px; height:28px; display:block}
+.adv-row[aria-checked="true"]{color:var(--ink)}
+.adv-row[aria-checked="true"] .adv-ico{color:var(--cyan); filter:drop-shadow(0 0 4px var(--cyan))}
+.adv-link{display:inline-block; margin:.6rem .5rem .25rem; font-size:.75rem; color:var(--ink-dim)}
+.btn-row{display:grid; grid-template-columns:1fr; gap:.5rem; margin-top:.5rem}
+.btn-row .btn{margin-top:0}
+.btn svg{width:18px; height:18px; vertical-align:-3px; margin-right:.45rem}
+@media (min-width:560px){ .btn-row{grid-template-columns:1fr 2fr} }
 #dial-box{margin-top:.5rem; border-top:1px solid rgba(0,255,255,.25); padding-top:.25rem}
 #dial-box[hidden], .dial[hidden]{display:none}
 .dial{display:flex; flex-direction:column; gap:.15rem; margin:.5rem .5rem 0; padding-left:.5rem; border-left:2px solid currentColor; font-size:.75rem}
@@ -231,6 +255,15 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
         <div class="panel-head"><h2 id="h-core1">Core 1: Models</h2><span class="tag" id="pts-tag"></span></div>
         <!-- Group headings and model rows are BUILT FROM the `CATEGORIES` and `MODELS` registries in the script below. -->
         <div id="model-box"></div>
+        <!-- Advanced models: switches BUILT FROM the models flagged `adv:true` in the `MODELS` registry. Collapsed by default. -->
+        <details class="adv" id="adv-menu">
+          <summary><span class="adv-title">Advanced models</span><span class="adv-count" id="adv-count"></span><span id="adv-chev"></span></summary>
+          <div class="adv-body">
+            <p class="opt-help">Switch a model on to add it to the list above and to the Core 2 dropdowns; off removes it. Keeps the main menu short.</p>
+            <div id="adv-box"></div>
+            <a class="adv-link" href="https://github.com/postmillennium-MTB/pmr-website/blob/main/random/README.md" target="_blank" rel="noopener">Model details, formulas &amp; sources (README) ↗</a>
+          </div>
+        </details>
         <!-- Attraction dials: BUILT FROM each model's `dials` in the `MODELS` registry; a dial shows only while its model is checked. -->
         <div id="dial-box" hidden></div>
         <div class="model-row" style="margin-top:.5rem; border-top:1px solid rgba(0,255,255,.25)">
@@ -278,7 +311,11 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
       </div>
       <div class="ctl"><label for="blend-color">Output chroma</label><input type="color" id="blend-color" value="#fcee0a"></div>
     </div>
-    <button type="button" class="btn btn-yellow" id="btn-surprise">Surprise Me! [ RNG Overload ]</button>
+    <!-- Re-roll draws fresh samples for the two selected sequences; Surprise also picks new models. The play icon is added by init() from ICON_PATHS. -->
+    <div class="btn-row">
+      <button type="button" class="btn btn-yellow" id="btn-reroll-blend">Re-roll A &amp; B</button>
+      <button type="button" class="btn btn-yellow" id="btn-surprise">Surprise Me! [ RNG Overload ]</button>
+    </div>
   </section>
 
   <!-- CORE 3: the sliders below are BUILT FROM the `FORGE_PARAMS` registry. -->
@@ -308,24 +345,35 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
 
 // Box–Muller transform: two uniforms -> one standard normal. The while-loops
 // reject exact zeros, which would make Math.log blow up to -Infinity.
-function randn_bm(){
+// `rng` is any () => uniform[0,1) source; it defaults to Math.random. The advanced models pass a
+// SEEDED stream (makeRng) so a dial drag re-uses the same random numbers and only the parameter
+// changes — the picture morphs instead of reshuffling.
+function randn_bm(rng=Math.random){
   let u=0,v=0;
-  while(u===0) u=Math.random();
-  while(v===0) v=Math.random();
+  while(u===0) u=rng();
+  while(v===0) v=rng();
   return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+}
+
+// mulberry32: tiny seedable 32-bit PRNG (Tommy Ettinger, public domain). Plenty for plotting;
+// not for anything cryptographic.
+function makeRng(seed){
+  let a=seed>>>0;
+  return ()=>{ let t=(a=(a+0x6D2B79F5)>>>0);
+    t=Math.imul(t^(t>>>15),t|1); t^=t+Math.imul(t^(t>>>7),t|61); return ((t^(t>>>14))>>>0)/4294967296; };
 }
 
 // Gamma(shape, 1) sampler, Marsaglia–Tsang (2000). Valid for shape >= 1; for
 // shape < 1 (the Clayton copula needs 1/theta < 1) we draw Gamma(shape+1) and
 // scale by U^(1/shape), the standard boost identity.
-function gammaSample(shape){
-  if(shape<1) return gammaSample(shape+1)*Math.pow(1-Math.random(),1/shape);
+function gammaSample(shape,rng=Math.random){
+  if(shape<1) return gammaSample(shape+1,rng)*Math.pow(1-rng(),1/shape);
   const d=shape-1/3, c=1/Math.sqrt(9*d);
   for(;;){
     let x,v;
-    do{ x=randn_bm(); v=1+c*x; }while(v<=0);
+    do{ x=randn_bm(rng); v=1+c*x; }while(v<=0);
     v=v*v*v;
-    const u=1-Math.random();                       // (0,1], keeps Math.log finite
+    const u=1-rng();                               // (0,1], keeps Math.log finite
     if(Math.log(u)<0.5*x*x+d-d*v+d*Math.log(v)) return d*v;
   }
 }
@@ -426,6 +474,140 @@ function nextMiddleSquare(){
 let lmState=0.501;
 const LOGISTIC_R=3.99;
 function nextLogistic(){ lmState=LOGISTIC_R*lmState*(1-lmState); return lmState; }
+
+/* ==== ADVANCED-MODEL ENGINE ================================================
+   Helpers behind the models flagged `adv:true` in the registry. Every constant that is a published
+   parameter carries its source in random/README.md. */
+
+// One RK4 step of any 3-D flow f(state)->derivative.
+function rk4Step(f,s,dt){
+  const add=(a,b,k)=>a.map((v,i)=>v+b[i]*k);
+  const k1=f(s), k2=f(add(s,k1,dt/2)), k3=f(add(s,k2,dt/2)), k4=f(add(s,k3,dt));
+  return s.map((v,i)=>v+dt/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i]));
+}
+
+// -- Random-number generators ------------------------------------------------
+// RANDU (IBM, 1960s): x' = 65539 x mod 2^31. 65539 * 2^31 < 2^53, so the double multiply is exact.
+let randuState=1;
+function nextRandu(){ randuState=(65539*randuState)%2147483648; return randuState/2147483648; }
+
+// Wichmann–Hill (1982): three small LCGs whose fractions are summed mod 1.
+let whX=1, whY=2, whZ=3;
+function nextWichmannHill(){
+  whX=(171*whX)%30269; whY=(172*whY)%30307; whZ=(170*whZ)%30323;
+  const u=whX/30269+whY/30307+whZ/30323; return u-Math.floor(u);
+}
+
+// Mersenne Twister MT19937 (Matsumoto & Nishimura 1998), default seed 5489. mti=625 means "unseeded".
+const mt=new Uint32Array(624); let mti=625;
+function mtSeed(s){
+  mt[0]=s>>>0;
+  for(mti=1;mti<624;mti++){ const p=mt[mti-1]^(mt[mti-1]>>>30); mt[mti]=(Math.imul(1812433253,p)+mti)>>>0; }
+}
+function mtNext(){
+  if(mti>=624){
+    if(mti===625) mtSeed(5489);
+    for(let k=0;k<624;k++){
+      const y=(mt[k]&0x80000000)|(mt[(k+1)%624]&0x7fffffff);
+      mt[k]=mt[(k+397)%624]^(y>>>1)^((y&1)?0x9908b0df:0);
+    }
+    mti=0;
+  }
+  let y=mt[mti++];
+  y^=y>>>11; y^=(y<<7)&0x9d2c5680; y^=(y<<15)&0xefc60000; y^=y>>>18;
+  return y>>>0;
+}
+
+// PCG32 (O'Neill 2014), XSH-RR output. 64-bit state, so BigInt: ~3000 draws per render is cheap enough.
+const PCG_MULT=6364136223846793005n, M64=(1n<<64n)-1n;
+let pcgState=0n, pcgInc=0n, pcgSeeded=false;
+function pcgNext(){
+  const old=pcgState;
+  pcgState=(old*PCG_MULT+pcgInc)&M64;
+  const xs=Number((((old>>18n)^old)>>27n)&0xffffffffn), rot=Number(old>>59n);
+  return ((xs>>>rot)|(xs<<((-rot)&31)))>>>0;
+}
+function pcgSeed(initState,initSeq){
+  pcgState=0n; pcgInc=((BigInt(initSeq)<<1n)|1n)&M64; pcgNext();
+  pcgState=(pcgState+BigInt(initState))&M64; pcgNext(); pcgSeeded=true;
+}
+
+// Sobol sequence, dimensions 1 and 2 (Sobol 1967; direction numbers per Joe & Kuo 2008 — dimension 2
+// is the primitive polynomial x+1 with m1=1). Index -> point via the Gray code. 12 bits = 4096 points.
+const SOBOL_BITS=12;
+const SOBOL_V1=[], SOBOL_V2=[];
+(function(){ let m=1;
+  for(let j=0;j<SOBOL_BITS;j++){
+    SOBOL_V1.push(0x80000000>>>j);
+    SOBOL_V2.push(m*Math.pow(2,31-j));            // m_{j+1} * 2^(32-(j+1)) as a 32-bit fraction
+    m=(2*m)^m;                                    // m_i = 2 m_{i-1} XOR m_{i-1}
+  } })();
+function sobolPoint(n){                           // n >= 0; n = 0 is the corner (0,0)
+  const gray=n^(n>>1); let x=0,y=0;
+  for(let j=0;j<SOBOL_BITS;j++) if(gray&(1<<j)){ x^=SOBOL_V1[j]; y^=SOBOL_V2[j]; }
+  return {x:(x>>>0)/4294967296, y:(y>>>0)/4294967296};
+}
+
+// RANDU's triples lie on the 15 planes 9x - 6y + z = k. Project the triple (x_n, x_{n+1}, x_{n+2}) onto
+// a 2-D view: vertical = a direction INSIDE the planes, horizontal = cos(a)*normal + sin(a)*third axis.
+// a = 0 looks along the planes (15 vertical lines); a = 90 degrees shows no structure.
+const RANDU_N=[9,-6,1], RANDU_T=[6,9,0], RANDU_W=[-9,6,117];   // normal, in-plane, third (mutually orthogonal)
+const unit=v=>{ const l=Math.hypot(...v); return v.map(c=>c/l); };
+const RANDU_NU=unit(RANDU_N), RANDU_TU=unit(RANDU_T), RANDU_WU=unit(RANDU_W);
+const dot3=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+function randuView(deg,n){
+  const c=Math.cos(deg*Math.PI/180), s=Math.sin(deg*Math.PI/180); randuState=1;
+  let a=nextRandu(), b=nextRandu(); const pts=[];
+  for(let i=0;i<n;i++){ const z=nextRandu(), p=[a,b,z];
+    pts.push({x:c*dot3(p,RANDU_NU)+s*dot3(p,RANDU_WU), y:dot3(p,RANDU_TU)}); a=b; b=z; }
+  return pts;
+}
+
+// -- Copula samplers (all return a pair on uniform margins) -------------------
+// Frailty template: U_i = psi(E_i / V), E_i ~ Exp(1), V from a family-specific mixing distribution.
+const expSample=rng=>-Math.log(1-rng());
+
+// Positive stable variate, Laplace transform exp(-t^alpha), 0<alpha<1 (Chambers–Mallows–Stuck 1976).
+function stableSample(alpha,rng){
+  const phi=Math.PI*(rng()-0.5), w=expSample(rng);
+  return Math.sin(alpha*(phi+Math.PI/2))/Math.pow(Math.cos(phi),1/alpha)
+       * Math.pow(Math.cos(phi-alpha*(phi+Math.PI/2))/w,(1-alpha)/alpha);
+}
+// Logarithmic-series variate with parameter p in (0,1) (Kemp 1981 / Devroye 1986).
+function logSeriesSample(p,rng){
+  const u2=rng(); if(u2>=p) return 1;
+  const q=1-Math.exp(rng()*Math.log(1-p));
+  if(u2<q*q) return Math.floor(1+Math.log(u2)/Math.log(q));
+  return u2>q?1:2;
+}
+// Sibuya(alpha) variate: P(1)=alpha, p_{k+1}=p_k (k-alpha)/(k+1). Heavy tail (infinite mean), so the
+// search stops at SIBUYA_EXACT_K and the far tail uses the power-law tail S(k) ~ S(K) (k/K)^(-alpha).
+const SIBUYA_EXACT_K=200;
+function sibuyaSample(alpha,rng){
+  const u=rng(); let p=alpha, cum=alpha;
+  if(u<=cum) return 1;
+  for(let k=1;k<SIBUYA_EXACT_K;k++){ p*=(k-alpha)/(k+1); cum+=p; if(u<=cum) return k+1; }
+  return Math.min(1e12,SIBUYA_EXACT_K*Math.pow((1-u)/(1-cum),-1/alpha));
+}
+function clayton2(theta,rng){ const V=gammaSample(1/theta,rng);
+  return [Math.pow(1+expSample(rng)/V,-1/theta), Math.pow(1+expSample(rng)/V,-1/theta)]; }
+function gumbel2(theta,rng){ const V=stableSample(1/theta,rng);
+  return [Math.exp(-Math.pow(expSample(rng)/V,1/theta)), Math.exp(-Math.pow(expSample(rng)/V,1/theta))]; }
+function frank2(theta,rng){ const p=1-Math.exp(-theta), V=logSeriesSample(p,rng), psi=t=>-Math.log(1-p*Math.exp(-t))/theta;
+  return [psi(expSample(rng)/V), psi(expSample(rng)/V)]; }
+function joe2(theta,rng){ const V=sibuyaSample(1/theta,rng), psi=t=>1-Math.pow(1-Math.exp(-t),1/theta);
+  return [psi(expSample(rng)/V), psi(expSample(rng)/V)]; }
+// Marshall–Olkin: shocks Z1,Z2 (rate 1-a) and a common shock Z12 (rate a); margins come out Exp(1) -> uniform.
+function marshallOlkin2(a,rng){ const z12=a>0?expSample(rng)/a:Infinity,
+    x=Math.min(expSample(rng)/(1-a||1e-12),z12), y=Math.min(expSample(rng)/(1-a||1e-12),z12);
+  return [Math.exp(-x),Math.exp(-y)]; }
+
+// Frank's Kendall tau, 1 - 4/theta * (1 - D1(theta)), D1 the Debye function (Simpson, 200 intervals).
+function frankTau(theta){
+  const n=200, h=theta/n, f=t=>t<1e-9?1:t/(Math.exp(t)-1); let s=f(0)+f(theta);
+  for(let i=1;i<n;i++) s+=f(i*h)*(i%2?4:2);
+  return 1-4/theta*(1-(s*h/3)/theta);
+}
 </script>
 
 <script>
@@ -453,10 +635,13 @@ const CATEGORIES=[
      color  default plot color (user can change per model in Core 1)
      on     checked by default in Core 1
      defA / defB   default selection in the Core 2 A / B dropdown
-     dials  optional [{id,label,help,weak,strong,classic,fmt}] — one 0–100% slider per entry, shown in
-            Core 1 while the model is checked. 0% = `weak` value of the real parameter, 100% = `strong`,
-            linear between; the slider starts at wherever `classic` falls. fmt(value) prints the real
-            parameter. The generator reads it with dialParam(modelId, dialId). More % always = more pull.
+     adv    true = an ADVANCED model: hidden from the Core 1 list and the Core 2 dropdowns until its
+            switch is turned on in the "Advanced models" menu
+     dials  optional [{id,label,help,weak,strong,classic,fmt,log}] — one 0–100% slider per entry, shown in
+            Core 1 while the model is checked. 0% = `weak` value of the real parameter, 100% = `strong`
+            (just the two ends of the range; neither implies "better"), linear between — or geometric
+            if log:true, for parameters like a tail index. The slider starts at wherever `classic` falls.
+            fmt(value) prints the real parameter. The generator reads it with dialParam(modelId, dialId).
      copula   true for dependence-structure models; with "Normal margins" ON these share
               one axis range in Core 1 so their tails can be compared directly
      toNormal optional fn mapping ONE coordinate from this model's native margin to a
@@ -548,6 +733,161 @@ const MODELS=[
         const V=gammaSample(1/CLAYTON_THETA);
         pts.push({x:Math.pow(1-Math.log(1-Math.random())/V,inv), y:Math.pow(1-Math.log(1-Math.random())/V,inv)}); }
       return pts; }},
+
+  /* ---- ADVANCED MODELS (`adv:true`): hidden until switched on in the Core 1 "Advanced models" menu.
+     Sources, formulas and verification status for each are in random/README.md. Stochastic ones draw from
+     a SEEDED stream (makeRng(simSeed)) so a dial drag changes only the parameter, not the dice. -------- */
+
+  // ---- Randomness & chaos: generators and low-discrepancy sequences ----
+  {id:"randu", adv:true, cat:"seq", name:"RANDU (IBM, 15 planes)", type:"scatter", color:"#ff4d4d",
+   dials:[{id:"view", label:"Viewing angle", weak:90, strong:0, classic:0, fmt:a=>a.toFixed(0)+"° from edge-on",
+     help:"Consecutive RANDU triples (x, y, z) lie on only 15 parallel planes, 9x − 6y + z = k. At 0° we look along the planes, so they show as 15 vertical lines; rotate toward 90° and the structure disappears into apparent noise."}],
+   gen:()=>randuView(dialParam("randu","view"),NUM_POINTS)},
+  {id:"sobol", adv:true, cat:"seq", name:"Sobol Sequence (2-D)", type:"scatter", color:"#9dff4d",
+   gen:()=>{ const pts=[]; for(let n=1;n<=NUM_POINTS;n++) pts.push(sobolPoint(n)); return pts; }},
+  {id:"r2", adv:true, cat:"seq", name:"R2 Sequence (golden-ratio lattice)", type:"scatter", color:"#4dd2ff",
+   gen:()=>{ const pts=[]; for(let n=1;n<=NUM_POINTS;n++) pts.push({x:(R2_SEED+n*R2_A1)%1, y:(R2_SEED+n*R2_A2)%1}); return pts; }},
+  {id:"fiblat", adv:true, cat:"seq", name:"Fibonacci Lattice", type:"scatter", color:"#ffd24d",
+   gen:()=>{ const pts=[]; for(let i=0;i<NUM_POINTS;i++) pts.push({x:(i+0.5)/FIB_N, y:(i*FIB_PREV/FIB_N)%1}); return pts; }},
+  {id:"wh", adv:true, cat:"seq", name:"Wichmann–Hill (3 combined LCGs)", type:"scatter", color:"#c0c0ff",
+   gen:()=>scatterFrom(nextWichmannHill)},
+  {id:"mt", adv:true, cat:"seq", name:"Mersenne Twister (MT19937)", type:"scatter", color:"#80ffe0",
+   gen:()=>scatterFrom(()=>mtNext()/4294967296)},
+  {id:"pcg", adv:true, cat:"seq", name:"PCG32 (permuted LCG)", type:"scatter", color:"#ffa0d0",
+   gen:()=>{ if(!pcgSeeded) pcgSeed(42,54); return scatterFrom(()=>pcgNext()/4294967296); }},
+
+  // ---- Randomness & chaos: chaotic maps and flows ----
+  // Rössler: x'=-y-z, y'=x+ay, z'=b+z(x-c), a=b=0.2. The dial is c: ~3 period-2, ~4 period-4, 5.7 chaos.
+  {id:"rossler", adv:true, cat:"seq", name:"Rössler Attractor (x–y)", type:"scatter", color:"#ff9d4d",
+   dials:[{id:"c", label:"Control parameter c", weak:2.5, strong:9, classic:5.7, fmt:c=>"c = "+c.toFixed(2),
+     help:"Walk c upward to watch order break down: a single loop, then period-doubling (2, 4, 8 loops) into chaos near the classic c = 5.7, then wider bands."}],
+   gen:()=>{ const c=dialParam("rossler","c"), f=([x,y,z])=>[-y-z, x+ROSSLER_A*y, ROSSLER_B+z*(x-c)];
+      let s=[1+attractorStart[0],1,attractorStart[1]]; const pts=[];
+      for(let i=-ROSSLER_BURN_IN;i<NUM_POINTS*ROSSLER_STEPS_PER_POINT;i++){ s=rk4Step(f,s,ROSSLER_DT);
+        if(i>=0&&i%ROSSLER_STEPS_PER_POINT===0) pts.push({x:s[0],y:s[1]}); }
+      return pts; }},
+  // Thomas' cyclically symmetric attractor: x'=sin y - b x (and cyclic). b is damping: large b = sink/cycle,
+  // chaos below b ≈ 0.208, b = 0 is conservative (the orbit wanders ergodically).
+  {id:"thomas", adv:true, cat:"seq", name:"Thomas Attractor (x–y)", type:"scatter", color:"#d24dff",
+   dials:[{id:"b", label:"Damping b", weak:0.35, strong:0.02, classic:0.19, fmt:b=>"b = "+b.toFixed(3),
+     help:"Less damping (right) takes the orbit from a limit cycle through chaos (onset b ≈ 0.208) toward a labyrinth that fills space as b → 0."}],
+   gen:()=>{ const b=dialParam("thomas","b"), f=([x,y,z])=>[Math.sin(y)-b*x, Math.sin(z)-b*y, Math.sin(x)-b*z];
+      let s=[0.1+attractorStart[0],0,0.1*attractorStart[1]]; const pts=[];
+      for(let i=-THOMAS_BURN_IN;i<NUM_POINTS*THOMAS_STEPS_PER_POINT;i++){ s=rk4Step(f,s,THOMAS_DT);
+        if(i>=0&&i%THOMAS_STEPS_PER_POINT===0) pts.push({x:s[0],y:s[1]}); }
+      return pts; }},
+  // Chirikov standard map: p' = p + K sin θ, θ' = θ + p' (both mod 2π). Several orbits from spread-out starts.
+  {id:"chirikov", adv:true, cat:"seq", name:"Chirikov Standard Map", type:"scatter", color:"#4dff9d",
+   dials:[{id:"K", label:"Kick strength K", weak:0.2, strong:5, classic:1, fmt:k=>"K = "+k.toFixed(2),
+     help:"Small K: smooth, regular curves (KAM tori). Near K ≈ 0.97 the last barrier breaks; above that orbits wander through a chaotic sea."}],
+   gen:()=>{ const K=dialParam("chirikov","K"), TAU=2*Math.PI, pts=[], per=Math.floor(NUM_POINTS/CHIRIKOV_ORBITS);
+      for(let j=0;j<CHIRIKOV_ORBITS;j++){
+        let th=TAU*((j*0.6180339887+attractorStart[0])%1), p=TAU*(j+0.5)/CHIRIKOV_ORBITS;
+        for(let i=0;i<per;i++){ p=(p+K*Math.sin(th))%TAU; if(p<0)p+=TAU; th=(th+p)%TAU; pts.push({x:th,y:p}); } }
+      return pts; }},
+  // Ikeda map (laser in a ring cavity): z' = 1 + u z exp(i(0.4 - 6/(1+|z|²))). u is the dissipation.
+  {id:"ikeda", adv:true, cat:"seq", name:"Ikeda Map (spiral attractor)", type:"scatter", color:"#ff4dc4",
+   dials:[{id:"u", label:"Dissipation u", weak:0.6, strong:0.99, classic:0.9, fmt:u=>"u = "+u.toFixed(3),
+     help:"u is the fraction of the field kept each pass. Lower u: the orbit settles toward a point or small cycle. Higher u: it fills out the spiral strange attractor."}],
+   gen:()=>{ const u=dialParam("ikeda","u"); let x=0.1+0.1*attractorStart[0], y=0.1*attractorStart[1]; const pts=[];
+      for(let i=-IKEDA_BURN_IN;i<NUM_POINTS;i++){ const t=0.4-6/(1+x*x+y*y), c=Math.cos(t), s=Math.sin(t);
+        const nx=1+u*(x*c-y*s); y=u*(x*s+y*c); x=nx; if(i>=0) pts.push({x,y}); }
+      return pts; }},
+
+  // ---- Copulas (uniform margins; "Normal margins" maps them for tail comparison) ----
+  // Kendall's tau is the dial for Gumbel and survival Clayton so they compare directly with the Clayton above.
+  {id:"gumbel", adv:true, cat:"cop", name:"Gumbel Copula (upper tail)", type:"scatter", color:"#ff7ad9", copula:true, toNormal:probit,
+   dials:[{id:"tau", label:"Rank correlation (Kendall's τ)", weak:0.1, strong:0.9, classic:0.5, fmt:t=>"τ = "+t.toFixed(2)+"  (θ = "+(1/(1-t)).toFixed(2)+")",
+     help:"Joint BOOMS cluster in the top-right corner (upper-tail dependence 2 − 2^(1/θ)); joint busts do not. The mirror image of Clayton at the same τ."}],
+   gen:()=>{ const th=1/(1-dialParam("gumbel","tau")), rng=makeRng(simSeed), pts=[];
+      for(let i=0;i<NUM_POINTS;i++){ const p=gumbel2(th,rng); pts.push({x:p[0],y:p[1]}); } return pts; }},
+  {id:"frank", adv:true, cat:"cop", name:"Frank Copula (no tail dependence)", type:"scatter", color:"#7affd9", copula:true, toNormal:probit,
+   dials:[{id:"theta", label:"Dependence θ", weak:0.5, strong:20, classic:5, fmt:t=>"θ = "+t.toFixed(1)+"  (τ ≈ "+frankTau(t).toFixed(2)+")",
+     help:"Symmetric, with no tail dependence: strong in the middle of the distribution, independent in the corners. The foil to Clayton, Gumbel and t at the same τ."}],
+   gen:()=>{ const th=dialParam("frank","theta"), rng=makeRng(simSeed), pts=[];
+      for(let i=0;i<NUM_POINTS;i++){ const p=frank2(th,rng); pts.push({x:p[0],y:p[1]}); } return pts; }},
+  {id:"joe", adv:true, cat:"cop", name:"Joe Copula (sharp upper tail)", type:"scatter", color:"#ffe07a", copula:true, toNormal:probit,
+   dials:[{id:"theta", label:"Dependence θ", weak:1.2, strong:8, classic:3, fmt:t=>"θ = "+t.toFixed(2),
+     help:"Like Gumbel but with a sharper concentration in the upper-right corner (upper-tail dependence 2 − 2^(1/θ))."}],
+   gen:()=>{ const th=dialParam("joe","theta"), rng=makeRng(simSeed), pts=[];
+      for(let i=0;i<NUM_POINTS;i++){ const p=joe2(th,rng); pts.push({x:p[0],y:p[1]}); } return pts; }},
+  // Survival (180° rotated) Clayton: (1-U, 1-V). Lower tail becomes the UPPER tail.
+  {id:"survclayton", adv:true, cat:"cop", name:"Survival Clayton (upper tail)", type:"scatter", color:"#7ab8ff", copula:true, toNormal:probit,
+   dials:[{id:"tau", label:"Rank correlation (Kendall's τ)", weak:0.1, strong:0.9, classic:0.5, fmt:t=>"τ = "+t.toFixed(2)+"  (θ = "+(2*t/(1-t)).toFixed(2)+")",
+     help:"Clayton flipped end for end (1−U, 1−V): the corner of joint extremes moves to the top right."}],
+   gen:()=>{ const t=dialParam("survclayton","tau"), th=2*t/(1-t), rng=makeRng(simSeed), pts=[];
+      for(let i=0;i<NUM_POINTS;i++){ const p=clayton2(th,rng); pts.push({x:1-p[0],y:1-p[1]}); } return pts; }},
+  // Marshall–Olkin: a common shock hits both names at once, so a fraction of the points sit exactly on U = V.
+  {id:"mo", adv:true, cat:"cop", name:"Marshall–Olkin (common-shock ridge)", type:"scatter", color:"#ff7a7a", copula:true, toNormal:probit,
+   dials:[{id:"a", label:"Common-shock share α", weak:0.05, strong:0.95, classic:0.5, fmt:a=>"α = "+a.toFixed(2)+"  (on the diagonal ≈ "+(100*a/(2-a)).toFixed(0)+"%)",
+     help:"Each name has its own shock plus one shared shock. Whenever the shared shock strikes first, both fall together, so points pile up exactly on the diagonal (a singular component). Upper-tail dependence = α."}],
+   gen:()=>{ const a=dialParam("mo","a"), rng=makeRng(simSeed), pts=[];
+      for(let i=0;i<NUM_POINTS;i++){ const p=marshallOlkin2(a,rng); pts.push({x:p[0],y:p[1]}); } return pts; }},
+  // Clayton + Gumbel mixture, both at τ = 0.5: lower AND upper tail dependence in one picture.
+  {id:"cgmix", adv:true, cat:"cop", name:"Clayton + Gumbel Mixture (both tails)", type:"scatter", color:"#c8ff7a", copula:true, toNormal:probit,
+   dials:[{id:"w", label:"Gumbel weight", weak:0, strong:1, classic:0.5, fmt:w=>Math.round(100*w)+"% Gumbel / "+Math.round(100*(1-w))+"% Clayton",
+     help:"Each point is drawn from Gumbel with probability w, otherwise Clayton (both τ = 0.5). Gives tail dependence at both ends, as real equity crashes and melt-ups sometimes show."}],
+   gen:()=>{ const w=dialParam("cgmix","w"), rng=makeRng(simSeed), pts=[];
+      for(let i=0;i<NUM_POINTS;i++){ const p=rng()<w?gumbel2(MIX_THETA,rng):clayton2(MIX_THETA,rng); pts.push({x:p[0],y:p[1]}); } return pts; }},
+
+  // ---- Financial stochastic processes ----
+  // GJR-GARCH(1,1) daily returns (%): sigma²' = w + (a + g·1{e<0}) e² + b sigma². The dial is persistence
+  // p = a + b + g/2, with the long-run variance held fixed (w = sigma²∞ (1-p)).
+  {id:"gjr", adv:true, cat:"fin", name:"GJR-GARCH Returns (vol clustering)", type:"line", color:"#ff5c8a",
+   dials:[{id:"p", label:"Volatility persistence", weak:0.85, strong:0.995, classic:0.97, fmt:p=>"α+β+γ/2 = "+p.toFixed(3),
+     help:"How long a volatility shock lingers. Near 1, calm and turbulent stretches last for months (volatility clustering); the leverage term makes down-moves raise volatility more than up-moves."}],
+   gen:()=>{ const p=dialParam("gjr","p"), rng=makeRng(simSeed), a=GJR_ALPHA, g=GJR_GAMMA, b=p-a-g/2, s2inf=GJR_DAILY_VOL*GJR_DAILY_VOL, w=s2inf*(1-p);
+      let s2=s2inf; const pts=[];
+      for(let i=0;i<NUM_POINTS;i++){ const e=Math.sqrt(s2)*randn_bm(rng); pts.push({x:i,y:100*e}); s2=w+(a+(e<0?g:0))*e*e+b*s2; }
+      return pts; }},
+  // Hawkes process with exponential kernel: lambda(t) = mu + Σ alpha e^{-beta (t - t_i)}. Plotted: the intensity.
+  // The dial is the branching ratio n = alpha/beta (expected offspring per event); n -> 1 is critical.
+  {id:"hawkes", adv:true, cat:"fin", name:"Hawkes Process (self-exciting intensity)", type:"line", color:"#ffb84d",
+   dials:[{id:"n", label:"Branching ratio n", weak:0.05, strong:0.95, classic:0.7, fmt:n=>"n = "+n.toFixed(2)+"  (avg rate "+(HAWKES_MU/(1-n)).toFixed(1)+"/unit)",
+     help:"Each event raises the chance of more events. n is the average number of follow-on events per event: low n is near-Poisson, n near 1 gives bursts and long quiet gaps — a model of trade arrivals, defaults and contagion."}],
+   gen:()=>hawkesIntensity(dialParam("hawkes","n"),makeRng(simSeed))},
+  // Two-regime Markov switching (Hamilton-style): calm and stress states with different drift and volatility.
+  {id:"regime", adv:true, cat:"fin", name:"Regime Switching (calm / stress)", type:"line", color:"#4dffb8",
+   dials:[{id:"pss", label:"Stress persistence", weak:0.5, strong:0.99, classic:0.95, fmt:p=>"P(stay in stress) = "+p.toFixed(2)+"  (≈ "+(1/(1-p)).toFixed(0)+" steps)",
+     help:"Chance of staying in the stress regime each step. Higher: crises last longer, producing the sustained drawdowns a single-regime model cannot."}],
+   gen:()=>{ const pss=dialParam("regime","pss"), rng=makeRng(simSeed), dt=1/TRADING_DAYS; let S=100, stress=false; const pts=[{x:0,y:S}];
+      for(let i=1;i<NUM_POINTS;i++){ stress=stress?rng()<pss:rng()>REGIME_P_CALM;
+        const mu=stress?REGIME_MU_STRESS:REGIME_MU_CALM, sg=stress?REGIME_VOL_STRESS:REGIME_VOL_CALM;
+        S*=Math.exp((mu-0.5*sg*sg)*dt+sg*Math.sqrt(dt)*randn_bm(rng)); pts.push({x:i,y:S}); }
+      return pts; }},
+  // Fat-tailed random walk: i.i.d. Student-t returns scaled to a fixed daily volatility. nu is the tail index.
+  {id:"tret", adv:true, cat:"fin", name:"Fat-Tailed Returns (Student-t)", type:"line", color:"#b84dff",
+   dials:[{id:"nu", label:"Tail index ν", weak:30, strong:2.5, classic:4, log:true, fmt:v=>"ν = "+v.toFixed(1),
+     help:"Degrees of freedom of the return distribution at the same 1% daily volatility. Low ν = rare, huge moves (for ν ≤ 2 the variance is infinite); high ν approaches the normal distribution used in GBM."}],
+   gen:()=>{ const nu=dialParam("tret","nu"), rng=makeRng(simSeed), sc=TRET_DAILY_VOL*Math.sqrt((nu-2)/nu); let S=100; const pts=[{x:0,y:S}];
+      for(let i=1;i<NUM_POINTS;i++){ const chi2=2*gammaSample(nu/2,rng); S*=Math.exp(sc*randn_bm(rng)/Math.sqrt(chi2/nu)); pts.push({x:i,y:S}); }
+      return pts; }},
+  // Variance-gamma: Brownian motion with drift evaluated at gamma time. nu is the variance of the time change.
+  {id:"vg", adv:true, cat:"fin", name:"Variance Gamma (pure-jump Lévy)", type:"line", color:"#4d9dff",
+   dials:[{id:"nu", label:"Time-change variance ν", weak:0.02, strong:1, classic:0.2, log:true, fmt:v=>"ν = "+v.toFixed(2),
+     help:"Business time runs at a random pace. Small ν: close to Brownian motion. Large ν: many small moves and occasional large ones (fatter tails, a sharper peak)."}],
+   gen:()=>{ const nu=dialParam("vg","nu"), rng=makeRng(simSeed), dt=1/TRADING_DAYS, th=VG_THETA, sg=VG_SIGMA,
+        w=Math.log(1-th*nu-sg*sg*nu/2)/nu; let X=0; const pts=[{x:0,y:100}];
+      for(let i=1;i<NUM_POINTS;i++){ const G=gammaSample(dt/nu,rng)*nu; X+=th*G+sg*Math.sqrt(G)*randn_bm(rng);
+        pts.push({x:i,y:100*Math.exp((VG_RATE+w)*i*dt+X)}); }
+      return pts; }},
+  // Kou double-exponential jump diffusion: Poisson jumps, up-jumps ~ Exp(eta1), down-jumps ~ Exp(eta2).
+  {id:"kou", adv:true, cat:"fin", name:"Kou Jump-Diffusion (asymmetric jumps)", type:"line", color:"#ff4d7a",
+   dials:[{id:"lam", label:"Jump intensity λ", weak:0.2, strong:10, classic:1, log:true, fmt:l=>"λ = "+l.toFixed(1)+"/yr",
+     help:"Expected jumps per year. Down-jumps (mean −20%) are larger and more frequent than up-jumps (mean +10%), which gives the negative skew seen in equity returns."}],
+   gen:()=>{ const lam=dialParam("kou","lam"), rng=makeRng(simSeed), dt=1/TRADING_DAYS, p=KOU_P, e1=KOU_ETA1, e2=KOU_ETA2,
+        kappa=p*e1/(e1-1)+(1-p)*e2/(e2+1)-1; let S=100; const pts=[{x:0,y:S}];
+      for(let i=1;i<NUM_POINTS;i++){ let j=0;
+        if(rng()<lam*dt) j=rng()<p?expSample(rng)/e1:-expSample(rng)/e2;
+        S*=Math.exp((KOU_MU-0.5*KOU_SIGMA*KOU_SIGMA-lam*kappa)*dt+KOU_SIGMA*Math.sqrt(dt)*randn_bm(rng)+j); pts.push({x:i,y:S}); }
+      return pts; }},
+  // Cox–Ingersoll–Ross short rate: dr = k(theta - r)dt + sigma sqrt(r) dW (Euler, full truncation).
+  {id:"cir", adv:true, cat:"fin", name:"CIR Short Rate (stays positive)", type:"line", color:"#4dd2b8",
+   dials:[{id:"sig", label:"Volatility σ", weak:0.02, strong:0.5, classic:0.1, fmt:s=>"σ = "+s.toFixed(2)+(2*CIR_KAPPA*CIR_THETA>=s*s?"  (Feller met)":"  (Feller violated)"),
+     help:"Mean-reverting rate whose volatility scales with √r. While 2κθ ≥ σ² (the Feller condition) the rate cannot touch zero; above it the path repeatedly hits the boundary."}],
+   gen:()=>{ const sg=dialParam("cir","sig"), rng=makeRng(simSeed), dt=CIR_YEARS/NUM_POINTS; let r=CIR_THETA; const pts=[{x:0,y:100*r}];
+      for(let i=1;i<NUM_POINTS;i++){ const rp=Math.max(r,0); r+=CIR_KAPPA*(CIR_THETA-rp)*dt+sg*Math.sqrt(rp*dt)*randn_bm(rng); pts.push({x:i,y:100*Math.max(r,0)}); }
+      return pts; }},
 ];
 
 /* ==== FORGE_PARAMS REGISTRY — the three Core 3 sliders. ======================
@@ -566,25 +906,33 @@ const FORGE_PARAMS=[
    help:"Dummy square-root work per point, simulating the cost of a heavier algorithm. Watch the render timer."},
 ];
 
+/* ==== ICON_PATHS REGISTRY — the Lucide icons this page uses (https://lucide.dev/icons/). ===
+   Inner markup copied UNMODIFIED from lucide.dev, per CLAUDE.md: inline SVG only, never hand-drawn.
+   lucide(name) wraps it in the standard Lucide <svg> attributes. TO ADD AN ICON: paste its inner
+   markup here under its Lucide name.                                                              */
+const ICON_PATHS={
+  "toggle-left":  '<circle cx="9" cy="12" r="3"/><rect width="20" height="14" x="2" y="5" rx="7"/>',
+  "toggle-right": '<circle cx="15" cy="12" r="3"/><rect width="20" height="14" x="2" y="5" rx="7"/>',
+  "power-off":    '<path d="M18.36 6.64A9 9 0 0 1 20.77 15"/><path d="M6.16 6.16a9 9 0 1 0 12.68 12.68"/><path d="M12 2v4"/><path d="m2 2 20 20"/>',
+  "chevron-down": '<path d="m6 9 6 6 6-6"/>',
+  "play":         '<path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/>',
+};
+
 /* ==== MS_MODES REGISTRY — the Middle-Square collapse switch (Core 1). ========
    TO ADD A MODE: add ONE entry and handle its id in nextMiddleSquare() (engine script).
    The radio, its icon and the help line are generated from this array.
 
      id     value stored in msMode
      label  button text (the icon is decorative; the text carries the meaning)
-     icon   Lucide icon name  } copied unmodified from lucide.dev, per CLAUDE.md:
-     paths  Lucide inner markup} inline SVG only, no hand-drawn paths
+     icon   a key of ICON_PATHS
      help   one-line explanation shown under the switch
      def    selected on load                                                    */
 const MS_MODES=[
   {id:"reseed", label:"Reseed", icon:"toggle-right", def:false,
-   paths:'<circle cx="15" cy="12" r="3"/><rect width="20" height="14" x="2" y="5" rx="7"/>',
    help:"When the sequence collapses (fixed point, zero or a repeat) it restarts from a fresh random seed, so you get a distributed cloud."},
   {id:"report", label:"Reseed + report", icon:"toggle-left", def:true,
-   paths:'<circle cx="9" cy="12" r="3"/><rect width="20" height="14" x="2" y="5" rx="7"/>',
    help:"Same as Reseed, and the terminal reports how many times it collapsed — the weakness stays visible."},
   {id:"pure", label:"Pure", icon:"power-off", def:false,
-   paths:'<path d="M18.36 6.64A9 9 0 0 1 20.77 15"/><path d="M6.16 6.16a9 9 0 1 0 12.68 12.68"/><path d="M12 2v4"/><path d="m2 2 20 20"/>',
    help:"Textbook behavior: fixed seed 123456, no rescue. It collapses to the single point 625000 after 145 steps, so most of the plot is one dot."},
 ];
 
@@ -608,7 +956,25 @@ const LORENZ_DT=0.01;           // RK4 step; much larger and the orbit drifts of
 const LORENZ_STEPS_PER_POINT=2; // integration steps per plotted point -> 1500 points span ~30 time units (~20 lobes)
 const LORENZ_START_SPAN=0.1;    // x0 = 1 + attractorStart * this. No burn-in on purpose: the approach to the
                                 // attractor is exactly what the Attraction dial changes, so it stays on screen
-const T_NU=4;                  // Student-t degrees of freedom; must stay 4 (the chi-square above is a 4-term sum)
+/* -- advanced models: published parameters (sources: random/README.md) and named tuning values -- */
+const R2_A1=0.7548776662466927, R2_A2=0.5698402909980532;   // 1/φ and 1/φ², φ = plastic number (real root of x³ = x + 1)
+const R2_SEED=0.5;              // R2 starting offset
+const FIB_N=1597, FIB_PREV=987; // consecutive Fibonacci numbers F17, F16: a Fibonacci lattice has F17 points, we draw the first NUM_POINTS
+const ROSSLER_A=0.2, ROSSLER_B=0.2;       // classic Rössler a, b (c is the dial)
+const ROSSLER_DT=0.02, ROSSLER_STEPS_PER_POINT=5, ROSSLER_BURN_IN=3000;   // RK4 step; 1500 points span ~150 time units (~25 loops); 60 units discarded
+const THOMAS_DT=0.05, THOMAS_STEPS_PER_POINT=3, THOMAS_BURN_IN=2000;      // Thomas flow is slow; 100 time units discarded
+const CHIRIKOV_ORBITS=10;       // initial conditions drawn per render; more orbits = fuller phase portrait, fewer points each
+const IKEDA_BURN_IN=100;        // iterations discarded before recording
+const MIX_THETA=2;              // Clayton and Gumbel theta in the mixture (both Kendall tau = 0.5)
+const TRADING_DAYS=252;         // steps per year for the daily-step models (GJR, regime, VG, Kou)
+const GJR_ALPHA=0.04, GJR_GAMMA=0.08, GJR_DAILY_VOL=0.01;    // ARCH and leverage terms; long-run daily volatility 1%
+const HAWKES_MU=1, HAWKES_BETA=1, HAWKES_T=150;              // baseline rate, decay rate, window: 1500 grid points over 150 time units
+const REGIME_MU_CALM=0.10, REGIME_VOL_CALM=0.12, REGIME_MU_STRESS=-0.20, REGIME_VOL_STRESS=0.35, REGIME_P_CALM=0.99;   // annualized; illustrative, not calibrated
+const TRET_DAILY_VOL=0.01;      // fixed daily volatility for the Student-t walk, so ν changes tails and not scale
+const VG_THETA=-0.1, VG_SIGMA=0.2, VG_RATE=0.05;             // variance-gamma drift, volatility, risk-free rate (annual); illustrative
+const KOU_MU=0.10, KOU_SIGMA=0.16, KOU_P=0.4, KOU_ETA1=10, KOU_ETA2=5;   // Kou (2002) example set: P(up jump)=0.4, mean up 1/10, mean down 1/5
+const CIR_KAPPA=0.5, CIR_THETA=0.04, CIR_YEARS=5;            // mean-reversion speed, long-run rate (4%), horizon in years
+const T_NU=4;                 // Student-t degrees of freedom; must stay 4 (the chi-square above is a 4-term sum)
 const LOAD_PER_UNIT=20;         // sqrt() calls per point per notch of the Compute Weight slider. The original used 200,
                                 // which at slider max (1000x) froze the tab for seconds; 20 keeps the top end ~0.1–0.5 s
 const SLOW_RENDER_MS=50;        // render time above which the Core 3 timer turns red
@@ -640,13 +1006,20 @@ let stdCache={};                       // Core 1 points per model id; cleared by
 // Start-point jitter for the two attractors. Fixed between redraws (so dragging an Attraction dial
 // morphs ONE picture smoothly instead of reshuffling it) and re-drawn only on Re-roll / Surprise.
 let attractorStart=[Math.random(),Math.random(),Math.random()];
-function reseedAttractorStart(){ attractorStart=[Math.random(),Math.random(),Math.random()]; }
+// Seed for the advanced models' seeded random stream; same lifetime as attractorStart.
+let simSeed=Math.floor(Math.random()*4294967296);
+function reseedAttractorStart(){
+  attractorStart=[Math.random(),Math.random(),Math.random()];
+  simSeed=Math.floor(Math.random()*4294967296);
+}
 
-// Real parameter value behind a model's 0–100% dial: linear from `weak` (0%) to `strong` (100%).
-// Falls back to `classic` if the slider isn't built yet.
+// Real parameter value behind a model's 0–100% dial: from `weak` (0%) to `strong` (100%), linear or
+// (log:true) geometric. Falls back to `classic` if the slider isn't built yet.
+const dialValueAt=(d,t)=>d.log ? d.weak*Math.pow(d.strong/d.weak,t) : d.weak+(d.strong-d.weak)*t;
+const dialPosOf=d=>100*(d.log ? Math.log(d.classic/d.weak)/Math.log(d.strong/d.weak) : (d.classic-d.weak)/(d.strong-d.weak));
 function dialParam(modelId,dialId){
   const d=modelById(modelId).dials.find(x=>x.id===dialId), el=$("dial-"+modelId+"-"+dialId);
-  return el ? d.weak+(d.strong-d.weak)*parseFloat(el.value)/100 : d.classic;
+  return el ? dialValueAt(d,parseFloat(el.value)/100) : d.classic;
 }
 
 // One RK4 step of the Lorenz system.
@@ -658,6 +1031,25 @@ function lorenzStep(s,beta){
 }
 
 function scatterFrom(fn){ const pts=[]; for(let i=0;i<NUM_POINTS;i++) pts.push({x:fn(),y:fn()}); return pts; }
+
+// Hawkes process on [0, HAWKES_T] by Ogata thinning; returns the intensity sampled on a NUM_POINTS grid.
+// E is the "excess" intensity above the baseline; lamStar bounds the intensity until the next event
+// (valid because intensity only decays between events).
+function hawkesIntensity(n,rng){
+  const mu=HAWKES_MU, beta=HAWKES_BETA, alpha=n*beta, events=[];
+  let t=0, E=0, lamStar=mu;
+  for(;;){
+    const w=expSample(rng)/lamStar; t+=w; if(t>HAWKES_T) break;
+    E*=Math.exp(-beta*w);
+    const lam=mu+E;
+    if(rng()*lamStar<=lam){ events.push(t); E+=alpha; lamStar=mu+E; } else lamStar=lam;
+  }
+  const pts=[]; let ei=0; E=0; let last=0;
+  for(let k=0;k<NUM_POINTS;k++){ const tk=k*HAWKES_T/(NUM_POINTS-1);
+    while(ei<events.length&&events[ei]<=tk){ E=E*Math.exp(-beta*(events[ei]-last))+alpha; last=events[ei]; ei++; }
+    pts.push({x:tk,y:mu+E*Math.exp(-beta*(tk-last))}); }
+  return pts;
+}
 const modelById=id=>MODELS.find(m=>m.id===id);
 
 // Terminal log. Text goes in via textContent, so model names can never inject markup.
@@ -737,11 +1129,29 @@ function renderStandard(reroll,quiet){
 }
 
 /* ==== CORE 2 — BLENDER ==================================================== */
-// Regenerate the RAW data for one slot (called when its model changes, or on Surprise).
+// Each Core 2 slot keeps its OWN random seed and attractor start, so (a) the seeded models morph
+// smoothly when a dial moves, (b) slots A and B differ even when they hold the same model, and
+// (c) the Re-roll button can change them without disturbing Core 1.
+const newSeedPair=()=>({seed:Math.floor(Math.random()*4294967296), start:[Math.random(),Math.random(),Math.random()]});
+let blendSeeds={a:newSeedPair(), b:newSeedPair()};
+function genSeeded(m,pair){
+  const s0=simSeed, a0=attractorStart; simSeed=pair.seed; attractorStart=pair.start;
+  try{ return m.gen(); } finally{ simSeed=s0; attractorStart=a0; }
+}
+
+// Regenerate the RAW data for one slot (called when its model changes, or on Re-roll / Surprise).
 // Normalization happens at render time so the Normal-margins toggle can re-view the
 // same sample without re-rolling it.
 function rollBlendSlot(slot){
-  blendCache[slot]=modelById($("blend-"+slot).value).gen();
+  blendCache[slot]=genSeeded(modelById($("blend-"+slot).value),blendSeeds[slot]);
+}
+
+// Re-roll button: fresh random draws for BOTH selected sequences, same models and settings.
+function rerollBlend(){
+  blendSeeds={a:newSeedPair(), b:newSeedPair()};
+  rollBlendSlot("a"); rollBlendSlot("b");
+  renderBlender();
+  logTerminal("CORE 2: RE-ROLLED ["+modelById($("blend-a").value).name+"] AND ["+modelById($("blend-b").value).name+"]","#fcee0a");
 }
 
 function renderBlender(){
@@ -767,9 +1177,10 @@ function renderBlender(){
 }
 
 function randomizeBlend(){
-  reseedAttractorStart();
-  let a=MODELS[Math.floor(Math.random()*MODELS.length)], b=a;
-  while(b===a) b=MODELS[Math.floor(Math.random()*MODELS.length)];
+  blendSeeds={a:newSeedPair(), b:newSeedPair()};
+  const pool=enabledModels();                    // only models currently offered in the menu
+  let a=pool[Math.floor(Math.random()*pool.length)], b=a;
+  while(b===a) b=pool[Math.floor(Math.random()*pool.length)];
   $("blend-a").value=a.id; $("blend-b").value=b.id;
   $("blend-pos").value=Math.round(Math.random()*200-100);
   $("blend-smooth").value=Math.round(Math.random()*100);
@@ -840,6 +1251,63 @@ function setMsMode(id){
   renderStandard(); renderBlender();
 }
 
+// Advanced models menu -------------------------------------------------------------
+// Switching a model ON adds its row to the Core 1 list and its option to both Core 2 dropdowns;
+// OFF removes it from both (and unchecks it so it leaves the plot). Models start off.
+const advancedOn=new Set();
+const ADV_COUNT=MODELS.filter(m=>m.adv).length;
+const enabledModels=()=>MODELS.filter(m=>!m.adv||advancedOn.has(m.id));
+
+// Standard Lucide <svg> wrapper (attributes per CLAUDE.md) around ICON_PATHS[name].
+const lucide=name=>'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" '+
+  'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-'+name+
+  '" aria-hidden="true" focusable="false">'+ICON_PATHS[name]+'</svg>';
+
+// Rebuild both Core 2 dropdowns from the enabled models, grouped like Core 1. A selection that is no
+// longer offered falls back to that slot's default model and is re-rolled.
+function rebuildBlendOptions(){
+  for(const slot of ["a","b"]){
+    const sel=$("blend-"+slot), prev=sel.value; sel.innerHTML="";
+    for(const cat of CATEGORIES){
+      const g=document.createElement("optgroup"); g.label=cat.label;
+      for(const m of enabledModels().filter(x=>x.cat===cat.id)){
+        const o=document.createElement("option"); o.value=m.id; o.textContent=m.name; g.appendChild(o); }
+      if(g.children.length) sel.appendChild(g);
+    }
+    const kept=[...sel.options].some(o=>o.value===prev);
+    sel.value=kept?prev:MODELS.find(m=>slot==="a"?m.defA:m.defB).id;
+    if(!kept) blendCache[slot]=null;
+  }
+}
+function syncAdvancedUI(){
+  for(const m of MODELS.filter(x=>x.adv)){
+    const on=advancedOn.has(m.id), b=$("adv-"+m.id);
+    $("row-"+m.id).hidden=!on;
+    b.setAttribute("aria-checked",on?"true":"false");
+    b.querySelector(".adv-ico").innerHTML=lucide(on?"toggle-right":"toggle-left");
+  }
+  $("adv-count").textContent=advancedOn.size+" of "+ADV_COUNT+" on";
+}
+function setAdvanced(id,on){
+  if(on) advancedOn.add(id); else { advancedOn.delete(id); $("chk-"+id).checked=false; delete stdCache[id]; }
+  syncAdvancedUI(); rebuildBlendOptions(); syncDials();
+  renderStandard(false,true); renderBlender();
+}
+function buildAdvancedMenu(){
+  for(const cat of CATEGORIES){
+    const list=MODELS.filter(m=>m.adv&&m.cat===cat.id); if(!list.length) continue;
+    const h=document.createElement("h4"); h.textContent=cat.label; h.style.color=cat.color; $("adv-box").appendChild(h);
+    for(const m of list){
+      const b=document.createElement("button"); b.type="button"; b.className="adv-row"; b.id="adv-"+m.id; b.setAttribute("role","switch");
+      b.innerHTML='<span class="adv-ico"></span><span class="adv-name"></span>'; b.querySelector(".adv-name").textContent=m.name;
+      b.addEventListener("click",()=>setAdvanced(m.id,!advancedOn.has(m.id)));
+      $("adv-box").appendChild(b);
+    }
+  }
+  $("adv-chev").innerHTML=lucide("chevron-down");
+  syncAdvancedUI();
+}
+
 // Attraction dials ----------------------------------------------------------------
 // One group per (model, dial). The slider is 0–100% "pull"; the real parameter it maps to
 // is printed beside it. A group is visible only while its model is checked, and takes the model's color.
@@ -864,7 +1332,7 @@ function buildDials(){
     g.innerHTML=
       '<div class="row"><label for="'+id+'">'+m.name+' — '+d.label+'</label><span class="val" id="'+id+'-val"></span></div>'+
       '<p class="help">'+d.help+'</p>'+
-      '<input type="range" id="'+id+'" min="0" max="100" step="any" value="'+(100*(d.classic-d.weak)/(d.strong-d.weak))+'">';
+      '<input type="range" id="'+id+'" min="0" max="100" step="any" value="'+dialPosOf(d)+'">';
     $("dial-box").appendChild(g);
     $(id).addEventListener("input",()=>{
       dialReadout(m,d);
@@ -883,16 +1351,16 @@ function buildDials(){
 function init(){
   $("pts-tag").textContent=NUM_POINTS+" PT/SEQ";
 
-  // One group per CATEGORIES entry: a heading + rows in Core 1, an <optgroup> in each Core 2 dropdown.
+  // One group per CATEGORIES entry: a heading + rows in Core 1. Advanced models get a row too, but it
+  // stays hidden until the model is switched on in the Advanced menu (Core 2's dropdowns are built
+  // from the enabled models by rebuildBlendOptions()).
   for(const cat of CATEGORIES){
     const h=document.createElement("h3"); h.textContent=cat.label; h.style.color=cat.color;
     const box=document.createElement("div");
     $("model-box").append(h,box);
-    const groups=["a","b"].map(slot=>{
-      const g=document.createElement("optgroup"); g.label=cat.label; $("blend-"+slot).appendChild(g); return g; });
 
     for(const m of MODELS.filter(x=>x.cat===cat.id)){
-      const row=document.createElement("div"); row.className="model-row";
+      const row=document.createElement("div"); row.className="model-row"; row.id="row-"+m.id; row.hidden=!!m.adv;
       const label=document.createElement("label");
       const chk=document.createElement("input");
       chk.type="checkbox"; chk.id="chk-"+m.id; chk.checked=!!m.on;
@@ -903,14 +1371,10 @@ function init(){
       col.setAttribute("aria-label","Color for "+m.name);
       row.append(label,col);
       box.appendChild(row);
-
-      ["a","b"].forEach((slot,i)=>{
-        const o=document.createElement("option"); o.value=m.id; o.textContent=m.name;
-        if(slot==="a"?m.defA:m.defB) o.selected=true;
-        groups[i].appendChild(o);
-      });
     }
   }
+  rebuildBlendOptions();
+  buildAdvancedMenu();
 
   for(const p of FORGE_PARAMS){
     const d=document.createElement("div"); d.className="ctl";
@@ -925,6 +1389,8 @@ function init(){
 
   $("btn-run").addEventListener("click",()=>renderStandard(true));
   $("btn-surprise").addEventListener("click",randomizeBlend);
+  $("btn-reroll-blend").addEventListener("click",rerollBlend);
+  $("btn-reroll-blend").insertAdjacentHTML("afterbegin",lucide("play"));
   for(const m of MODELS){
     $("chk-"+m.id).addEventListener("change",()=>{ syncDials(); renderStandard(); });
     $("col-"+m.id).addEventListener("input",()=>{ syncDials(); renderStandard(); });   // "input" so color drags preview live
@@ -939,11 +1405,7 @@ function init(){
     const lab=document.createElement("label"); lab.className="seg-btn";
     lab.innerHTML=
       '<input type="radio" name="ms-mode" value="'+mode.id+'"'+(mode.def?" checked":"")+'>'+
-      '<span class="seg-face">'+
-        '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"'+
-        ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-'+mode.icon+'"'+
-        ' aria-hidden="true" focusable="false">'+mode.paths+'</svg>'+
-        '<span>'+mode.label+'</span></span>';
+      '<span class="seg-face">'+lucide(mode.icon)+'<span>'+mode.label+'</span></span>';
     $("ms-seg").appendChild(lab);
     lab.querySelector("input").addEventListener("change",()=>setMsMode(mode.id));
   }
