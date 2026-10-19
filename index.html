@@ -2258,11 +2258,12 @@
     // narrow stages, where a big sheet would overflow.
     var narrow = stage.clientWidth < 560;
     var REST = narrow ? 150 : 300;
-    // A sheet keeps growing toward the lens, fully opaque, until FADE_FROM,
-    // then dissolves by FADE_TO. (Perspective is 900px, so zz = 380 is
-    // ~1.7x size and zz = 600 is 3x.) Phones get a smaller range so a
-    // sheet is never much wider than the stage.
-    var FADE_FROM = narrow ? 200 : 380, FADE_TO = narrow ? 380 : 600;
+    // A sheet keeps growing toward the lens, fully opaque, and is then cut
+    // away over a very short window (FADE_FROM to FADE_TO) so it is replaced
+    // by the next one rather than dissolving into it. (Perspective is 900px,
+    // so zz = 500 is ~2.2x size.) Phones get a smaller range so a sheet is
+    // never much wider than the stage.
+    var FADE_FROM = narrow ? 250 : 500, FADE_TO = narrow ? 290 : 540;
     var cam = prog * ((D.length - 1) * GAP + REST);
     // The stack sits a little below centre for the whole fly-through, so the
     // cards open in the lower part of the frame and simply come forward.
@@ -2276,11 +2277,12 @@
       // just read as two overlapping cards; spread out, the recession
       // itself becomes legible and the stage reads as an archive.
       var jx = ((i * 37) % 17 - 8) * (narrow ? 5 : 11), jy = ((i * 53) % 13 - 6) * 5;
-      // fade with distance behind, and again only as a sheet gets very close
+      // sheets behind stay almost solid (size alone carries the depth), so
+      // cards read as separate pieces instead of ghosting through each other
       var far = Math.max(0, Math.min(1, 1 - (-zz) / (DEPTH * 1.25)));
       var near = zz > FADE_FROM ? 1 - (zz - FADE_FROM) / (FADE_TO - FADE_FROM) : 1;
       el.style.transform = 'translate3d(' + jx + 'px,' + (jy + lift).toFixed(1) + 'px,' + zz.toFixed(1) + 'px)';
-      el.style.opacity = ((0.22 + far * 0.78) * near).toFixed(3);
+      el.style.opacity = ((0.8 + far * 0.2) * near).toFixed(3);
       el.style.zIndex = String(1000 + Math.round(zz));
     });
   }
