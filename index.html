@@ -579,17 +579,23 @@
   .plate-archive .plate-cta:hover { border-bottom-color: var(--pl-amber); }
 
   .stack-stage {
-    position: relative; height: 360px; overflow: hidden; margin-top: 2rem;
+    position: relative; height: 440px; overflow: hidden; margin-top: 2rem;
     perspective: 900px; perspective-origin: 50% 46%;
     background: radial-gradient(ellipse at 50% 45%, #1A1610 0%, #0B0A06 78%);
     border: 1px solid var(--pl-rule);
   }
   .sheet {
-    position: absolute; left: 50%; top: 50%; width: 216px; height: 152px;
-    margin: -76px 0 0 -108px; padding: 10px 11px;
-    border: 1px solid rgba(200,145,47,0.42); background: rgba(24,20,13,0.86);
+    position: absolute; left: 50%; top: 50%; width: 272px; height: 232px;
+    margin: -116px 0 0 -136px; padding: 10px 11px;
+    border: 1px solid rgba(200,145,47,0.42); background: #18140D;
     cursor: pointer; transform-style: preserve-3d;
     transition: opacity 0.3s ease, border-color 0.2s ease;
+  }
+  /* Patent drawing pane. The WebP is pre-tinted line art on a transparent
+     ground (see images/patents/), so it sits on the dark sheet as-is. */
+  .sheet-img {
+    display: block; width: 100%; height: 122px; object-fit: contain;
+    margin-bottom: 6px; border-bottom: 1px solid rgba(200,145,47,0.22); padding-bottom: 6px;
   }
   .sheet.dim { opacity: 0.07 !important; }
   .sheet.hit {
@@ -599,9 +605,12 @@
   .sheet-n { font-family: var(--ff-mono); font-size: 0.5rem; letter-spacing: 0.1em; color: var(--pl-amber); display: block; }
   .sheet-t {
     font-family: var(--ff-mono); font-size: 0.54rem; line-height: 1.45; color: #CFC4AC;
-    margin-top: 6px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    margin-top: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
-  .sheet-a { font-family: var(--ff-mono); font-size: 0.47rem; letter-spacing: 0.06em; color: #7E7561; margin-top: 5px; display: block; }
+  .sheet-a {
+    font-family: var(--ff-mono); font-size: 0.47rem; letter-spacing: 0.06em; color: #7E7561; margin-top: 5px;
+    display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
   .sheet-y { position: absolute; left: 11px; bottom: 9px; font-family: var(--ff-mono); font-size: 0.5rem; color: #6E6653; }
   .sheet-fig { position: absolute; right: 10px; bottom: 8px; opacity: 0.5; }
 
@@ -654,7 +663,7 @@
   @media (max-width: 900px) {
     .plate-wheel .plate-grid { grid-template-columns: 1fr; gap: 2rem; }
     .plate-archive .plate-inner { padding: 3rem 1.5rem; }
-    .stack-stage { height: 300px; }
+    .stack-stage { height: 370px; }
   }
 
   /* Reduced motion: instruments still work, they just do not animate
@@ -784,8 +793,18 @@
   ═══════════════════════════════════════════════════════════════ */
   .about-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 5rem; align-items: start; }
 
-  .about-bio { font-size: 1rem; color: var(--text-muted); line-height: 1.9; transition: color 0.5s ease; }
-  .about-bio strong { color: var(--text); font-weight: 500; }
+  /* The four research standards, listed under the About heading. */
+  .standards { list-style: none; border-top: 1px solid var(--bg-rule); transition: border-color 0.5s ease; }
+  .standards li {
+    display: grid; grid-template-columns: 2.25rem 1fr; column-gap: 0.5rem; row-gap: 0.2rem;
+    padding: 1rem 0; border-bottom: 1px solid var(--bg-rule); transition: border-color 0.5s ease;
+  }
+  .std-num {
+    grid-row: 1 / span 2; font-family: var(--ff-mono); font-size: 0.62rem; letter-spacing: 0.2em;
+    color: var(--accent); padding-top: 0.3rem; transition: color 0.5s ease;
+  }
+  .std-name { font-family: var(--ff-sans); font-weight: 600; font-size: 1rem; color: var(--text); transition: color 0.5s ease; }
+  .std-gloss { font-size: 0.85rem; line-height: 1.6; color: var(--text-muted); transition: color 0.5s ease; }
 
   .about-quote {
     margin-top: 2rem; padding-left: 1.25rem;
@@ -928,6 +947,31 @@
   }
   .share-btn.copied .copied-label { opacity: 1; }
 
+  /* GROUP CARD: a card that opens into its child cards (e.g. Bike Parks).
+     Same size and look as every other card; the +/x sits where the share
+     button sits on a normal card. */
+  .group-hit { background: none; border: 0; padding: 0; cursor: pointer; font: inherit; }
+  .group-hit:focus-visible { outline: 2px solid var(--accent); outline-offset: -4px; }
+  .group-card.open { background: var(--bg-rule); }
+  .group-card.open::after { width: 100%; }
+  .group-mark {
+    position: absolute; top: 1.125rem; right: 1.125rem; z-index: 2; pointer-events: none;
+    width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--bg-rule); border-radius: 3px; color: var(--text-muted);
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .group-card:hover .group-mark { border-color: var(--text-muted); }
+  .group-mark svg { width: 14px; height: 14px; transition: transform 0.3s ease; }
+  .group-card.open .group-mark svg { transform: rotate(45deg); }
+  .tool-child[hidden] { display: none; }
+  .tool-child.reveal { animation: childReveal 0.35s ease both; }
+  .tool-child.reveal + .tool-child.reveal { animation-delay: 0.07s; }
+  @keyframes childReveal { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .tool-child.reveal { animation: none; }
+    .group-mark svg { transition: none; }
+  }
+
   /* ═══════════════════════════════════════════════════════════════
      RESPONSIVE
   ═══════════════════════════════════════════════════════════════ */
@@ -975,6 +1019,8 @@
     .tool-name { font-size: 0.92rem; line-height: 1.25; }
     .tool-desc { display: none; }
     .share-btn { top: 0.6rem; right: 0.6rem; width: 26px; height: 26px; }
+    .group-mark { top: 0.6rem; right: 0.6rem; width: 26px; height: 26px; }
+    .group-mark svg { width: 12px; height: 12px; }
     .share-btn svg { width: 12px; height: 12px; }
     .copied-label { font-size: 0.52rem; padding: 3px 6px; right: calc(100% + 6px); }
   }
@@ -1327,7 +1373,8 @@
        TOOL LIST  —  the single source of truth for the grid
 
        ─── TO ADD A TOOL ───────────────────────────────────────────
-         1. Add one entry to PMR_TOOLS below (four fields).
+         1. Add one entry to PMR_TOOLS below (four fields). A group
+            (id, tag, name, desc + children) opens into its children.
          2. Create the wrapper page at <path>/index.html.
          3. Add a <url> line to /sitemap.xml.
        Steps 2 and 3 are separate files, so they still have to be done
@@ -1377,14 +1424,23 @@
       tag:  "Suspension physics",
       name: "Interactive Suspension Dynamics Laboratory",
       desc: "HSC/LSC damping controls, terrain-specific inputs." },
-    { path: "/parks-us/",
+    // A GROUP card: looks like any other card, but opens into its children
+    // (each a normal card, same four fields) instead of linking anywhere.
+    // id is the group's identity for the saved drag order; children are
+    // never draggable and always sit right after their group.
+    { id:   "bike-parks",
       tag:  "Destinations",
-      name: "US Lift-Served Bike Parks",
-      desc: "90+ lift access parks across 30 states from sea to shining sea." },
-    { path: "/parks-ca/",
-      tag:  "Destinations",
-      name: "Canadian Bike Parks",
-      desc: "Canadian lift served bike parks: stats & maps." },
+      name: "Bike Parks",
+      desc: "North American lift-served bike parks. Pick USA or Canada.",
+      children: [
+        { path: "/parks-us/",
+          tag:  "Bike Parks",
+          name: "USA Lift-Served Bike Parks",
+          desc: "90+ lift access parks across 30 states from sea to shining sea." },
+        { path: "/parks-ca/",
+          tag:  "Bike Parks",
+          name: "Canadian Bike Parks",
+          desc: "Canadian lift served bike parks: stats & maps." } ] },
     { path: "/geometry/",
       tag:  "Geometry",
       name: "MTB Steering Geometry",
@@ -1464,10 +1520,15 @@
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
-    function cardHTML(tool) {
+    var ICON_PLUS =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus" aria-hidden="true" focusable="false">' +
+      '<path d="M5 12h14"/><path d="M12 5v14"/></svg>';
+
+    function cardHTML(tool, parentId) {
       var path = esc(tool.path), name = esc(tool.name);
       return '' +
-        '<div class="tool-card" data-tool-id="' + path + '">' +
+        '<div class="tool-card' + (parentId ? ' tool-child' : '') + '" data-tool-id="' + path + '"' +
+          (parentId ? ' data-parent="group:' + esc(parentId) + '" hidden' : '') + '>' +
           '<a href="' + path + '" class="card-hit" draggable="false" aria-label="Open ' + name + '"></a>' +
           '<div class="tool-tag">'  + esc(tool.tag)  + '</div>' +
           '<div class="tool-name">' + name           + '</div>' +
@@ -1481,9 +1542,47 @@
         '</div>';
     }
 
+    // Group card: same shell as cardHTML, but the full-card hit area is a
+    // toggle button, and the share button is replaced by a +/x marker.
+    function groupHTML(tool) {
+      var id = esc(tool.id), name = esc(tool.name);
+      return '' +
+        '<div class="tool-card group-card" data-tool-id="group:' + id + '" data-group="' + id + '">' +
+          '<button type="button" class="card-hit group-hit" draggable="false" aria-expanded="false" ' +
+                  'aria-label="' + name + ': show ' + tool.children.map(function (c) { return esc(c.name); }).join(' and ') + '"></button>' +
+          '<div class="tool-tag">'  + esc(tool.tag)  + '</div>' +
+          '<div class="tool-name">' + name           + '</div>' +
+          '<p class="tool-desc">'   + esc(tool.desc) + '</p>' +
+          '<span class="group-mark" aria-hidden="true">' + ICON_PLUS + '</span>' +
+        '</div>' +
+        tool.children.map(function (c) { return cardHTML(c, tool.id); }).join('');
+    }
+
+    function render(tool) { return tool.children ? groupHTML(tool) : cardHTML(tool, null); }
+
     // One assignment rather than 21 appends: the grid is built off-screen
     // and swapped in once, so the browser only lays out the section once.
-    grid.innerHTML = window.PMR_TOOLS.map(cardHTML).join('');
+    grid.innerHTML = window.PMR_TOOLS.map(render).join('');
+
+    // Open / close a group. Its children are the cards that follow it.
+    function setGroup(card, open) {
+      var hit = card.querySelector('.group-hit');
+      card.classList.toggle('open', open);
+      hit.setAttribute('aria-expanded', open ? 'true' : 'false');
+      for (var n = card.nextElementSibling; n && n.classList.contains('tool-child'); n = n.nextElementSibling) {
+        n.hidden = !open;
+        n.classList.toggle('reveal', open);
+      }
+    }
+    grid.addEventListener('click', function (e) {
+      var hit = e.target.closest ? e.target.closest('.group-hit') : null;
+      if (hit) { var c = hit.parentNode; setGroup(c, !c.classList.contains('open')); }
+    });
+    grid.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      var open = grid.querySelector('.group-card.open');
+      if (open) { setGroup(open, false); open.querySelector('.group-hit').focus(); }
+    });
   }());
   </script>
 
@@ -1493,28 +1592,23 @@
 </section>
 
 <!-- ── Plate III — MTB Patent Atlas ──────────────────────────────
-     Depth. Eighteen real entries from the Atlas, 1913 to 2024.
+     Depth. 7 real rear-suspension entries from the Atlas, 1987 to 2013.
      Always dark: an archive is a different room, and the spine
      script drifts the rest of the page down to meet it.
 ──────────────────────────────────────────────────────────────── -->
-<section class="plate plate-archive" id="plate-archive" data-scale="111 yr" data-unit="prior art">
+<section class="plate plate-archive" id="plate-archive" data-scale="26 yr" data-unit="prior art">
   <div class="carpet-field" aria-hidden="true"></div>
   <div class="plate-inner">
     <span class="plate-tag">Fig. 3 &middot; IP research</span>
-    <h3 class="plate-h">You&rsquo;ve heard &ldquo;Horst Link.&rdquo; Here&rsquo;s the actual paper.</h3>
-    <p class="plate-p">
-      Eighteen real filings from the Atlas, 1913 to 2024. Fly through the stack,
-      then type to filter it in place &mdash; forty years of prior art thins to
-      three sheets as you narrow.
-    </p>
+    <h3 class="plate-h">You&rsquo;ve heard &ldquo;VPP.&rdquo; Here&rsquo;s the actual paper.</h3>
 
     <div class="stack-stage" id="s-stage"></div>
 
     <div class="stack-ctl">
-      <input type="search" id="s-q" placeholder="search your bike &mdash; try: horst, fox, wheel, 1913" aria-label="Filter the patent stack">
+      <input type="search" id="s-q" placeholder="search your bike &mdash; try: vpp, trek, yeti, 1998" aria-label="Filter the patent stack">
       <input type="range" id="s-z" min="0" max="100" value="0" aria-label="Fly through the stack">
     </div>
-    <p class="stack-meta"><b id="s-n">18</b> of 18 sheets &middot; drag the right-hand slider to fly through &middot; click a sheet to read it</p>
+    <p class="stack-meta"><b id="s-n">7</b> of <span id="s-total">7</span> sheets &middot; drag the right-hand slider to fly through &middot; click a sheet to read it</p>
     <p class="stack-detail" id="s-detail">Click any sheet to read its filing.</p>
 
     <noscript>
@@ -1537,16 +1631,12 @@
   </div>
   <div class="about-grid">
     <div class="about-copy">
-    <p class="about-bio">
-      <strong>Post Millennium Renaissance MTB</strong> is the work of Jon — a trail advocate,
-      content creator, and tool builder based in Castle Rock, Colorado. The tools here are
-      built without a formal coding background, out of a conviction that mountain bike
-      mechanics and trail economics deserve the same rigor we bring to the trail itself.<!--<br><br>
-      The work spans two audiences: technically sophisticated riders who want to understand
-      what's actually happening inside their wheel builds and suspension, and civic
-      stakeholders who need clear, defensible data to invest in trails and open space.<br><br>
-      No solutions — only tradeoffs, understood.-->
-    </p>
+    <ol class="standards" aria-label="How PMR works">
+      <li><span class="std-num">01</span><span class="std-name">Primary sources first</span><span class="std-gloss">Studies, filings and spec sheets before summaries of them.</span></li>
+      <li><span class="std-num">02</span><span class="std-name">Calculations shown</span><span class="std-gloss">Derived figures carry their arithmetic.</span></li>
+      <li><span class="std-num">03</span><span class="std-name">Assumptions disclosed</span><span class="std-gloss">Inputs and modeling choices stated up front.</span></li>
+      <li><span class="std-num">04</span><span class="std-name">Uncertainty labeled</span><span class="std-gloss">Estimates are marked as estimates.</span></li>
+    </ol>
     <blockquote class="about-quote">
       <p>"There are no solutions. There are only trade-offs."</p>
       <cite>— Thomas Sowell</cite>
@@ -1601,14 +1691,12 @@
       <p>Economic impact research and civic presentation materials supporting trail expansion at Castle Rock's flagship mountain bike destination — delivered to Town Council with defensible ROI framing.</p>
       <div class="stat-row">
         <div><span class="stat-value">~2M</span><span class="stat-label">Annual visitors</span></div>
-        <div><span class="stat-value">3–5yr</span><span class="stat-label">Est. ROI payback</span></div>
       </div>
     </div>
     <div class="advocacy-card">
       <h3>Ridgeline Open Space</h3>
-      <p>Trail advocacy resources and community engagement materials for Castle Rock's Ridgeline Open Space, grounded in 13 U.S. trail investment studies and built to hold up in front of municipal stakeholders.</p>
+      <p>Trail advocacy resources and community engagement materials for Castle Rock's Ridgeline Open Space, grounded in U.S. trail investment studies and built to hold up in front of municipal stakeholders.</p>
       <div class="stat-row">
-        <div><span class="stat-value">13</span><span class="stat-label">Studies synthesized</span></div>
         <div><span class="stat-value">80109</span><span class="stat-label">Castle Rock, CO</span></div>
       </div>
     </div>
@@ -2029,7 +2117,7 @@
 <!-- ═══════════════════════════════════════════════════════════════
      PLATE III  —  the patent stack
 
-     Eighteen real entries from /atlas/, spanning 1913 to 2024, laid
+     7 real rear-suspension entries from /atlas/, spanning 1987 to 2013, laid
      out in true perspective with CSS 3D — no renderer, because the
      mechanic is worth proving before anything heavier gets committed
      to. Scroll flies the camera; the search field filters the stack
@@ -2040,24 +2128,31 @@
   var stage = document.getElementById('s-stage');
   if (!stage) return;
 
-  var D = [{"y": 1913, "n": "1129585", "t": "Valve for Pneumatic Tires (US 1,129,585)", "a": "Joseph N. Newsom → St. Louis Pneumatic Valve Co.", "c": "Wheels & Tires", "s": "expired"}, {"y": 1968, "n": "3514091", "t": "Park Tool repair stand clamp (US 3,514,091)", "a": "Park Tool Co. (St. Paul, MN)", "c": "Components", "s": "expired"}, {"y": 1988, "n": "7712566", "t": "Schlumpf planetary crank drive → SRAM HammerSchmidt (US 7,712,566)", "a": "Florian Schlumpf (Switzerland) → Haberstock-Mobility → SRAM (Truvativ)", "c": "Drivetrain", "s": "active"}, {"y": 1994, "n": "5509679", "t": "Horst Link rear suspension (US 5,509,679)", "a": "Horst Leitner / AMP Research → Specialized", "c": "Rear Suspension", "s": "expired"}, {"y": 1995, "n": "5833074", "t": "QuikRack — Fast-loading protective bicycle rack (US 5,833,074)", "a": "Cal M. Phillips (licensed to 1UP USA)", "c": "Bike Transport", "s": "expired"}, {"y": 1997, "n": "5964332", "t": "RingDrive hub engagement (US 5,964,332)", "a": "Christopher D. King / Chris King", "c": "Wheels & Tires", "s": "expired"}, {"y": 2002, "n": "6843494", "t": "Rocky Mountain rear suspension system (US 6,843,494)", "a": "Duhane Lam → Rocky Mountain Bicycles", "c": "Rear Suspension", "s": "expired"}, {"y": 2006, "n": "7717212", "t": "Split Pivot (US 7,717,212)", "a": "Dave Weagle → Devinci, Salsa, Morewood", "c": "Rear Suspension", "s": "expired"}, {"y": 2006, "n": "7555838", "t": "Bill Shook lightweight rim extrusion method (US 7,555,838)", "a": "William B. Shook / American Classic", "c": "Wheels & Tires", "s": "active"}, {"y": 2011, "n": "8894083", "t": "Trek DRCV dual-chamber air shock (US 8,894,083)", "a": "Trek Bicycle (with Fox)", "c": "Forks & Damping", "s": "active"}, {"y": 2012, "n": "8757341", "t": "Star Ratchet EXP (US 8,757,341)", "a": "Jo Klieber / Syntace GmbH → DT Swiss AG", "c": "Wheels & Tires", "s": "active"}, {"y": 2013, "n": "10746250", "t": "Bleed valve patent + Fox v. SRAM (US 10,746,250)", "a": "Fox Factory", "c": "Forks & Damping", "s": "active"}, {"y": 2014, "n": "12167211", "t": "Hardware, form factor & acoustics — HERO design + mounts (bundle)", "a": "GoPro", "c": "Components", "s": "active"}, {"y": 2017, "n": "10578184", "t": "GRIP2 damper (US 10,578,184)", "a": "Fox Factory", "c": "Forks & Damping", "s": "active"}, {"y": 2018, "n": "10733795", "t": "Rim shape determination method (US 10,733,795)", "a": "Trek Bicycle", "c": "Frame & Standards", "s": "active"}, {"y": 2019, "n": "11242110", "t": "Trek Supercaliber IsoStrut (US 11,242,110)", "a": "Trek Bicycle", "c": "Rear Suspension", "s": "active"}, {"y": 2023, "n": "11866114", "t": "Shimano AI-assisted suspension & dropper learning model (US 11,866,114)", "a": "Shimano", "c": "Rear Suspension", "s": "active"}, {"y": 2024, "n": "12491966", "t": "Wheel motor-brake unit (US 12,491,966)", "a": "Mikel Fauri / Porsche AG", "c": "E-MTB & Electronics", "s": "active"}];
+  var D = [{"y": 1987, "n": "4789174", "t": "Lawwill four-bar, Gary Fisher RS-1 (US 4,789,174)", "a": "Mert Lawwill", "c": "Rear Suspension", "s": "expired", "i": "/images/patents/us4789174.webp"}, {"y": 1995, "n": "5685553", "t": "Trek Y-bike Y-frame suspension (US 5,685,553)", "a": "Trek Bicycle", "c": "Rear Suspension", "s": "expired", "i": "/images/patents/us5685553.webp"}, {"y": 1998, "n": "6206397", "t": "Counter-rotating links / VPP (US 6,206,397)", "a": "Santa Cruz (Intense licensed)", "c": "Rear Suspension", "s": "expired", "i": "/images/patents/us6206397.webp"}, {"y": 1999, "n": "6203042", "t": "Trek rearward-axle-path suspension (US 6,203,042)", "a": "Weston M. Wilcox / Trek Bicycle Corporation", "c": "Rear Suspension", "s": "expired", "i": "/images/patents/us6203042.webp"}, {"y": 2004, "n": "7566066", "t": "Giant Maestro suspension (US 7,566,066)", "a": "Owen Chang & Leo Wu / Giant Manufacturing Co., Ltd.", "c": "Rear Suspension", "s": "expired", "i": "/images/patents/us7566066.webp"}, {"y": 2013, "n": "9821879", "t": "Switch Infinity translating pivot (US 9,821,879)", "a": "Peter Zawistowski / Yeti Cycling LLC (co-developed with Fox)", "c": "Rear Suspension", "s": "active", "i": "/images/patents/us9821879.webp"}, {"y": 2013, "n": "9061729", "t": "Canfield Balance Formula (US 9,061,729)", "a": "Lance & Chris Canfield", "c": "Rear Suspension", "s": "active", "i": "/images/patents/us9061729.webp"}];
   var q = document.getElementById('s-q'), z = document.getElementById('s-z'),
       nEl = document.getElementById('s-n'), dEl = document.getElementById('s-detail'),
-      cta = document.getElementById('s-cta'), GAP = 120, TRAVEL = 0.45, els = [];
+      cta = document.getElementById('s-cta'), total = document.getElementById('s-total'), GAP = 120, TRAVEL = 1, els = [];
+
+  if (total) total.textContent = D.length;
 
   D.forEach(function (d, i) {
     var el = document.createElement('div');
     el.className = 'sheet';
+    var fig = d.i
+      ? '<img class="sheet-img" src="' + d.i + '" alt="" width="260" height="150" loading="lazy" decoding="async">'
+      : '';
     el.innerHTML =
+      fig +
       '<span class="sheet-n">US ' + d.n + '</span>' +
       '<span class="sheet-t">' + d.t.replace(/\s*\(US[^)]*\)/, '') + '</span>' +
       '<span class="sheet-a">' + d.a + '</span>' +
       '<span class="sheet-y">' + d.y + '</span>' +
+      (d.i ? '' :
       '<svg class="sheet-fig" width="34" height="30" viewBox="0 0 34 30" aria-hidden="true">' +
         '<circle cx="11" cy="19" r="8" fill="none" stroke="#C8912F" stroke-width="1"/>' +
         '<circle cx="27" cy="19" r="5" fill="none" stroke="#C8912F" stroke-width="1"/>' +
         '<path d="M11 19 L18 7 L27 19" fill="none" stroke="#C8912F" stroke-width="1"/>' +
-      '</svg>';
+      '</svg>');
     el.addEventListener('click', function () {
       dEl.innerHTML = '<b>' + d.t + '</b><br>' + d.a + ' &middot; filed ' + d.y +
         ' &middot; <span class="num">US ' + d.n + '</span> &middot; ' + d.c + ' &middot; ' + d.s;
@@ -2306,12 +2401,30 @@
   if (!grid) return;
 
   var DEFAULT_ORDER = Array.prototype.map.call(
-    grid.querySelectorAll('.tool-card'),
+    grid.querySelectorAll('.tool-card:not(.tool-child)'),
     function (c) { return c.getAttribute('data-tool-id'); }
   );
 
   function getCards() {
-    return Array.prototype.slice.call(grid.querySelectorAll('.tool-card'));
+    return Array.prototype.slice.call(grid.querySelectorAll('.tool-card:not(.tool-child)'));
+  }
+
+  // Child cards (inside a group) are not part of the saved order. Their
+  // grouping is read once from the initial DOM; after any reorder they are
+  // moved back to sit directly after their group card.
+  var KIDS = {};
+  Array.prototype.forEach.call(grid.querySelectorAll('.tool-child'), function (k) {
+    var g = k.getAttribute('data-parent');
+    (KIDS[g] = KIDS[g] || []).push(k);
+  });
+
+  function placeChildren() {
+    getCards().forEach(function (c) {
+      var kids = KIDS[c.getAttribute('data-tool-id')];
+      if (!kids) return;
+      var ref = c;
+      kids.forEach(function (k) { grid.insertBefore(k, ref.nextSibling); ref = k; });
+    });
   }
 
   function applyOrder(order) {
@@ -2321,10 +2434,12 @@
     order.forEach(function (id) {
       if (byId[id]) grid.appendChild(byId[id]);
     });
+    placeChildren();
     updateResetVisibility();
   }
 
   function saveOrder() {
+    placeChildren();
     var order = getCards().map(function (c) { return c.getAttribute('data-tool-id'); });
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(order)); } catch (e) {}
     updateResetVisibility();
@@ -2458,7 +2573,7 @@
       // Temporarily hide the dragged card from hit-testing so elementFromPoint
       // can see the card underneath the finger
       var target = document.elementFromPoint(t.clientX, t.clientY);
-      var targetCard = target && target.closest ? target.closest('.tool-card') : null;
+      var targetCard = target && target.closest ? target.closest('.tool-card:not(.tool-child)') : null;
 
       getCards().forEach(function (c) { if (c !== card) c.classList.remove('drag-over'); });
       if (targetCard && targetCard !== card) targetCard.classList.add('drag-over');
@@ -2472,7 +2587,7 @@
         card.style.transform = '';
         card.classList.remove('touch-dragging');
         var target = document.elementFromPoint(t.clientX, t.clientY);
-        var targetCard = target && target.closest ? target.closest('.tool-card') : null;
+        var targetCard = target && target.closest ? target.closest('.tool-card:not(.tool-child)') : null;
         getCards().forEach(function (c) { c.classList.remove('drag-over'); });
         if (targetCard && targetCard !== card) {
           swapCards(card, targetCard);
