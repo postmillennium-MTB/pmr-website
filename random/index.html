@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<!--
+==================================================================================
+  STOCHASTIC OS V7  —  Tri-Core randomness & stochastic-process visualizer
+  single-file, zero-dependency tool
+  Post Millennium Renaissance  ·  postmillenniumrenaissance.com/random/
+==================================================================================
+
+  FILE MAP  (search the ALL-CAPS section labels to jump; line numbers drift)
+
+  <head> / <style>
+    · PALETTE (CSS) ............. neon tokens on :root
+    · BASE + LAYOUT ............. body, CRT overlay, panels, canvases
+    · CONTROLS .................. checkboxes, sliders, selects, buttons
+
+  <body> .......................... mostly empty shells that JS fills
+    · CORE 1 .................... model toggles + isolated render
+    · CORE 2 .................... formula blender (crossfade between two models)
+    · CORE 3 .................... algorithmic forge (LCG + xorshift parameter lab)
+
+  <script> #1  ENGINE ............. math helpers + the four stateful generators
+  <script> #2
+    ==== ALL DATA LIVES IN ONE CONTIGUOUS BLOCK ====
+    · MODELS ..................... the 11 generators, one entry each
+    · FORGE_PARAMS ............... the three Core 3 sliders
+    ==== END OF DATA ====
+    · tuning constants ........... point counts, sizes, load factor
+    · renderers .................. renderStandard / renderBlender / renderForge
+    · init() ..................... builds the UI from the registries
+
+  TO ADD A MODEL:  write its generator, add ONE entry to MODELS. The Core 1 row,
+                   both Core 2 dropdown options and the render dispatch derive from it.
+  TO ADD A FORGE SLIDER: add ONE entry to FORGE_PARAMS and read its value in
+                   renderForge() — the control and its readout are generated.
+
+  DEPENDENCIES: none. (The original build pulled Tailwind from a CDN and a Google
+  font; both were replaced with plain CSS and a system monospace stack so the file
+  runs offline and inside an iframe with no third-party requests.)
+==================================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#090014">
+<link rel="icon" href="/favicon.ico">
+<link rel="icon" type="image/png" href="/favicon-32x32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<title>Stochastic OS V7 — Post Millennium Renaissance</title>
+<meta name="description" content="Interactive randomness lab: compare PRNGs, chaos maps and financial stochastic processes, crossfade between them, and watch an LCG degenerate as you starve its memory.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.postmillenniumrenaissance.com/random/">
+<meta property="og:title" content="Stochastic OS V7 — Post Millennium Renaissance">
+<meta property="og:description" content="Compare PRNGs, chaos maps and financial stochastic processes, then watch an LCG degenerate as you starve its memory.">
+<meta property="og:image" content="https://www.postmillenniumrenaissance.com/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<style>
+/* ==== PALETTE ============================================================
+   Decorative chrome only. Plot colors are user-pickable per model and carry
+   the meaning of each layer; these tokens never encode a result. */
+:root{
+  --pink:#ff00ff; --cyan:#00ffff; --yellow:#fcee0a; --green:#00ff88;
+  --bg:#090014; --ink:#e6fbff; --ink-dim:#8fd9e6;
+  --mono:"Share Tech Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;
+}
+
+/* ==== BASE + LAYOUT (mobile-first) ======================================= */
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{
+  margin:0; min-height:100vh; padding:1rem .75rem 4rem; overflow-x:hidden;
+  font-family:var(--mono); color:var(--cyan); background-color:var(--bg);
+  background-image:
+    linear-gradient(rgba(255,0,255,.08) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,0,255,.08) 1px,transparent 1px);
+  background-size:40px 40px; background-position:center bottom;
+}
+/* CRT scanline overlay — purely decorative, never intercepts input */
+body::after{
+  content:""; position:fixed; inset:0; z-index:50; pointer-events:none;
+  background:
+    linear-gradient(rgba(18,16,16,0) 50%,rgba(0,0,0,.25) 50%),
+    linear-gradient(90deg,rgba(255,0,0,.06),rgba(0,255,0,.02),rgba(0,0,255,.06));
+  background-size:100% 2px,3px 100%;
+}
+.wrap{max-width:80rem; margin:0 auto; display:flex; flex-direction:column; gap:2rem; position:relative; z-index:10}
+header{text-align:center; margin-top:.5rem}
+h1,h2{text-shadow:0 0 10px currentColor; margin:0}
+h1{font-size:1.6rem; letter-spacing:.15em; color:var(--pink)}
+h2{font-size:1.1rem; text-transform:uppercase}
+h3{margin:.5rem 0 .25rem; font-size:.8rem; text-transform:uppercase}
+.sub{margin:.25rem 0 0; font-size:.8rem; letter-spacing:.15em; text-transform:uppercase; color:var(--ink-dim)}
+.pmr-link{display:inline-block; margin-top:.5rem; color:var(--ink-dim); font-size:.8rem}
+.flicker{animation:flicker .15s infinite}
+@keyframes flicker{0%{opacity:.95}100%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.flicker{animation:none}}
+
+.panel{background:rgba(10,0,25,.85); border:1px solid; border-radius:4px; padding:1rem; z-index:10;
+  -webkit-backdrop-filter:blur(5px); backdrop-filter:blur(5px)}
+.panel-1{border-color:var(--cyan);   box-shadow:0 0 10px rgba(0,255,255,.1)}
+.panel-2{border-color:var(--yellow); box-shadow:0 0 10px rgba(252,238,10,.1)}
+.panel-3{border-color:var(--green);  box-shadow:0 0 10px rgba(0,255,136,.1)}
+.panel-head{display:flex; justify-content:space-between; align-items:center; gap:.5rem; flex-wrap:wrap;
+  border-bottom:1px solid currentColor; padding-bottom:.5rem; margin-bottom:.75rem}
+.tag{font-size:.75rem; opacity:.8}
+
+.core1{display:flex; flex-direction:column; gap:1.5rem}
+.col{display:flex; flex-direction:column; gap:1rem}
+.stage{position:relative}
+.stage canvas{display:block; width:100%; height:auto; border:2px solid; border-radius:4px;
+  background:linear-gradient(180deg,#05000a 0%,#1a002a 100%)}
+#cv-std{border-color:var(--cyan);   box-shadow:0 0 20px rgba(0,255,255,.2);  aspect-ratio:3/2}
+#cv-blend{border-color:var(--yellow); box-shadow:0 0 20px rgba(252,238,10,.2); aspect-ratio:8/3}
+#cv-forge{border-color:var(--green);  box-shadow:0 0 20px rgba(0,255,136,.2);  aspect-ratio:2/1}
+.badge{position:absolute; top:.5rem; left:.5rem; font-size:.7rem; font-weight:bold; letter-spacing:.1em;
+  background:rgba(0,0,0,.7); padding:.2rem .5rem; border:1px solid currentColor}
+.formula{position:absolute; right:.5rem; bottom:.5rem; font-size:.65rem; letter-spacing:.05em; text-align:right;
+  color:rgba(0,255,136,.7); line-height:1.3}
+
+.model-row{display:flex; align-items:center; justify-content:space-between; gap:.5rem; min-height:40px;
+  padding:.1rem .5rem; border-bottom:1px solid rgba(0,255,255,.1)}
+.model-row:hover{background:rgba(0,255,255,.1)}
+.model-row label{display:flex; align-items:center; gap:.5rem; flex:1; cursor:pointer; font-size:.8rem; color:var(--ink)}
+
+#terminal-log{font-size:.75rem; height:120px; overflow-y:auto; border-left:2px solid var(--pink); padding-left:.5rem; color:var(--ink)}
+.log-boot{color:var(--pink)}
+.metric{border:1px solid var(--green); background:rgba(0,0,0,.6); color:var(--green); font-size:.75rem; padding:.2rem .6rem}
+.metric b{color:#fff}
+.metric b.slow{color:#ff5c8a}
+
+.ctl-grid{display:grid; grid-template-columns:1fr; gap:1rem; margin-top:.75rem; padding:1rem;
+  background:rgba(0,0,0,.4); border:1px solid; border-radius:4px}
+.ctl-grid.y{border-color:rgba(252,238,10,.3); color:var(--yellow)}
+.ctl-grid.g{border-color:rgba(0,255,136,.3);  color:var(--green)}
+.ctl{display:flex; flex-direction:column; gap:.25rem; font-size:.75rem}
+.ctl .row{display:flex; justify-content:space-between; gap:.5rem}
+.ctl .help{margin:0 0 .25rem; font-size:.7rem; line-height:1.3; color:#7ddbb0}
+.ctl .val{color:#fff}
+
+/* ==== CONTROLS =========================================================== */
+:focus-visible{outline:2px solid var(--pink); outline-offset:2px}
+input[type=checkbox]{-webkit-appearance:none; appearance:none; width:1.25rem; height:1.25rem; flex:none;
+  border:1px solid var(--cyan); background:transparent; cursor:pointer; position:relative; box-shadow:0 0 5px rgba(0,255,255,.3)}
+input[type=checkbox]:checked{background:var(--cyan)}
+input[type=checkbox]:checked::after{content:"✓"; position:absolute; color:#000; font-weight:bold; left:3px; top:-2px}
+input[type=color]{-webkit-appearance:none; appearance:none; flex:none; width:2rem; height:1.75rem; padding:0;
+  border:1px solid currentColor; background:transparent; cursor:pointer}
+input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+input[type=color]::-webkit-color-swatch{border:none}
+input[type=color]::-moz-color-swatch{border:none}
+input[type=range]{-webkit-appearance:none; appearance:none; width:100%; height:28px; background:transparent; color:inherit; margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:4px; border-radius:2px; background:rgba(255,255,255,.25)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:18px; height:18px; margin-top:-7px; border-radius:50%;
+  background:currentColor; box-shadow:0 0 10px currentColor}
+input[type=range]::-moz-range-track{height:4px; border-radius:2px; background:rgba(255,255,255,.25)}
+input[type=range]::-moz-range-thumb{width:18px; height:18px; border:0; border-radius:50%; background:currentColor}
+select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow); padding:.5rem .25rem; min-height:40px;
+  font-family:var(--mono); font-size:.8rem; width:100%}
+.btn{display:block; width:100%; min-height:44px; margin-top:.5rem; border-radius:4px; cursor:pointer;
+  font-family:var(--mono); font-weight:bold; letter-spacing:.1em; text-transform:uppercase; transition:all .2s}
+.btn-pink{background:rgba(255,0,255,.1); color:var(--pink); border:2px solid var(--pink); box-shadow:0 0 10px rgba(255,0,255,.4)}
+.btn-pink:hover{background:var(--pink); color:#000}
+.btn-yellow{background:rgba(252,238,10,.1); color:var(--yellow); border:2px solid var(--yellow); box-shadow:0 0 10px rgba(252,238,10,.3)}
+.btn-yellow:hover{background:var(--yellow); color:#000}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#000}
+::-webkit-scrollbar-thumb{background:var(--cyan)}
+
+@media (min-width:560px){
+  h1{font-size:2.25rem}
+  .ctl-grid.y{grid-template-columns:1fr 1fr}
+  .ctl-grid.g{grid-template-columns:1fr 1fr 1fr; gap:2rem}
+}
+@media (min-width:960px){
+  body{padding:2rem 1rem 5rem}
+  .core1{flex-direction:row; align-items:flex-start}
+  .core1 .col{flex:1 1 33%}
+  .core1 .stage{flex:2 1 66%}
+  .ctl-grid.y{grid-template-columns:repeat(5,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1 class="flicker">STOCHASTIC_OS V7</h1>
+    <p class="sub">[ Tri-Core Architecture Online ]</p>
+    <a class="pmr-link" href="https://www.postmillenniumrenaissance.com/" target="_top">← Post Millennium Renaissance</a>
+  </header>
+
+  <!-- CORE 1: the model rows below are BUILT FROM the `MODELS` registry. -->
+  <section class="core1" aria-labelledby="h-core1">
+    <div class="col">
+      <div class="panel panel-1">
+        <div class="panel-head"><h2 id="h-core1">Core 1: Models</h2><span class="tag" id="pts-tag"></span></div>
+        <h3 style="color:var(--pink)">Randomness &amp; Chaos Generators</h3>
+        <div id="seq-box"></div>
+        <h3 style="color:var(--green)">Financial Stochastics</h3>
+        <div id="fin-box"></div>
+        <button type="button" class="btn btn-pink" id="btn-run">Execute Sequences</button>
+      </div>
+      <div class="panel panel-1">
+        <div id="terminal-log" role="log" aria-live="off"><div class="log-boot">SYS_INIT: boot sequence confirmed.</div></div>
+      </div>
+    </div>
+    <div class="stage">
+      <canvas id="cv-std" width="1200" height="800" role="img" aria-label="Scatter and line plot of the selected models"></canvas>
+      <div class="badge" style="color:var(--cyan)">CORE 1 // ISOLATED RENDER</div>
+    </div>
+  </section>
+
+  <!-- CORE 2 -->
+  <section class="panel panel-2" aria-labelledby="h-core2">
+    <div class="panel-head" style="color:var(--yellow)"><h2 id="h-core2" class="flicker">Core 2: Formula Blender</h2><span class="tag">CROSSFADE ENGINE</span></div>
+    <div class="stage">
+      <canvas id="cv-blend" width="1600" height="600" role="img" aria-label="Crossfade plot between two selected models"></canvas>
+      <div class="badge" style="color:var(--yellow)">CORE 2 // INTERPOLATION</div>
+    </div>
+    <div class="ctl-grid y">
+      <div class="ctl"><label for="blend-a">FORMULA A (left base)</label><select id="blend-a"></select></div>
+      <div class="ctl"><label for="blend-b">FORMULA B (right target)</label><select id="blend-b"></select></div>
+      <div class="ctl">
+        <div class="row"><label for="blend-pos">Fade bar (center)</label><span class="val" id="pos-val">0</span></div>
+        <input type="range" id="blend-pos" min="-100" max="100" step="1" value="0">
+      </div>
+      <div class="ctl">
+        <div class="row"><label for="blend-smooth">Blend smoothness</label><span class="val" id="smooth-val">30</span></div>
+        <input type="range" id="blend-smooth" min="0" max="100" step="1" value="30">
+      </div>
+      <div class="ctl"><label for="blend-color">Output chroma</label><input type="color" id="blend-color" value="#fcee0a"></div>
+    </div>
+    <button type="button" class="btn btn-yellow" id="btn-surprise">Surprise Me! [ RNG Overload ]</button>
+  </section>
+
+  <!-- CORE 3: the sliders below are BUILT FROM the `FORGE_PARAMS` registry. -->
+  <section class="panel panel-3" aria-labelledby="h-core3">
+    <div class="panel-head" style="color:var(--green)">
+      <h2 id="h-core3" class="flicker">Core 3: Algorithmic Forge</h2>
+      <span class="metric">RENDER: <b id="forge-time">0.00</b> ms</span>
+      <span class="tag">LCG + XORSHIFT PARAMETERIZATION</span>
+    </div>
+    <div class="stage">
+      <canvas id="cv-forge" width="1200" height="600" role="img" aria-label="Pair-correlation plot of the forged generator"></canvas>
+      <div class="badge" style="color:var(--green)">CORE 3 // GENERATIVE VISUALIZATION</div>
+      <div class="formula">BASE: X<sub>n+1</sub> = (a·X<sub>n</sub> + c) mod 2<sup>b</sup><br>MIX (×shifts): X ^= X&lt;&lt;13; X ^= X&gt;&gt;17; X ^= X&lt;&lt;5</div>
+    </div>
+    <div class="ctl-grid g" id="forge-box"></div>
+  </section>
+
+</div>
+
+<script>
+/* ==== ENGINE — math helpers and the stateful generators ====================
+   Generators that carry state between calls (LCG, xorshift, middle-square,
+   logistic) deliberately keep it across renders, so pressing Execute again
+   continues the stream instead of replaying the same picture. */
+
+// Box–Muller transform: two uniforms -> one standard normal. The while-loops
+// reject exact zeros, which would make Math.log blow up to -Infinity.
+function randn_bm(){
+  let u=0,v=0;
+  while(u===0) u=Math.random();
+  while(v===0) v=Math.random();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+}
+
+// Van der Corput radical inverse; pairing bases 2 and 3 gives the 2-D Halton set.
+function halton(index,base){
+  let result=0,f=1/base,i=index;
+  while(i>0){ result+=f*(i%base); i=Math.floor(i/base); f/=base; }
+  return result;
+}
+
+function smoothstep(edge0,edge1,x){
+  const t=Math.max(0,Math.min(1,(x-edge0)/(edge1-edge0)));
+  return t*t*(3-2*t);
+}
+
+// Min/max rescale to the unit square so unlike models (a price path in the
+// hundreds vs. a [0,1] sequence) can be crossfaded point-for-point.
+function normalizeSequence(pts){
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+  for(const p of pts){
+    if(p.x<minX)minX=p.x; if(p.x>maxX)maxX=p.x;
+    if(p.y<minY)minY=p.y; if(p.y>maxY)maxY=p.y;
+  }
+  if(maxX===minX){maxX+=1;minX-=1;}
+  if(maxY===minY){maxY+=1;minY-=1;}
+  return pts.map(p=>({x:(p.x-minX)/(maxX-minX), y:(p.y-minY)/(maxY-minY)}));
+}
+
+// 1. LCG (Numerical Recipes constants). 1664525 * seed stays below 2^53, so the
+//    double-precision multiply is exact before the modulo.
+let lcgSeed=12345;
+function nextLCG(){ lcgSeed=(1664525*lcgSeed+1013904223)%4294967296; return lcgSeed/4294967296; }
+
+// 2. Marsaglia xorshift32
+let xsState=123456789;
+function nextXorShift(){
+  xsState^=xsState<<13; xsState^=xsState>>>17; xsState^=xsState<<5;
+  return (xsState>>>0)/4294967296;
+}
+
+// 3. Von Neumann middle-square, 6 digits: square, pad to 12, keep the middle 6.
+let msState=123456;
+function nextMiddleSquare(){
+  const sq=(msState*msState).toString().padStart(12,"0");
+  msState=parseInt(sq.substring(3,9),10);
+  if(msState===0||msState===100000) msState=123456;   // known collapse points; reseed so the plot isn't blank
+  return msState/999999;
+}
+
+// 4. Logistic map at r=3.99 (fully chaotic regime)
+let lmState=0.501;
+const LOGISTIC_R=3.99;
+function nextLogistic(){ lmState=LOGISTIC_R*lmState*(1-lmState); return lmState; }
+</script>
+
+<script>
+/* ==== MODELS REGISTRY — the single source of truth for every generator. =====
+   TO ADD A MODEL: write a generator (returns [{x,y},…] of length NUM_POINTS),
+   then add ONE entry here. Core 1 row, both Core 2 dropdowns and the render
+   dispatch all derive from it.
+
+     id     unique key (used for DOM ids)
+     cat    "seq" = randomness & chaos column, "fin" = financial column
+     name   display label
+     type   "scatter" or "line" (line models draw as a connected path)
+     color  default plot color (user can change per model in Core 1)
+     on     checked by default in Core 1
+     defA / defB   default selection in the Core 2 A / B dropdown
+     gen    function returning the points                                   */
+const MODELS=[
+  {id:"prng",     cat:"seq", name:"Math.random (browser PRNG)", type:"scatter", color:"#00ffff", gen:()=>scatterFrom(Math.random)},
+  {id:"lcg",      cat:"seq", name:"Linear Congruential (LCG)",  type:"scatter", color:"#ff00aa", gen:()=>scatterFrom(nextLCG)},
+  {id:"midsq",    cat:"seq", name:"Middle-Square (Von Neumann)",type:"scatter", color:"#ff7700", gen:()=>scatterFrom(nextMiddleSquare)},
+  {id:"xor",      cat:"seq", name:"Xorshift Engine",            type:"scatter", color:"#aaff00", gen:()=>scatterFrom(nextXorShift)},
+  {id:"logistic", cat:"seq", name:"Logistic Map (Chaos)",       type:"scatter", color:"#ff0055", on:true, defA:true,
+   gen:()=>{ const pts=[]; for(let i=0;i<NUM_POINTS;i++) pts.push({x:i/NUM_POINTS,y:nextLogistic()}); return pts; }},
+  {id:"halton",   cat:"seq", name:"Halton Sequence (Low-Disc.)",type:"scatter", color:"#fcee0a", on:true,
+   gen:()=>{ const pts=[]; for(let i=1;i<=NUM_POINTS;i++) pts.push({x:halton(i,2),y:halton(i,3)}); return pts; }},
+
+  {id:"gauss",    cat:"fin", name:"Gaussian Copula (ρ=0.8)",    type:"scatter", color:"#aa00ff",
+   gen:()=>{ const pts=[]; for(let i=0;i<NUM_POINTS;i++){ const z1=randn_bm(),z2=randn_bm();
+      pts.push({x:z1,y:COPULA_RHO*z1+Math.sqrt(1-COPULA_RHO*COPULA_RHO)*z2}); } return pts; }},
+  // Student-t via normal / sqrt(chi-square/nu). Chi-square(4) is exactly the sum
+  // of four squared standard normals, so nu=4 needs no approximation.
+  {id:"tcopula",  cat:"fin", name:"Student-t Copula (ν=4)",     type:"scatter", color:"#0055ff", on:true,
+   gen:()=>{ const pts=[]; for(let i=0;i<NUM_POINTS;i++){
+      const z1=randn_bm(),z2=randn_bm();
+      const w=randn_bm()**2+randn_bm()**2+randn_bm()**2+randn_bm()**2;
+      const s=Math.sqrt(T_NU/w);
+      pts.push({x:z1*s, y:(COPULA_RHO*z1+Math.sqrt(1-COPULA_RHO*COPULA_RHO)*z2)*s}); } return pts; }},
+  {id:"gbm",      cat:"fin", name:"Geometric Brownian (GBM)",   type:"line", color:"#00ff88", on:true, defB:true,
+   gen:()=>{ const pts=[{x:0,y:100}], dt=1/NUM_POINTS; let S=100;       // mu=5%, sigma=20%
+      for(let i=1;i<NUM_POINTS;i++){ S*=Math.exp((0.05-0.5*0.04)*dt+0.2*randn_bm()*Math.sqrt(dt)); pts.push({x:i,y:S}); } return pts; }},
+  {id:"vasicek",  cat:"fin", name:"Vasicek (Mean Reverting)",   type:"line", color:"#ffaa00",
+   gen:()=>{ const pts=[{x:0,y:0.05}], dt=1/NUM_POINTS; let r=0.05;     // kappa=0.1, theta=5%, sigma=2%
+      for(let i=1;i<NUM_POINTS;i++){ r+=0.1*(0.05-r)*dt+0.02*randn_bm()*Math.sqrt(dt); pts.push({x:i,y:r}); } return pts; }},
+  {id:"jump",     cat:"fin", name:"Jump-Diffusion Model",       type:"line", color:"#ffffff",
+   gen:()=>{ const pts=[{x:0,y:100}], dt=1/NUM_POINTS; let S=100;       // lambda=8/yr, jump ~ N(-15%,10%)
+      for(let i=1;i<NUM_POINTS;i++){ const j=(Math.random()<8*dt)?-0.15+0.1*randn_bm():0;
+        S*=Math.exp((0.05-0.5*0.0225)*dt+0.15*randn_bm()*Math.sqrt(dt)+j); pts.push({x:i,y:S}); } return pts; }},
+];
+
+/* ==== FORGE_PARAMS REGISTRY — the three Core 3 sliders. ======================
+   TO ADD A SLIDER: add ONE entry, then read FORGE_PARAMS value by id in
+   renderForge(). Control, readout and label are generated.
+
+     id, label, min, max, step, value
+     unit   text after the readout; "2^{v} Bits" style handled via `fmt`
+     help   one-line explanation shown under the label                      */
+const FORGE_PARAMS=[
+  {id:"mem",   label:"Memory (state space)", min:5, max:32, step:1, value:16, fmt:v=>"2^"+v+" bits",
+   help:"Fewer bits force tight periodic repetition (visual clumping). 32 bits gives ~4.29B states."},
+  {id:"comp",  label:"Statistical Randomness", min:0, max:10, step:1, value:2, fmt:v=>v+" shifts",
+   help:"Xorshift passes applied to each output. 0 shows the strict linear planes of a raw LCG; more passes spread them out."},
+  {id:"speed", label:"Compute Weight", min:1, max:1000, step:10, value:10, fmt:v=>v+"×",
+   help:"Dummy square-root work per point, simulating the cost of a heavier algorithm. Watch the render timer."},
+];
+
+/* ================== END OF DATA — everything below is logic ================== */
+
+/* ---------- tuning constants (named so they're findable, not buried) ---------- */
+const NUM_POINTS=1500;          // points per model per render; raising it slows Core 2 normalization linearly
+const FORGE_POINT_FACTOR=1.5;   // Core 3 draws NUM_POINTS * this, to fill the plane enough to show lattice structure
+const COPULA_RHO=0.8;           // correlation for both copulas; the t-copula's heavier tails are the point of comparing
+const T_NU=4;                   // Student-t degrees of freedom; must stay 4 (the chi-square above is a 4-term sum)
+const LOAD_PER_UNIT=20;         // sqrt() calls per point per notch of the Compute Weight slider. The original used 200,
+                                // which at slider max (1000x) froze the tab for seconds; 20 keeps the top end ~0.1–0.5 s
+const SLOW_RENDER_MS=50;        // render time above which the Core 3 timer turns red
+const LOW_MEMORY_WARN_BITS=8;   // Core 3 logs a degeneration warning at or below this bit-depth
+const FORGE_SEED=8675309;       // fixed so the geometric lattice is reproducible between slider moves
+const LCG_A=1664525, LCG_C=1013904223;   // Numerical Recipes LCG constants (shared with Core 1)
+const XS_A=13, XS_B=17, XS_C=5;          // xorshift32 triplet
+const PLOT_PAD_X=0.05, PLOT_PAD_Y=0.08;  // fraction of canvas left blank at the edges
+const DOT_R=1.5;                // scatter dot radius in canvas px
+const GLOW_BLUR=8;              // neon glow radius in canvas px
+const GRID_STEP=50;             // background grid spacing in canvas px
+const LOG_MAX_LINES=100;        // terminal history cap, keeps the DOM small on long sessions
+
+/* ---------- runtime state ---------- */
+const $=id=>document.getElementById(id);
+const cvStd=$("cv-std"), ctxStd=cvStd.getContext("2d");
+const cvBlend=$("cv-blend"), ctxBlend=cvBlend.getContext("2d");
+const cvForge=$("cv-forge"), ctxForge=cvForge.getContext("2d");
+let forgeSink=0;                       // accumulates dummy work so the JS engine can't optimize the loop away
+let blendCache={a:null,b:null};        // normalized points per Core 2 slot, so sliders re-blend without re-rolling the dice
+let forgeQueued=false;
+
+function scatterFrom(fn){ const pts=[]; for(let i=0;i<NUM_POINTS;i++) pts.push({x:fn(),y:fn()}); return pts; }
+const modelById=id=>MODELS.find(m=>m.id===id);
+
+// Terminal log. Text goes in via textContent, so model names can never inject markup.
+function logTerminal(msg,color){
+  const log=$("terminal-log"), el=document.createElement("div");
+  el.style.color=color||"#00ffff"; el.textContent="> "+msg;
+  log.appendChild(el);
+  while(log.children.length>LOG_MAX_LINES) log.removeChild(log.firstChild);
+  log.scrollTop=log.scrollHeight;
+}
+
+/* ==== RENDER PIPELINE ===================================================== */
+function drawGrid(ctx,cv,color){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.strokeStyle=color; ctx.lineWidth=1;
+  ctx.beginPath();
+  for(let x=0;x<=cv.width;x+=GRID_STEP){ ctx.moveTo(x,0); ctx.lineTo(x,cv.height); }
+  for(let y=0;y<=cv.height;y+=GRID_STEP){ ctx.moveTo(0,y); ctx.lineTo(cv.width,y); }
+  ctx.stroke();
+}
+
+function plotData(ctx,cv,data,col,type,lineW){
+  if(!data.length) return;
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+  for(const p of data){
+    if(p.x<minX)minX=p.x; if(p.x>maxX)maxX=p.x;
+    if(p.y<minY)minY=p.y; if(p.y>maxY)maxY=p.y;
+  }
+  if(maxX===minX){maxX+=1;minX-=1;}
+  if(maxY===minY){maxY+=1;minY-=1;}
+  const w=cv.width,h=cv.height, padX=w*PLOT_PAD_X, padY=h*PLOT_PAD_Y;
+  const sx=(w-2*padX)/(maxX-minX), sy=(h-2*padY)/(maxY-minY);
+  const X=p=>padX+(p.x-minX)*sx, Y=p=>h-padY-(p.y-minY)*sy;
+
+  ctx.shadowBlur=GLOW_BLUR; ctx.shadowColor=col;
+  ctx.fillStyle=col; ctx.strokeStyle=col; ctx.lineWidth=lineW;
+  if(type==="scatter"){
+    for(const p of data){ ctx.beginPath(); ctx.arc(X(p),Y(p),DOT_R,0,Math.PI*2); ctx.fill(); }
+  }else{
+    ctx.beginPath();
+    data.forEach((p,i)=>{ if(i===0) ctx.moveTo(X(p),Y(p)); else ctx.lineTo(X(p),Y(p)); });
+    ctx.stroke();
+  }
+  ctx.shadowBlur=0;
+}
+
+/* ==== CORE 1 — STANDARD =================================================== */
+function renderStandard(){
+  drawGrid(ctxStd,cvStd,"rgba(0,255,255,.05)");
+  let active=0;
+  for(const m of MODELS){
+    if(!$("chk-"+m.id).checked) continue;
+    active++;
+    plotData(ctxStd,cvStd,m.gen(),$("col-"+m.id).value,m.type,2);
+  }
+  logTerminal("CORE 1: RENDER EXECUTED. LAYERS ACTIVE: "+active, active>0?"#00ff88":"#ff0000");
+}
+
+/* ==== CORE 2 — BLENDER ==================================================== */
+// Regenerate the data for one slot (called when its model changes, or on Surprise).
+function rollBlendSlot(slot){
+  blendCache[slot]=normalizeSequence(modelById($("blend-"+slot).value).gen());
+}
+
+function renderBlender(){
+  drawGrid(ctxBlend,cvBlend,"rgba(252,238,10,.05)");
+  const A=modelById($("blend-a").value), B=modelById($("blend-b").value);
+  if(!blendCache.a) rollBlendSlot("a");
+  if(!blendCache.b) rollBlendSlot("b");
+  const nA=blendCache.a, nB=blendCache.b;
+  const pos=(parseFloat($("blend-pos").value)+100)/200;   // [-100,100] -> [0,1]
+  const smooth=parseFloat($("blend-smooth").value)/100;   // [0,100]  -> [0,1]; width of the crossfade band
+
+  const out=[];
+  for(let i=0;i<NUM_POINTS;i++){
+    const t=i/(NUM_POINTS-1);
+    let W;
+    if(smooth===0) W=t>=pos?1:0;
+    else W=smoothstep(pos-smooth/2,pos+smooth/2,t);
+    out.push({x:nA[i].x*(1-W)+nB[i].x*W, y:nA[i].y*(1-W)+nB[i].y*W});
+  }
+  // A continuous path only makes sense when both ends are paths.
+  const type=(A.type==="line"&&B.type==="line")?"line":"scatter";
+  plotData(ctxBlend,cvBlend,out,$("blend-color").value,type,3);
+}
+
+function randomizeBlend(){
+  let a=MODELS[Math.floor(Math.random()*MODELS.length)], b=a;
+  while(b===a) b=MODELS[Math.floor(Math.random()*MODELS.length)];
+  $("blend-a").value=a.id; $("blend-b").value=b.id;
+  $("blend-pos").value=Math.round(Math.random()*200-100);
+  $("blend-smooth").value=Math.round(Math.random()*100);
+  $("blend-color").value="#"+Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,"0");
+  syncBlendReadouts();
+  rollBlendSlot("a"); rollBlendSlot("b");
+  renderBlender();
+  logTerminal("CORE 2: RNG OVERRIDE  ["+a.name+"] -> ["+b.name+"]", $("blend-color").value);
+}
+function syncBlendReadouts(){
+  $("pos-val").textContent=$("blend-pos").value;
+  $("smooth-val").textContent=$("blend-smooth").value;
+}
+
+/* ==== CORE 3 — ALGORITHMIC FORGE ========================================== */
+const forgeVal=id=>parseInt($("forge-"+id).value,10);
+
+function generateForgeData(memBits,comp,load){
+  const pts=[];
+  // JS bitwise ops are 32-bit signed; (1<<31)-1 still masks correctly because
+  // it is coerced back through ToInt32, and 32 bits uses the all-ones mask.
+  const mask=memBits===32?0xFFFFFFFF:(1<<memBits)-1;
+  const divisor=memBits===32?4294967296:(1<<memBits);
+  const mix=v=>{
+    for(let c=0;c<comp;c++){ v^=(v<<XS_A)&mask; v^=(v>>>XS_B)&mask; v^=(v<<XS_C)&mask; }
+    return (v>>>0)/divisor;
+  };
+  let state=FORGE_SEED, sink=0;
+  const n=Math.round(NUM_POINTS*FORGE_POINT_FACTOR), loops=load*LOAD_PER_UNIT;
+  const t0=performance.now();
+  for(let i=0;i<n;i++){
+    for(let k=0;k<loops;k++) sink+=Math.sqrt(k);          // artificial compute weight
+    state=(LCG_A*state+LCG_C)&mask; const x=mix(state);
+    state=(LCG_A*state+LCG_C)&mask; const y=mix(state);
+    pts.push({x,y});
+  }
+  forgeSink+=sink;
+  return {points:pts, ms:performance.now()-t0};
+}
+
+function renderForge(){
+  drawGrid(ctxForge,cvForge,"rgba(0,255,136,.05)");
+  const bits=forgeVal("mem"), comp=forgeVal("comp"), speed=forgeVal("speed");
+  const r=generateForgeData(bits,comp,speed);
+  plotData(ctxForge,cvForge,r.points,"#00ff88","scatter",1);
+  const t=$("forge-time");
+  t.textContent=r.ms.toFixed(2);
+  t.className=r.ms>SLOW_RENDER_MS?"slow":"";
+  if(bits<=LOW_MEMORY_WARN_BITS) logTerminal("CORE 3 WARNING: "+bits+"-bit state. DEGENERATION DETECTED.","#ff5c8a");
+}
+
+// Sliders fire many events per drag; coalesce to one render per animation frame.
+function queueForge(){
+  for(const p of FORGE_PARAMS) $("forge-"+p.id+"-val").textContent=p.fmt($("forge-"+p.id).value);
+  if(forgeQueued) return;
+  forgeQueued=true;
+  requestAnimationFrame(()=>{ forgeQueued=false; renderForge(); });
+}
+
+/* ==== INIT ================================================================ */
+function init(){
+  $("pts-tag").textContent=NUM_POINTS+" PT/SEQ";
+
+  for(const m of MODELS){
+    const row=document.createElement("div"); row.className="model-row";
+    const label=document.createElement("label");
+    const chk=document.createElement("input");
+    chk.type="checkbox"; chk.id="chk-"+m.id; chk.checked=!!m.on;
+    const span=document.createElement("span"); span.textContent=m.name;
+    label.append(chk,span);
+    const col=document.createElement("input");
+    col.type="color"; col.id="col-"+m.id; col.value=m.color; col.style.color=m.color;
+    col.setAttribute("aria-label","Color for "+m.name);
+    row.append(label,col);
+    (m.cat==="seq"?$("seq-box"):$("fin-box")).appendChild(row);
+
+    for(const slot of ["a","b"]){
+      const o=document.createElement("option"); o.value=m.id; o.textContent=m.name;
+      if(slot==="a"?m.defA:m.defB) o.selected=true;
+      $("blend-"+slot).appendChild(o);
+    }
+  }
+
+  for(const p of FORGE_PARAMS){
+    const d=document.createElement("div"); d.className="ctl";
+    d.innerHTML=
+      '<div class="row"><label for="forge-'+p.id+'">'+p.label+'</label>'+
+      '<span class="val" id="forge-'+p.id+'-val"></span></div>'+
+      '<p class="help">'+p.help+'</p>'+
+      '<input type="range" id="forge-'+p.id+'" min="'+p.min+'" max="'+p.max+'" step="'+p.step+'" value="'+p.value+'">';
+    $("forge-box").appendChild(d);
+    $("forge-"+p.id).addEventListener("input",queueForge);
+  }
+
+  $("btn-run").addEventListener("click",renderStandard);
+  $("btn-surprise").addEventListener("click",randomizeBlend);
+  for(const m of MODELS){
+    $("chk-"+m.id).addEventListener("change",renderStandard);
+    $("col-"+m.id).addEventListener("change",renderStandard);
+  }
+  for(const slot of ["a","b"]) $("blend-"+slot).addEventListener("change",()=>{ rollBlendSlot(slot); renderBlender(); });
+  for(const id of ["blend-pos","blend-smooth"]) $(id).addEventListener("input",()=>{ syncBlendReadouts(); renderBlender(); });
+  $("blend-color").addEventListener("change",renderBlender);
+
+  logTerminal("SYS_INIT: "+MODELS.length+" models loaded.","#ff00ff");
+  renderStandard(); renderBlender(); queueForge();
+}
+init();
+</script>
+</body>
+</html>
