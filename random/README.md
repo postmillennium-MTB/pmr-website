@@ -204,6 +204,17 @@ Systems whose long-run behavior settles onto a bounded set with fractal structur
 - **Origin:** M. I. Rabinovich & A. L. Fabrikant, "Stochastic self-modulation of waves in nonequilibrium media", *Sov. Phys. JETP* 50(2) (1979) 311–317. **[R]** Equations and the `(1.1, 0.87)` parameter set as commonly quoted, recalled.
 - **Fragile by nature:** at `α = 1.1` the Lyapunov estimate was 0.22 at `γ = 0.87`, 0.15 at 0.85 and 0.8, and ≈ 0 (regular) at 0.75 and below. With the fixed start the orbit ran away to infinity for `γ ≥ 0.9` and for `α ≤ 1.0`, and from two of the three other starting points tried, even at the classic values. The dial therefore stops at 0.87, and a runaway restarts from the fixed start. Halving the step to 0.0005 gave identical extents, so 0.002 is adequate. A second quoted set, `α = 0.14, γ = 0.10`, was only marginally chaotic in the test (0.014) and is not used. **[N]**
 
+#### ⚙ Dadras Attractor (x–y) — dials: parameter *c*, parameter *e*, orbit length
+- **Formula:** `x' = y − ax + byz`, `y' = cy − xz + z`, `z' = dxy − ez`; `a = 3`, `b = 2.7`, `c = 1.7`, `d = 2`, `e = 9` (dials: *c* 1.5–2.1; *e* 6–11.5). RK4, step 0.005.
+- **Origin:** S. Dadras & H. R. Momeni, "A novel three-dimensional autonomous chaotic system generating two, three and four-scroll attractors", *Phys. Lett. A* 373(40) (2009) 3637–3642. **[R]** Equation form and parameter set recalled.
+- **Check:** at the published set the Lyapunov estimate was positive: 0.48 at step 0.01 and 0.41 at 0.005 (the estimate depends on the step, so treat it as "clearly chaotic", not as a precise value). Varying one parameter at a time by ±15–30 % stayed chaotic for *a*, *b* and *d*; *c* was ≈ 0 at 1.2–1.45, 0.41 at 1.7, 0.63 at 1.96 and regular (−0.84) at 2.2; *e* was 0.50 at 6.3, 0.60 at 7.7, 0.41 at 9, 0.08 at 10.4 and ≈ 0 at 11.7. **[N]**
+- **A different parameter set:** the third-party viewer listed under Related resources shows the Dadras attractor with `a = 2.6, b = 2.7, c = 2.8, d = 3.0, e = 7.4`. In the equation form above that set was *not* chaotic in a test (Lyapunov estimate −2.0 at step 0.01 and −0.69 at 0.005). The site's equation form may differ from this one, so this says nothing about the site; it is the reason this tool uses the published set above. **[N]**
+
+#### ⚙ Rikitake Dynamo (x–z) — dials: damping *μ*, asymmetry *a*, orbit length
+- **Formula:** `x' = −μx + yz`, `y' = −μy + (z − a)x`, `z' = 1 − xy`; `μ = 1`, `a = 5` (dials: *μ* 0.6–2.8; *a* 2–8). RK4, step 0.01.
+- **Origin:** T. Rikitake, "Oscillations of a system of disk dynamos", *Math. Proc. Cambridge Philos. Soc.* 54(1) (1958) 89–105, a toy model of the reversals of the Earth's magnetic field; its chaotic behavior was recognized later (A. E. Cook & P. H. Roberts, 1970). **[R]** Several parameter sets are quoted (for example `μ = 1, a = 5` and `μ = 2, a = 5`); both were chaotic in the test, and `μ = 1, a = 5` was used. The geomagnetic reading is an analogy, not a claim that this model describes the Earth.
+- **Check:** Lyapunov estimate 0.20 at `μ = 1`, 0.14 at 1.5, 0.12 at 2, ≈ 0 (regular) at 0.5 and at 3; across `a = 2–8` (at μ = 1–2) it was 0.07–0.19. The sign of *x* flipped 21 times over the 1,500 default points. **[N]**
+
 #### ⚙ Tinkerbell Map — dials: parameter *a*, parameter *b*
 - **Formula:** `x' = x² − y² + ax + by`, `y' = 2xy + cx + dy`; `a = 0.9`, `b = −0.6013`, `c = 2`, `d = 0.5`; start `(−0.72, −0.64)`; dials on *a* (0.75–0.9) and *b* (−0.45 to −0.6013). Re-roll discards a random number of extra iterations (up to 3,000), a different stretch of the same deterministic orbit.
 - **Origin:** the name comes from K. T. Alligood, T. D. Sauer & J. A. Yorke, *Chaos: An Introduction to Dynamical Systems* (Springer, 1997). **[R]** Parameters as commonly quoted, recalled.
@@ -213,7 +224,7 @@ Systems whose long-run behavior settles onto a bounded set with fractal structur
 
 ## Core 4 — the 3-D viewer
 
-A fourth panel that draws the real 3-D orbit of a model and lets you turn it. It lists every model that has a 3-D form: Lorenz, Rössler, Thomas, Chen, Aizawa, Chua, Halvorsen, Lü, Burke–Shaw, Rabinovich–Fabrikant (flows) and RANDU (its raw triples, so the 15 planes can be found by rotating).
+A fourth panel that draws the real 3-D orbit of a model and lets you turn it. It lists every model that has a 3-D form: Lorenz, Rössler, Thomas, Chen, Aizawa, Chua, Halvorsen, Lü, Burke–Shaw, Rabinovich–Fabrikant, Dadras, Rikitake (flows) and RANDU (its raw triples, so the 15 planes can be found by rotating).
 
 - **How it draws:** there is no 3-D library. Each point is rotated about the vertical axis by *azimuth*, tilted by *elevation*, optionally shrunk with distance (*perspective*), and drawn on an ordinary 2-D canvas. The orbit is first centered on its bounding box and scaled to unit radius so every model fills the view the same way. Near parts are drawn brighter and thicker than far parts (six depth layers). A small x/y/z key in the corner shows the orientation.
 - **Controls:** *Auto-rotate* switch (Lucide `toggle-left` / `toggle-right`), *rotation speed* (0–90°/s), *azimuth*, *elevation*, *zoom*, *perspective* and *line / point size*, all generated from the `VIEW3D_PARAMS` list. The model's own dials (attraction, orbit length and so on) are mirrored below the view and stay in step with the same dials in Core 1.
@@ -346,7 +357,7 @@ Time-step models use 252 steps per year unless noted. Simulated paths illustrate
 
 ## Related resources
 
-- **strange-attractors.jujiplay.com** — an independent, third-party interactive viewer that animates strange attractors in 3-D (according to its page: Lorenz, Rössler, Thomas, Aizawa, Chen, Rikitake and others) and lets you adjust each system's parameters (for example the five parameters of the Dadras attractor, a three-scroll system). It is a good place to explore attractors beyond the ones here. The page names no author and states no license; this project is not affiliated with it, and nothing was copied from it. Its parameter sets were not used to choose ours (each was checked numerically here instead).
+- **strange-attractors.jujiplay.com** — an independent, third-party interactive viewer that animates strange attractors in 3-D (according to its page: Lorenz, Rössler, Thomas, Aizawa, Chen, Rikitake and others) and lets you adjust each system's parameters (for example the five parameters of the Dadras attractor, a three-scroll system; Dadras and Rikitake are both included here now). It is a good place to explore attractors beyond the ones here. The page names no author and states no license; this project is not affiliated with it, and nothing was copied from it. Its parameter sets were not used to choose ours (each was checked numerically here instead).
 
 ---
 
@@ -371,6 +382,7 @@ Run during the build that added the Advanced models (headless browser plus a sep
 - The stochastic financial models reproduce their theoretical moments (Hawkes mean rate, GJR volatility, variance-gamma increment variance, Student-t volatility, Kou compensator, regime variance).
 - Every dial's default position reproduces its stated classic value.
 - All 29 advanced models returned 1,500 finite points; the five attractors added later (Chen, Aizawa, Chua, Halvorsen, Tinkerbell) were also checked across every dial position.
+- Dadras and Rikitake: all dial positions (0 / 50 / 100 %) over 40 random re-roll seeds were finite and bounded (largest coordinate seen 31.9 and 11.5), and every default reproduced its classic value.
 - Lü, Burke–Shaw and Rabinovich–Fabrikant were run at every dial position (0 / 50 / 100 %) for 40 random re-roll seeds each: all finite, none ran away (largest coordinate seen 70.6 for Lü, 5.5 for Burke–Shaw, 2.4 for Rabinovich–Fabrikant), and every default reproduced its classic value.
 - When the extra attractor dials and Core 4 were added, every dial of every model was run at 0 %, 50 % and 100 % in both its 2-D and 3-D form (all finite, 1,500 points), and every dial's default reproduced its classic value.
 
@@ -378,7 +390,7 @@ Run during the build that added the Advanced models (headless browser plus a sep
 
 ## Not yet included
 
-Candidates from the research pass that are **not** implemented (attractors still open: Dadras, Rikitake, Sprott's simplest flows, Clifford / de Jong, Lozi, Gingerbreadman, Duffing, double pendulum; 3-D views for the 2-D maps and the copulas), usually because the equations or parameters were not verified against primary sources: rough volatility (rough Bergomi, rough Heston), fractional Brownian motion, multifractal random walk, SABR, Bates, local volatility, the Merton structural credit model, the Vasicek one-factor loan-loss model, Geltner / Getmansky–Lo–Makarov return smoothing, nested and vine copulas, Hüsler–Reiss and Galambos extreme-value copulas, Brock–Hommes heterogeneous-agent map, the 2-D sine-logistic and logistic-adjusted-sine maps, Poisson-disk sampling, xoshiro, Philox, and Owen-scrambled Sobol.
+Candidates from the research pass that are **not** implemented (attractors still open: Sprott's simplest flows, Clifford / de Jong, Lozi, Gingerbreadman, Duffing, double pendulum; 3-D views for the 2-D maps and the copulas), usually because the equations or parameters were not verified against primary sources: rough volatility (rough Bergomi, rough Heston), fractional Brownian motion, multifractal random walk, SABR, Bates, local volatility, the Merton structural credit model, the Vasicek one-factor loan-loss model, Geltner / Getmansky–Lo–Makarov return smoothing, nested and vine copulas, Hüsler–Reiss and Galambos extreme-value copulas, Brock–Hommes heterogeneous-agent map, the 2-D sine-logistic and logistic-adjusted-sine maps, Poisson-disk sampling, xoshiro, Philox, and Owen-scrambled Sobol.
 
 ## Adding a model
 
