@@ -598,8 +598,8 @@
   .plate-archive .plate-cta:hover { border-bottom-color: var(--pl-amber); }
 
   .stack-stage {
-    position: relative; height: 440px; overflow: hidden; margin-top: 2rem;
-    perspective: 900px; perspective-origin: 50% 46%;
+    position: relative; height: 520px; overflow: hidden; margin-top: 2rem;
+    perspective: 900px; perspective-origin: 50% 50%;
     background: radial-gradient(ellipse at 50% 45%, var(--pl-stage-a) 0%, var(--pl-stage-b) 78%);
     border: 1px solid var(--pl-rule);
   }
@@ -676,7 +676,7 @@
     .plate-wheel .plate-grid { grid-template-columns: 1fr; gap: 2rem; }
     .plate-archive { --pl-fade: 140px; }
     .plate-archive .plate-inner { padding: 5rem 1.5rem; }
-    .stack-stage { height: 370px; }
+    .stack-stage { height: 430px; }
   }
 
   /* Reduced motion: instruments still work, they just do not animate
@@ -1639,7 +1639,7 @@
 <section id="about">
   <div class="section-header">
     <span class="section-label">About</span>
-    <h2 class="section-title">Rider, advocate, builder.</h2>
+    <h2 class="section-title">Four principles.</h2>
   </div>
   <div class="about-grid">
     <div class="about-copy">
@@ -2176,19 +2176,29 @@
 
   // prog is 0..1 through the whole stack: 0 = first sheet in front, 1 = last.
   function layout(prog) {
-    var cam = prog * (D.length - 1) * GAP;
+    // The camera travels past the last sheet too, so the final drawing ends
+    // up large and clear instead of resting at its smallest. Less far on
+    // narrow stages, where a big sheet would overflow.
+    var narrow = stage.clientWidth < 560;
+    var REST = narrow ? 150 : 300;
+    // A sheet keeps growing toward the lens, fully opaque, until FADE_FROM,
+    // then dissolves by FADE_TO. (Perspective is 900px, so zz = 380 is
+    // ~1.7x size and zz = 600 is 3x.) Phones get a smaller range so a
+    // sheet is never much wider than the stage.
+    var FADE_FROM = narrow ? 200 : 380, FADE_TO = narrow ? 380 : 600;
+    var cam = prog * ((D.length - 1) * GAP + REST);
     var DEPTH = GAP * D.length;
     els.forEach(function (el, i) {
       var zz = -i * GAP + cam;
-      if (zz > 220) { el.style.display = 'none'; return; }
+      if (zz >= FADE_TO) { el.style.display = 'none'; return; }
       el.style.display = 'block';
       // Fan the sheets well off-axis. Stacked near-concentrically they
       // just read as two overlapping cards; spread out, the recession
       // itself becomes legible and the stage reads as an archive.
-      var jx = ((i * 37) % 17 - 8) * 11, jy = ((i * 53) % 13 - 6) * 8;
-      // fade with distance behind, and again as a sheet reaches the lens
+      var jx = ((i * 37) % 17 - 8) * (narrow ? 5 : 11), jy = ((i * 53) % 13 - 6) * 5;
+      // fade with distance behind, and again only as a sheet gets very close
       var far = Math.max(0, Math.min(1, 1 - (-zz) / (DEPTH * 1.25)));
-      var near = zz > 0 ? Math.max(0, 1 - zz / 220) : 1;
+      var near = zz > FADE_FROM ? 1 - (zz - FADE_FROM) / (FADE_TO - FADE_FROM) : 1;
       el.style.transform = 'translate3d(' + jx + 'px,' + jy + 'px,' + zz.toFixed(1) + 'px)';
       el.style.opacity = ((0.22 + far * 0.78) * near).toFixed(3);
       el.style.zIndex = String(1000 + Math.round(zz));
