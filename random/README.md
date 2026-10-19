@@ -161,6 +161,31 @@ Systems whose long-run behavior settles onto a bounded set with fractal structur
 - **Formula:** `x' = 1 + u(x cos t − y sin t)`, `y' = u(x sin t + y cos t)`, `t = 0.4 − 6/(1 + x² + y²)`; `u = 0.9` (dial 0.6–0.99).
 - **Origin:** K. Ikeda, *Opt. Commun.* 30(2) (1979) 257–261; Ikeda, Daido & Akimoto, *Phys. Rev. Lett.* 45 (1980) 709. **[R]** Textbook values of *u* vary between 0.9 and 0.918 — **[R]**, unverified.
 
+#### ⚙ Chen Attractor (x–z) — dial: control parameter *c*
+- **Formula:** `x' = a(y − x)`, `y' = (c − a)x − xz + cy`, `z' = xy − bz`; `a = 35`, `b = 3`, `c = 28` (dial 20–28.4). RK4, step 0.002.
+- **Origin:** G. Chen & T. Ueta, "Yet another chaotic attractor", *Int. J. Bifurcation Chaos* 9(7) (1999) 1465–1466. **[R]** Described as a dual of the Lorenz system (not topologically equivalent); chaos for `c ∈ [20, 28.4]` as recalled from the paper.
+- **Check:** the largest Lyapunov exponent estimate was positive at every sampled `c` from 20 to 28.4 (0.60 at c = 20, 1.34 at c = 28). **[N]**
+
+#### ⚙ Aizawa Attractor (x–z) — dial: offset *b*
+- **Formula:** `x' = (z − b)x − dy`, `y' = dx + (z − b)y`, `z' = c + az − z³/3 − (x² + y²)(1 + ez) + fz x³`; `a = 0.95`, `b = 0.7`, `c = 0.6`, `d = 3.5`, `e = 0.25`, `f = 0.1` (dial on *b*, 0.6–0.9). RK4, step 0.01.
+- **Origin:** **unverified.** The system circulates under the names Aizawa and Langford (W. F. Langford studied torus bifurcations in this family, 1984), and this parameter set is widely reproduced on graphics sites (for example Paul Bourke's attractor pages). No primary source was opened. **[R]**
+- **Check:** below `b ≈ 0.58` the orbit collapses to a fixed point (z range of zero); near 0.7 the Lyapunov estimate was small and positive (≈ 0.10); at 0.8 and above it was ≈ 0 (regular motion). **[N]** So "chaotic" here means weakly chaotic; the picture is mainly a sphere with a tube through it.
+
+#### ⚙ Chua Double Scroll (x–z) — dial: gain α
+- **Formula:** `x' = α(y − x − g(x))`, `y' = x − y + z`, `z' = −βy`, with `g(x) = m₁x + ½(m₀ − m₁)(|x+1| − |x−1|)`; `β = 28`, `m₀ = −8/7`, `m₁ = −5/7`, `α = 15.6` (dial 9–18). RK4, step 0.005.
+- **Origin:** T. Matsumoto, "A chaotic attractor from Chua's circuit", *IEEE Trans. Circuits Syst.* 31(12) (1984) 1055–1058; L. O. Chua, M. Komuro & T. Matsumoto, "The double scroll family", *IEEE Trans. Circuits Syst.* 33(11) (1986) 1072–1118. **[R]** The dimensionless constants are the commonly quoted set, also recalled.
+- **Check:** with these constants the dial moves from a point (α = 9) through loops (≈ 11) and one-sided, single-scroll chaos (α ≈ 13.5, *x* confined to 0–2.2) to the two-sided double scroll from about α = 15. **[N]**
+
+#### ⚙ Halvorsen Attractor (x–y) — dial: damping *a*
+- **Formula:** `x' = −ax − 4y − 4z − y²`, `y' = −ay − 4z − 4x − z²`, `z' = −az − 4x − 4y − x²`; `a = 1.4` (dial 1.3–2.6). RK4, step 0.005. Fixed start `(−1.48, −1.51, 2.04)`.
+- **Origin:** presented in J. C. Sprott, *Elegant Chaos* (World Scientific, 2010), where it is named after Arne Dehli Halvorsen. **[R]**
+- **Parameter conflict, resolved numerically:** sources quote `a = 1.4` and `a = 1.89`. At `a = 1.4` the Lyapunov estimate was clearly positive (0.49 after a long transient); at `a = 1.89` it was ≈ 0, so the orbit is regular. The tool uses 1.4. **[N]** Below about `a = 1.2` the orbit ran away to infinity in a test; the tool restarts a runaway orbit instead of plotting it.
+
+#### ⚙ Tinkerbell Map
+- **Formula:** `x' = x² − y² + ax + by`, `y' = 2xy + cx + dy`; `a = 0.9`, `b = −0.6013`, `c = 2`, `d = 0.5`; start `(−0.72, −0.64)`; dial on *a* (0.75–0.9).
+- **Origin:** the name comes from K. T. Alligood, T. D. Sauer & J. A. Yorke, *Chaos: An Introduction to Dynamical Systems* (Springer, 1997). **[R]** Parameters as commonly quoted, recalled.
+- **Check:** the attractor has a very small basin: from the standard start the orbit stayed bounded for `a ≤ 0.9` and escaped for `a ≥ 0.91`, and for `b ≤ −0.61`. The Lyapunov estimate was positive across `a = 0.75–0.9` (0.14–0.21). **[N]** The dial therefore stops at 0.9.
+
 ---
 
 ## Copulas
@@ -304,13 +329,13 @@ Run during the build that added the Advanced models (headless browser plus a sep
 - Copula samplers reproduce their theoretical Kendall's τ (Gumbel, Clayton, Frank, Joe) and the Marshall–Olkin diagonal mass.
 - The stochastic financial models reproduce their theoretical moments (Hawkes mean rate, GJR volatility, variance-gamma increment variance, Student-t volatility, Kou compensator, regime variance).
 - Every dial's default position reproduces its stated classic value.
-- All 24 advanced models returned 1,500 finite points.
+- All 29 advanced models returned 1,500 finite points; the five attractors added later (Chen, Aizawa, Chua, Halvorsen, Tinkerbell) were also checked across every dial position.
 
 **What this does *not* show:** that any citation is correct, that a published parameter set was recalled correctly, or that the models are suitable for any real-world purpose.
 
 ## Not yet included
 
-Candidates from the research pass that are **not** implemented, usually because the equations or parameters were not verified against primary sources: rough volatility (rough Bergomi, rough Heston), fractional Brownian motion, multifractal random walk, SABR, Bates, local volatility, the Merton structural credit model, the Vasicek one-factor loan-loss model, Geltner / Getmansky–Lo–Makarov return smoothing, nested and vine copulas, Hüsler–Reiss and Galambos extreme-value copulas, Brock–Hommes heterogeneous-agent map, the 2-D sine-logistic and logistic-adjusted-sine maps, Poisson-disk sampling, xoshiro, Philox, and Owen-scrambled Sobol.
+Candidates from the research pass that are **not** implemented (attractors still open: Lü, Burke–Shaw, Rabinovich–Fabrikant, Sprott's simplest flows, Clifford / de Jong, Lozi, Gingerbreadman, Duffing, double pendulum), usually because the equations or parameters were not verified against primary sources: rough volatility (rough Bergomi, rough Heston), fractional Brownian motion, multifractal random walk, SABR, Bates, local volatility, the Merton structural credit model, the Vasicek one-factor loan-loss model, Geltner / Getmansky–Lo–Makarov return smoothing, nested and vine copulas, Hüsler–Reiss and Galambos extreme-value copulas, Brock–Hommes heterogeneous-agent map, the 2-D sine-logistic and logistic-adjusted-sine maps, Poisson-disk sampling, xoshiro, Philox, and Owen-scrambled Sobol.
 
 ## Adding a model
 

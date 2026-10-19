@@ -22,7 +22,7 @@
   <script> #2
     ==== ALL DATA LIVES IN ONE CONTIGUOUS BLOCK ====
     · CATEGORIES ................. the four Core 1 groups (generators / attractors / copulas / financial)
-    · MODELS ..................... 15 core + 24 advanced (adv:true) generators, one entry each
+    · MODELS ..................... 15 core + 29 advanced (adv:true) generators, one entry each
     · FORGE_PARAMS ............... the three Core 3 sliders
     · ICON_PATHS ................. the Lucide icons used (toggle, play, chevron, power-off)
     · MS_MODES ................... the Middle-Square collapse switch (reseed / report / pure)
@@ -803,6 +803,60 @@ const MODELS=[
         const nx=1+u*(x*c-y*s); y=u*(x*s+y*c); x=nx; if(i>=0) pts.push({x,y}); }
       return pts; }},
 
+  // ---- Strange attractors (more 3-D flows plotted as 2-D projections, plus Tinkerbell) ----
+  // Chen: x'=a(y-x), y'=(c-a)x - xz + cy, z'=xy - bz, a=35, b=3. Chaotic for c in [20, 28.4] (checked numerically).
+  {id:"chen", adv:true, cat:"att", name:"Chen Attractor (x–z)", type:"line", color:"#4dffe0",
+   dials:[{id:"c", label:"Control parameter c", weak:20, strong:28.4, classic:28, fmt:c=>"c = "+c.toFixed(1),
+     help:"A cousin of Lorenz found in 1999 by 'anti-controlling' chaos. The orbit is chaotic across c = 20 to 28.4; larger c gives a taller, wider double-scroll."}],
+   gen:()=>{ const c=dialParam("chen","c"), f=([x,y,z])=>[CHEN_A*(y-x),(c-CHEN_A)*x-x*z+c*y,x*y-CHEN_B*z];
+      let s=[-3+0.1*attractorStart[0],2,20+0.1*attractorStart[1]]; const pts=[];
+      for(let i=-CHEN_BURN_IN;i<NUM_POINTS*CHEN_STEPS_PER_POINT;i++){ s=rk4Step(f,s,CHEN_DT);
+        if(i>=0&&i%CHEN_STEPS_PER_POINT===0) pts.push({x:s[0],y:s[2]}); }
+      return pts; }},
+  // Aizawa (also circulated as the Langford system): a sphere with a tube through it. Dial b shifts the
+  // z-offset: below ~0.58 the orbit collapses to a point; above ~0.8 it relaxes to a regular torus.
+  {id:"aizawa", adv:true, cat:"att", name:"Aizawa Attractor (x–z)", type:"line", color:"#ffa64d",
+   dials:[{id:"b", label:"Offset b", weak:0.6, strong:0.9, classic:0.7, fmt:b=>"b = "+b.toFixed(2),
+     help:"Chaotic near the classic b = 0.7. Raise b and the motion becomes a regular quasi-periodic ring; below about 0.58 it collapses to a point."}],
+   gen:()=>{ const b=dialParam("aizawa","b"), f=([x,y,z])=>[(z-b)*x-AIZAWA_D*y, AIZAWA_D*x+(z-b)*y,
+        AIZAWA_C+AIZAWA_A*z-z*z*z/3-(x*x+y*y)*(1+AIZAWA_E*z)+AIZAWA_F*z*x*x*x];
+      let s=[0.1+0.05*attractorStart[0],0,0]; const pts=[];
+      for(let i=-AIZAWA_BURN_IN;i<NUM_POINTS*AIZAWA_STEPS_PER_POINT;i++){ s=rk4Step(f,s,AIZAWA_DT);
+        if(i>=0&&i%AIZAWA_STEPS_PER_POINT===0) pts.push({x:s[0],y:s[2]}); }
+      return pts; }},
+  // Chua's circuit (dimensionless): x'=α(y-x-g(x)), y'=x-y+z, z'=-βy, g piecewise linear. Dial α walks from a
+  // fixed point, through limit cycles and single-scroll chaos, to the double scroll.
+  {id:"chua", adv:true, cat:"att", name:"Chua Double Scroll (x–z)", type:"line", color:"#7a9dff",
+   dials:[{id:"alpha", label:"Gain α", weak:9, strong:18, classic:15.6, fmt:a=>"α = "+a.toFixed(1),
+     help:"Low α: the circuit settles to a point or a loop. Around 14 it makes chaos on ONE scroll; from about 15 the orbit hops between two scrolls (the double scroll). The first chaos found in an electronic circuit."}],
+   gen:()=>{ const al=dialParam("chua","alpha"), g=x=>CHUA_M1*x+0.5*(CHUA_M0-CHUA_M1)*(Math.abs(x+1)-Math.abs(x-1)),
+        f=([x,y,z])=>[al*(y-x-g(x)),x-y+z,-CHUA_BETA*y];
+      let s=[0.7+0.1*attractorStart[0],0,0]; const pts=[];
+      for(let i=-CHUA_BURN_IN;i<NUM_POINTS*CHUA_STEPS_PER_POINT;i++){ s=rk4Step(f,s,CHUA_DT);
+        if(i>=0&&i%CHUA_STEPS_PER_POINT===0) pts.push({x:s[0],y:s[2]}); }
+      return pts; }},
+  // Halvorsen: three-fold cyclic symmetry, x'=-ax-4y-4z-y² (and cyclic). Classic a = 1.4 is chaotic
+  // (checked); a = 1.89, which some sources quote, is not. The orbit can run away at small a, so a guard restarts it.
+  {id:"halvorsen", adv:true, cat:"att", name:"Halvorsen Attractor (x–y)", type:"line", color:"#ff7ae0",
+   dials:[{id:"a", label:"Damping a", weak:1.3, strong:2.6, classic:1.4, fmt:a=>"a = "+a.toFixed(2),
+     help:"Chaotic near a = 1.4. More damping makes the orbit regular; much less (below about 1.2) and it can run away to infinity, which is why the dial stops at 1.3."}],
+   gen:()=>{ const a=dialParam("halvorsen","a"), f=([x,y,z])=>[-a*x-4*y-4*z-y*y,-a*y-4*z-4*x-z*z,-a*z-4*x-4*y-x*x], start=HALVORSEN_START;
+      let s=start.slice(); const pts=[];
+      for(let i=-HALVORSEN_BURN_IN;i<NUM_POINTS*HALVORSEN_STEPS_PER_POINT;i++){ s=rk4Step(f,s,HALVORSEN_DT);
+        if(!s.every(isFinite)||Math.abs(s[0])>HALVORSEN_ESCAPE) s=start.slice();      // ran away: restart rather than plot garbage
+        if(i>=0&&i%HALVORSEN_STEPS_PER_POINT===0) pts.push({x:s[0],y:s[1]}); }
+      return pts; }},
+  // Tinkerbell map: x'=x²-y²+ax+by, y'=2xy+cx+dy. A tiny basin: most starting points and parameters escape to
+  // infinity, so the start is fixed and the dial stops at a = 0.9 (a >= 0.91 escapes).
+  {id:"tinkerbell", adv:true, cat:"att", name:"Tinkerbell Map", type:"scatter", color:"#ffd2f0",
+   dials:[{id:"a", label:"Parameter a", weak:0.75, strong:0.9, classic:0.9, fmt:a=>"a = "+a.toFixed(3),
+     help:"Chaotic over this whole range (a = 0.9 is the classic value, right at the edge: from about 0.91 orbits escape to infinity). Lower a gives a smaller, tighter attractor."}],
+   gen:()=>{ const a=dialParam("tinkerbell","a"); let x=TINKERBELL_X0, y=TINKERBELL_Y0; const pts=[];
+      for(let i=-TINKERBELL_BURN_IN;i<NUM_POINTS;i++){ const nx=x*x-y*y+a*x+TINKERBELL_B*y; y=2*x*y+TINKERBELL_C*x+TINKERBELL_D*y; x=nx;
+        if(!isFinite(x)||Math.abs(x)>TINKERBELL_ESCAPE){ x=TINKERBELL_X0; y=TINKERBELL_Y0; }
+        if(i>=0) pts.push({x,y}); }
+      return pts; }},
+
   // ---- Copulas (uniform margins; "Normal margins" maps them for tail comparison) ----
   // Kendall's tau is the dial for Gumbel and survival Clayton so they compare directly with the Clayton above.
   {id:"gumbel", adv:true, cat:"cop", name:"Gumbel Copula (upper tail)", type:"scatter", color:"#ff7ad9", copula:true, toNormal:probit,
@@ -974,6 +1028,18 @@ const ROSSLER_DT=0.02, ROSSLER_STEPS_PER_POINT=5, ROSSLER_BURN_IN=3000;   // RK4
 const THOMAS_DT=0.05, THOMAS_STEPS_PER_POINT=3, THOMAS_BURN_IN=2000;      // Thomas flow is slow; 100 time units discarded
 const CHIRIKOV_ORBITS=10;       // initial conditions drawn per render; more orbits = fuller phase portrait, fewer points each
 const IKEDA_BURN_IN=100;        // iterations discarded before recording
+const CHEN_A=35, CHEN_B=3;      // Chen–Ueta (1999) parameters; c is the dial
+const CHEN_DT=0.002, CHEN_STEPS_PER_POINT=8, CHEN_BURN_IN=5000;      // fast flow (a=35): small RK4 step; 1500 points span ~24 time units
+const AIZAWA_A=0.95, AIZAWA_C=0.6, AIZAWA_D=3.5, AIZAWA_E=0.25, AIZAWA_F=0.1;   // widely circulated Aizawa set; b is the dial
+const AIZAWA_DT=0.01, AIZAWA_STEPS_PER_POINT=4, AIZAWA_BURN_IN=2000; // ~60 time units, about 30 turns of the d = 3.5 rotation
+const CHUA_BETA=28, CHUA_M0=-8/7, CHUA_M1=-5/7;                      // classic dimensionless Chua constants; alpha is the dial
+const CHUA_DT=0.005, CHUA_STEPS_PER_POINT=6, CHUA_BURN_IN=3000;
+const HALVORSEN_START=[-1.48,-1.51,2.04];                            // fixed start: the basin of the attractor is limited
+const HALVORSEN_DT=0.005, HALVORSEN_STEPS_PER_POINT=5, HALVORSEN_BURN_IN=3000;
+const HALVORSEN_ESCAPE=1e3;     // |x| beyond this means the orbit ran away; restart from HALVORSEN_START
+const TINKERBELL_B=-0.6013, TINKERBELL_C=2, TINKERBELL_D=0.5;        // classic constants; a is the dial
+const TINKERBELL_X0=-0.72, TINKERBELL_Y0=-0.64;                      // standard start inside the basin
+const TINKERBELL_BURN_IN=100, TINKERBELL_ESCAPE=1e3;                 // iterations discarded; escape radius that triggers a restart
 const MIX_THETA=2;              // Clayton and Gumbel theta in the mixture (both Kendall tau = 0.5)
 const TRADING_DAYS=252;         // steps per year for the daily-step models (GJR, regime, VG, Kou)
 const GJR_ALPHA=0.04, GJR_GAMMA=0.08, GJR_DAILY_VOL=0.01;    // ARCH and leverage terms; long-run daily volatility 1%
