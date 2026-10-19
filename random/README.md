@@ -189,6 +189,21 @@ Systems whose long-run behavior settles onto a bounded set with fractal structur
 - **Origin:** presented in J. C. Sprott, *Elegant Chaos* (World Scientific, 2010), where it is named after Arne Dehli Halvorsen. **[R]**
 - **Parameter conflict, resolved numerically:** sources quote `a = 1.4` and `a = 1.89`. At `a = 1.4` the Lyapunov estimate was clearly positive (0.49 after a long transient); at `a = 1.89` it was ≈ 0, so the orbit is regular. The tool uses 1.4. **[N]** Below about `a = 1.2` the orbit ran away to infinity in a test; the tool restarts a runaway orbit instead of plotting it.
 
+#### ⚙ Lü Attractor (x–z) — dials: control parameter *c*, orbit length
+- **Formula:** `x' = a(y − x)`, `y' = −xz + cy`, `z' = xy − bz`; `a = 36`, `b = 3`, `c = 20` (dial 14–28). RK4, step 0.002.
+- **Origin:** J. Lü & G. Chen, "A new chaotic attractor coined", *Int. J. Bifurcation Chaos* 12(3) (2002) 659–661. **[R]** It was introduced as the system that bridges the Lorenz and Chen attractors (Lü, Chen, Cheng & Čelikovský, "Bridge the gap between the Lorenz system and the Chen system", *Int. J. Bifurcation Chaos* 12(12) (2002) 2917–2926). **[R]** The parameter set is recalled.
+- **Check:** the largest Lyapunov exponent estimate was positive for every sampled `c` from 14 to 28 (0.74 at 14, 0.22 at 18, 0.99 at 20, 3.65 at 28); at `c = 10` the orbit settled to a fixed point. **[N]**
+
+#### ⚙ Burke–Shaw Attractor (x–z) — dials: drive *V*, orbit length
+- **Formula:** `x' = −s(x + y)`, `y' = −y − s·x·z`, `z' = s·x·y + V`; `s = 10`, `V = 4.272` (dial 3–8). RK4, step 0.002.
+- **Origin:** **unverified.** The system is attributed to R. Shaw, "Strange attractors, chaotic behavior, and information flow", *Z. Naturforsch.* 36a (1981) 80–112 **[R]**; the "Burke" in the name was not traced. The parameter set is as commonly quoted, recalled.
+- **Check:** Lyapunov estimate ≈ 0 (regular) for `V = 2–3`, positive from `V = 4` (0.48) and at the classic 4.272 (0.71); weaker between 5 and 6 (0.09) and 0.64 at 8. The orbit stayed bounded (|coordinates| < 6) across the dial for 40 random starts. **[N]**
+
+#### ⚙ Rabinovich–Fabrikant (x–y) — dials: gain *γ*, orbit length
+- **Formula:** `x' = y(z − 1 + x²) + γx`, `y' = x(3z + 1 − x²) + γy`, `z' = −2z(α + xy)`; `α = 1.1`, `γ = 0.87` (dial on *γ*, 0.7–0.87). RK4, step 0.002. Fixed start `(−1, 0, 0.5)`; Re-roll discards a random number of extra steps (up to 10 time units), so each re-roll shows a different stretch of the same orbit.
+- **Origin:** M. I. Rabinovich & A. L. Fabrikant, "Stochastic self-modulation of waves in nonequilibrium media", *Sov. Phys. JETP* 50(2) (1979) 311–317. **[R]** Equations and the `(1.1, 0.87)` parameter set as commonly quoted, recalled.
+- **Fragile by nature:** at `α = 1.1` the Lyapunov estimate was 0.22 at `γ = 0.87`, 0.15 at 0.85 and 0.8, and ≈ 0 (regular) at 0.75 and below. With the fixed start the orbit ran away to infinity for `γ ≥ 0.9` and for `α ≤ 1.0`, and from two of the three other starting points tried, even at the classic values. The dial therefore stops at 0.87, and a runaway restarts from the fixed start. Halving the step to 0.0005 gave identical extents, so 0.002 is adequate. A second quoted set, `α = 0.14, γ = 0.10`, was only marginally chaotic in the test (0.014) and is not used. **[N]**
+
 #### ⚙ Tinkerbell Map — dials: parameter *a*, parameter *b*
 - **Formula:** `x' = x² − y² + ax + by`, `y' = 2xy + cx + dy`; `a = 0.9`, `b = −0.6013`, `c = 2`, `d = 0.5`; start `(−0.72, −0.64)`; dials on *a* (0.75–0.9) and *b* (−0.45 to −0.6013). Re-roll discards a random number of extra iterations (up to 3,000), a different stretch of the same deterministic orbit.
 - **Origin:** the name comes from K. T. Alligood, T. D. Sauer & J. A. Yorke, *Chaos: An Introduction to Dynamical Systems* (Springer, 1997). **[R]** Parameters as commonly quoted, recalled.
@@ -198,13 +213,13 @@ Systems whose long-run behavior settles onto a bounded set with fractal structur
 
 ## Core 4 — the 3-D viewer
 
-A fourth panel that draws the real 3-D orbit of a model and lets you turn it. It lists every model that has a 3-D form: Lorenz, Rössler, Thomas, Chen, Aizawa, Chua, Halvorsen (flows) and RANDU (its raw triples, so the 15 planes can be found by rotating).
+A fourth panel that draws the real 3-D orbit of a model and lets you turn it. It lists every model that has a 3-D form: Lorenz, Rössler, Thomas, Chen, Aizawa, Chua, Halvorsen, Lü, Burke–Shaw, Rabinovich–Fabrikant (flows) and RANDU (its raw triples, so the 15 planes can be found by rotating).
 
 - **How it draws:** there is no 3-D library. Each point is rotated about the vertical axis by *azimuth*, tilted by *elevation*, optionally shrunk with distance (*perspective*), and drawn on an ordinary 2-D canvas. The orbit is first centered on its bounding box and scaled to unit radius so every model fills the view the same way. Near parts are drawn brighter and thicker than far parts (six depth layers). A small x/y/z key in the corner shows the orientation.
 - **Controls:** *Auto-rotate* switch (Lucide `toggle-left` / `toggle-right`), *rotation speed* (0–90°/s), *azimuth*, *elevation*, *zoom*, *perspective* and *line / point size*, all generated from the `VIEW3D_PARAMS` list. The model's own dials (attraction, orbit length and so on) are mirrored below the view and stay in step with the same dials in Core 1.
 - **Animation:** it runs only while Auto-rotate is on with a speed above zero, the plot is on screen and the tab is visible; otherwise it redraws only when a control changes. With the system "reduce motion" setting on, it starts with Auto-rotate off.
 - **Why it matters:** a 2-D projection can hide structure. RANDU's planes only show from a particular angle; the Lorenz and Rössler folds are flattened in any single projection.
-- **Check:** all 8 models produce 1,500 finite 3-D points, normalized to a maximum radius of exactly 1; auto-rotation advanced 18° in 1.5 s at 12°/s and 60° in 1 s at 60°/s; it paused when the plot was off screen or Auto-rotate was off. **[N]**
+- **Check:** all 8 original 3-D models (and the 3 added later) produce 1,500 finite 3-D points, normalized to a maximum radius of exactly 1; auto-rotation advanced 18° in 1.5 s at 12°/s and 60° in 1 s at 60°/s; it paused when the plot was off screen or Auto-rotate was off. **[N]**
 
 ---
 
@@ -329,6 +344,12 @@ Time-step models use 252 steps per year unless noted. Simulated paths illustrate
 
 ---
 
+## Related resources
+
+- **strange-attractors.jujiplay.com** — an independent, third-party interactive viewer that animates strange attractors in 3-D (according to its page: Lorenz, Rössler, Thomas, Aizawa, Chen, Rikitake and others) and lets you adjust each system's parameters (for example the five parameters of the Dadras attractor, a three-scroll system). It is a good place to explore attractors beyond the ones here. The page names no author and states no license; this project is not affiliated with it, and nothing was copied from it. Its parameter sets were not used to choose ours (each was checked numerically here instead).
+
+---
+
 ## Shared numerical methods
 
 | Method | Used for | Reference |
@@ -350,13 +371,14 @@ Run during the build that added the Advanced models (headless browser plus a sep
 - The stochastic financial models reproduce their theoretical moments (Hawkes mean rate, GJR volatility, variance-gamma increment variance, Student-t volatility, Kou compensator, regime variance).
 - Every dial's default position reproduces its stated classic value.
 - All 29 advanced models returned 1,500 finite points; the five attractors added later (Chen, Aizawa, Chua, Halvorsen, Tinkerbell) were also checked across every dial position.
+- Lü, Burke–Shaw and Rabinovich–Fabrikant were run at every dial position (0 / 50 / 100 %) for 40 random re-roll seeds each: all finite, none ran away (largest coordinate seen 70.6 for Lü, 5.5 for Burke–Shaw, 2.4 for Rabinovich–Fabrikant), and every default reproduced its classic value.
 - When the extra attractor dials and Core 4 were added, every dial of every model was run at 0 %, 50 % and 100 % in both its 2-D and 3-D form (all finite, 1,500 points), and every dial's default reproduced its classic value.
 
 **What this does *not* show:** that any citation is correct, that a published parameter set was recalled correctly, or that the models are suitable for any real-world purpose.
 
 ## Not yet included
 
-Candidates from the research pass that are **not** implemented (attractors still open: Lü, Burke–Shaw, Rabinovich–Fabrikant, Sprott's simplest flows, Clifford / de Jong, Lozi, Gingerbreadman, Duffing, double pendulum; 3-D views for the 2-D maps and the copulas), usually because the equations or parameters were not verified against primary sources: rough volatility (rough Bergomi, rough Heston), fractional Brownian motion, multifractal random walk, SABR, Bates, local volatility, the Merton structural credit model, the Vasicek one-factor loan-loss model, Geltner / Getmansky–Lo–Makarov return smoothing, nested and vine copulas, Hüsler–Reiss and Galambos extreme-value copulas, Brock–Hommes heterogeneous-agent map, the 2-D sine-logistic and logistic-adjusted-sine maps, Poisson-disk sampling, xoshiro, Philox, and Owen-scrambled Sobol.
+Candidates from the research pass that are **not** implemented (attractors still open: Dadras, Rikitake, Sprott's simplest flows, Clifford / de Jong, Lozi, Gingerbreadman, Duffing, double pendulum; 3-D views for the 2-D maps and the copulas), usually because the equations or parameters were not verified against primary sources: rough volatility (rough Bergomi, rough Heston), fractional Brownian motion, multifractal random walk, SABR, Bates, local volatility, the Merton structural credit model, the Vasicek one-factor loan-loss model, Geltner / Getmansky–Lo–Makarov return smoothing, nested and vine copulas, Hüsler–Reiss and Galambos extreme-value copulas, Brock–Hommes heterogeneous-agent map, the 2-D sine-logistic and logistic-adjusted-sine maps, Poisson-disk sampling, xoshiro, Philox, and Owen-scrambled Sobol.
 
 ## Adding a model
 

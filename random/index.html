@@ -23,7 +23,7 @@
   <script> #2
     ==== ALL DATA LIVES IN ONE CONTIGUOUS BLOCK ====
     · CATEGORIES ................. the four Core 1 groups (generators / attractors / copulas / financial)
-    · MODELS ..................... 15 core + 29 advanced (adv:true) generators, one entry each
+    · MODELS ..................... 15 core + 32 advanced (adv:true) generators, one entry each
     · FORGE_PARAMS ............... the three Core 3 sliders
     · VIEW3D_PARAMS .............. the Core 4 view sliders (azimuth, elevation, speed, zoom, perspective, size)
     · ICON_PATHS ................. the Lucide icons used (toggle, play, chevron, power-off)
@@ -900,6 +900,27 @@ const MODELS=[
    gen3:()=>{ const a=dialParam("halvorsen","a"), f=([x,y,z])=>[-a*x-4*y-4*z-y*y,-a*y-4*z-4*x-z*z,-a*z-4*x-4*y-x*x];
       const burn=HALVORSEN_BURN_IN+Math.floor(attractorStart[0]*HALVORSEN_BURN_JITTER);
       return integrateFlow(f,HALVORSEN_START,HALVORSEN_DT,spanSteps(HALVORSEN_STEPS_PER_POINT,"halvorsen"),burn,NUM_POINTS); }},
+  // Lü: x'=a(y-x), y'=-xz+cy, z'=xy-bz, a=36, b=3. Sits between Lorenz and Chen. Chaotic for c about 14–28 (checked).
+  {id:"lu", adv:true, cat:"att", name:"Lü Attractor (x–z)", type:"line", color:"#b0ff4d", proj:["x","z"],
+   dials:[{id:"c", label:"Control parameter c", weak:14, strong:28, classic:20, fmt:c=>"c = "+c.toFixed(1),
+     help:"The system that bridges Lorenz and Chen. Chaotic across c = 14 to 28 (weakest near 18); larger c makes a taller, wider double wing. Much below 14 the orbit settles to a point."}, SPAN_DIAL],
+   gen3:()=>{ const c=dialParam("lu","c"), f=([x,y,z])=>[LU_A*(y-x),-x*z+c*y,x*y-LU_B*z];
+      return integrateFlow(f,[1+0.1*attractorStart[0],1,1+0.1*attractorStart[1]],LU_DT,spanSteps(LU_STEPS_PER_POINT,"lu"),LU_BURN_IN,NUM_POINTS); }},
+  // Burke–Shaw: x'=-s(x+y), y'=-y-sxz, z'=sxy+V, s=10, V=4.272. A small, tightly folded double scroll.
+  {id:"burkeshaw", adv:true, cat:"att", name:"Burke–Shaw Attractor (x–z)", type:"line", color:"#ff9d7a", proj:["x","z"],
+   dials:[{id:"V", label:"Drive V", weak:3, strong:8, classic:4.272, fmt:v=>"V = "+v.toFixed(2),
+     help:"A constant push on z. Below about 3 the orbit is regular; from about 4 (the classic 4.272) it is chaotic and the attractor widens as V grows."}, SPAN_DIAL],
+   gen3:()=>{ const V=dialParam("burkeshaw","V"), f=([x,y,z])=>[-BURKE_S*(x+y),-y-BURKE_S*x*z,BURKE_S*x*y+V];
+      return integrateFlow(f,[0.6+0.05*attractorStart[0],0.6+0.05*attractorStart[1],0.6],BURKE_DT,spanSteps(BURKE_STEPS_PER_POINT,"burkeshaw"),BURKE_BURN_IN,NUM_POINTS); }},
+  // Rabinovich–Fabrikant: x'=y(z-1+x²)+γx, y'=x(3z+1-x²)+γy, z'=-2z(α+xy). Notoriously fragile: chaotic only in a narrow
+  // band of (α, γ); outside it, or from many starting points, the orbit runs away to infinity. The start is fixed
+  // (Re-roll picks a different stretch of the same orbit via a random burn-in) and integrateFlow restarts a runaway.
+  {id:"rabfab", adv:true, cat:"att", name:"Rabinovich–Fabrikant (x–y)", type:"line", color:"#4dffb0", proj:["x","y"],
+   dials:[{id:"gamma", label:"Gain γ", weak:0.7, strong:0.87, classic:0.87, fmt:g=>"γ = "+g.toFixed(3),
+     help:"Chaotic from about γ = 0.8 up to the classic 0.87 (α = 1.1). Below about 0.75 the orbit is regular. Above about 0.9 it can run away to infinity, so the dial stops at 0.87."}, SPAN_DIAL],
+   gen3:()=>{ const g=dialParam("rabfab","gamma"), f=([x,y,z])=>[y*(z-1+x*x)+g*x,x*(3*z+1-x*x)+g*y,-2*z*(RF_ALPHA+x*y)];
+      const burn=RF_BURN_IN+Math.floor(attractorStart[0]*RF_BURN_JITTER);
+      return integrateFlow(f,RF_START,RF_DT,spanSteps(RF_STEPS_PER_POINT,"rabfab"),burn,NUM_POINTS); }},
   // Tinkerbell map: x'=x²-y²+ax+by, y'=2xy+cx+dy. A tiny basin: most starting points and parameters escape to
   // infinity, so the start is fixed and the dials stop at the edge (a >= 0.91 or b <= -0.605 escapes). Re-roll
   // picks a different stretch of the SAME orbit (a random burn-in), since the orbit itself is deterministic.
@@ -1117,6 +1138,12 @@ const CHUA_DT=0.005, CHUA_STEPS_PER_POINT=6, CHUA_BURN_IN=3000;
 const HALVORSEN_START=[-1.48,-1.51,2.04];                            // fixed start: the basin of the attractor is limited
 const HALVORSEN_DT=0.005, HALVORSEN_STEPS_PER_POINT=5, HALVORSEN_BURN_IN=3000;
 const HALVORSEN_BURN_JITTER=4000; // extra burn-in steps (random, set by Re-roll) so each re-roll shows a different stretch of the one orbit
+const LU_A=36, LU_B=3;          // Lü–Chen (2002) parameters; c is the dial
+const LU_DT=0.002, LU_STEPS_PER_POINT=8, LU_BURN_IN=5000;            // fast flow (a=36): small RK4 step; ~24 time units across the 1,500 points
+const BURKE_S=10;               // Burke–Shaw s; V is the dial
+const BURKE_DT=0.002, BURKE_STEPS_PER_POINT=8, BURKE_BURN_IN=5000;
+const RF_ALPHA=1.1, RF_START=[-1,0,0.5];                              // Rabinovich–Fabrikant α (γ is the dial) and a start known to stay bounded
+const RF_DT=0.002, RF_STEPS_PER_POINT=10, RF_BURN_IN=5000, RF_BURN_JITTER=5000;   // stiff flow: dt halved to 0.0005 gave identical extents; jitter = extra random burn-in (Re-roll)
 const TINKERBELL_C=2, TINKERBELL_D=0.5;                             // classic constants; a and b are dials
 const TINKERBELL_X0=-0.72, TINKERBELL_Y0=-0.64;                      // standard start inside the basin
 const TINKERBELL_BURN_IN=100, TINKERBELL_ESCAPE=1e3;                 // iterations discarded; escape radius that triggers a restart
