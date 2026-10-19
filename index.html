@@ -947,6 +947,31 @@
   }
   .share-btn.copied .copied-label { opacity: 1; }
 
+  /* GROUP CARD: a card that opens into its child cards (e.g. Bike Parks).
+     Same size and look as every other card; the +/x sits where the share
+     button sits on a normal card. */
+  .group-hit { background: none; border: 0; padding: 0; cursor: pointer; font: inherit; }
+  .group-hit:focus-visible { outline: 2px solid var(--accent); outline-offset: -4px; }
+  .group-card.open { background: var(--bg-rule); }
+  .group-card.open::after { width: 100%; }
+  .group-mark {
+    position: absolute; top: 1.125rem; right: 1.125rem; z-index: 2; pointer-events: none;
+    width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--bg-rule); border-radius: 3px; color: var(--text-muted);
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .group-card:hover .group-mark { border-color: var(--text-muted); }
+  .group-mark svg { width: 14px; height: 14px; transition: transform 0.3s ease; }
+  .group-card.open .group-mark svg { transform: rotate(45deg); }
+  .tool-child[hidden] { display: none; }
+  .tool-child.reveal { animation: childReveal 0.35s ease both; }
+  .tool-child.reveal + .tool-child.reveal { animation-delay: 0.07s; }
+  @keyframes childReveal { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .tool-child.reveal { animation: none; }
+    .group-mark svg { transition: none; }
+  }
+
   /* ═══════════════════════════════════════════════════════════════
      RESPONSIVE
   ═══════════════════════════════════════════════════════════════ */
@@ -994,6 +1019,8 @@
     .tool-name { font-size: 0.92rem; line-height: 1.25; }
     .tool-desc { display: none; }
     .share-btn { top: 0.6rem; right: 0.6rem; width: 26px; height: 26px; }
+    .group-mark { top: 0.6rem; right: 0.6rem; width: 26px; height: 26px; }
+    .group-mark svg { width: 12px; height: 12px; }
     .share-btn svg { width: 12px; height: 12px; }
     .copied-label { font-size: 0.52rem; padding: 3px 6px; right: calc(100% + 6px); }
   }
@@ -1346,7 +1373,8 @@
        TOOL LIST  —  the single source of truth for the grid
 
        ─── TO ADD A TOOL ───────────────────────────────────────────
-         1. Add one entry to PMR_TOOLS below (four fields).
+         1. Add one entry to PMR_TOOLS below (four fields). A group
+            (id, tag, name, desc + children) opens into its children.
          2. Create the wrapper page at <path>/index.html.
          3. Add a <url> line to /sitemap.xml.
        Steps 2 and 3 are separate files, so they still have to be done
@@ -1396,14 +1424,23 @@
       tag:  "Suspension physics",
       name: "Interactive Suspension Dynamics Laboratory",
       desc: "HSC/LSC damping controls, terrain-specific inputs." },
-    { path: "/parks-us/",
+    // A GROUP card: looks like any other card, but opens into its children
+    // (each a normal card, same four fields) instead of linking anywhere.
+    // id is the group's identity for the saved drag order; children are
+    // never draggable and always sit right after their group.
+    { id:   "bike-parks",
       tag:  "Destinations",
-      name: "US Lift-Served Bike Parks",
-      desc: "90+ lift access parks across 30 states from sea to shining sea." },
-    { path: "/parks-ca/",
-      tag:  "Destinations",
-      name: "Canadian Bike Parks",
-      desc: "Canadian lift served bike parks: stats & maps." },
+      name: "Bike Parks",
+      desc: "North American lift-served bike parks. Pick USA or Canada.",
+      children: [
+        { path: "/parks-us/",
+          tag:  "Bike Parks",
+          name: "USA Lift-Served Bike Parks",
+          desc: "90+ lift access parks across 30 states from sea to shining sea." },
+        { path: "/parks-ca/",
+          tag:  "Bike Parks",
+          name: "Canadian Bike Parks",
+          desc: "Canadian lift served bike parks: stats & maps." } ] },
     { path: "/geometry/",
       tag:  "Geometry",
       name: "MTB Steering Geometry",
@@ -1483,10 +1520,15 @@
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
-    function cardHTML(tool) {
+    var ICON_PLUS =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus" aria-hidden="true" focusable="false">' +
+      '<path d="M5 12h14"/><path d="M12 5v14"/></svg>';
+
+    function cardHTML(tool, parentId) {
       var path = esc(tool.path), name = esc(tool.name);
       return '' +
-        '<div class="tool-card" data-tool-id="' + path + '">' +
+        '<div class="tool-card' + (parentId ? ' tool-child' : '') + '" data-tool-id="' + path + '"' +
+          (parentId ? ' data-parent="group:' + esc(parentId) + '" hidden' : '') + '>' +
           '<a href="' + path + '" class="card-hit" draggable="false" aria-label="Open ' + name + '"></a>' +
           '<div class="tool-tag">'  + esc(tool.tag)  + '</div>' +
           '<div class="tool-name">' + name           + '</div>' +
@@ -1500,9 +1542,47 @@
         '</div>';
     }
 
+    // Group card: same shell as cardHTML, but the full-card hit area is a
+    // toggle button, and the share button is replaced by a +/x marker.
+    function groupHTML(tool) {
+      var id = esc(tool.id), name = esc(tool.name);
+      return '' +
+        '<div class="tool-card group-card" data-tool-id="group:' + id + '" data-group="' + id + '">' +
+          '<button type="button" class="card-hit group-hit" draggable="false" aria-expanded="false" ' +
+                  'aria-label="' + name + ': show ' + tool.children.map(function (c) { return esc(c.name); }).join(' and ') + '"></button>' +
+          '<div class="tool-tag">'  + esc(tool.tag)  + '</div>' +
+          '<div class="tool-name">' + name           + '</div>' +
+          '<p class="tool-desc">'   + esc(tool.desc) + '</p>' +
+          '<span class="group-mark" aria-hidden="true">' + ICON_PLUS + '</span>' +
+        '</div>' +
+        tool.children.map(function (c) { return cardHTML(c, tool.id); }).join('');
+    }
+
+    function render(tool) { return tool.children ? groupHTML(tool) : cardHTML(tool, null); }
+
     // One assignment rather than 21 appends: the grid is built off-screen
     // and swapped in once, so the browser only lays out the section once.
-    grid.innerHTML = window.PMR_TOOLS.map(cardHTML).join('');
+    grid.innerHTML = window.PMR_TOOLS.map(render).join('');
+
+    // Open / close a group. Its children are the cards that follow it.
+    function setGroup(card, open) {
+      var hit = card.querySelector('.group-hit');
+      card.classList.toggle('open', open);
+      hit.setAttribute('aria-expanded', open ? 'true' : 'false');
+      for (var n = card.nextElementSibling; n && n.classList.contains('tool-child'); n = n.nextElementSibling) {
+        n.hidden = !open;
+        n.classList.toggle('reveal', open);
+      }
+    }
+    grid.addEventListener('click', function (e) {
+      var hit = e.target.closest ? e.target.closest('.group-hit') : null;
+      if (hit) { var c = hit.parentNode; setGroup(c, !c.classList.contains('open')); }
+    });
+    grid.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      var open = grid.querySelector('.group-card.open');
+      if (open) { setGroup(open, false); open.querySelector('.group-hit').focus(); }
+    });
   }());
   </script>
 
@@ -2321,12 +2401,30 @@
   if (!grid) return;
 
   var DEFAULT_ORDER = Array.prototype.map.call(
-    grid.querySelectorAll('.tool-card'),
+    grid.querySelectorAll('.tool-card:not(.tool-child)'),
     function (c) { return c.getAttribute('data-tool-id'); }
   );
 
   function getCards() {
-    return Array.prototype.slice.call(grid.querySelectorAll('.tool-card'));
+    return Array.prototype.slice.call(grid.querySelectorAll('.tool-card:not(.tool-child)'));
+  }
+
+  // Child cards (inside a group) are not part of the saved order. Their
+  // grouping is read once from the initial DOM; after any reorder they are
+  // moved back to sit directly after their group card.
+  var KIDS = {};
+  Array.prototype.forEach.call(grid.querySelectorAll('.tool-child'), function (k) {
+    var g = k.getAttribute('data-parent');
+    (KIDS[g] = KIDS[g] || []).push(k);
+  });
+
+  function placeChildren() {
+    getCards().forEach(function (c) {
+      var kids = KIDS[c.getAttribute('data-tool-id')];
+      if (!kids) return;
+      var ref = c;
+      kids.forEach(function (k) { grid.insertBefore(k, ref.nextSibling); ref = k; });
+    });
   }
 
   function applyOrder(order) {
@@ -2336,10 +2434,12 @@
     order.forEach(function (id) {
       if (byId[id]) grid.appendChild(byId[id]);
     });
+    placeChildren();
     updateResetVisibility();
   }
 
   function saveOrder() {
+    placeChildren();
     var order = getCards().map(function (c) { return c.getAttribute('data-tool-id'); });
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(order)); } catch (e) {}
     updateResetVisibility();
@@ -2473,7 +2573,7 @@
       // Temporarily hide the dragged card from hit-testing so elementFromPoint
       // can see the card underneath the finger
       var target = document.elementFromPoint(t.clientX, t.clientY);
-      var targetCard = target && target.closest ? target.closest('.tool-card') : null;
+      var targetCard = target && target.closest ? target.closest('.tool-card:not(.tool-child)') : null;
 
       getCards().forEach(function (c) { if (c !== card) c.classList.remove('drag-over'); });
       if (targetCard && targetCard !== card) targetCard.classList.add('drag-over');
@@ -2487,7 +2587,7 @@
         card.style.transform = '';
         card.classList.remove('touch-dragging');
         var target = document.elementFromPoint(t.clientX, t.clientY);
-        var targetCard = target && target.closest ? target.closest('.tool-card') : null;
+        var targetCard = target && target.closest ? target.closest('.tool-card:not(.tool-child)') : null;
         getCards().forEach(function (c) { c.classList.remove('drag-over'); });
         if (targetCard && targetCard !== card) {
           swapCards(card, targetCard);
