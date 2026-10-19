@@ -608,7 +608,8 @@
     margin: -116px 0 0 -136px; padding: 10px 11px;
     border: 1px solid rgba(200,145,47,0.42); background: var(--pl-sheet);
     cursor: pointer; transform-style: preserve-3d;
-    transition: opacity 0.3s ease, border-color 0.2s ease;
+    transition: border-color 0.2s ease;
+    will-change: transform, opacity;
   }
   /* Patent drawing pane. The WebP is pre-tinted line art on a transparent
      ground (see images/patents/), so it sits on the dark sheet as-is. */
@@ -2197,6 +2198,10 @@
     // sheet is never much wider than the stage.
     var FADE_FROM = narrow ? 200 : 380, FADE_TO = narrow ? 380 : 600;
     var cam = prog * ((D.length - 1) * GAP + REST);
+    // The whole stack starts low in the frame and rises to the middle over
+    // the first third of the fly-through (ease-out), instead of opening
+    // dead centre.
+    var rise = Math.min(1, prog / 0.35), lift = (narrow ? 70 : 130) * (1 - rise * (2 - rise));
     var DEPTH = GAP * D.length;
     els.forEach(function (el, i) {
       var zz = -i * GAP + cam;
@@ -2209,13 +2214,32 @@
       // fade with distance behind, and again only as a sheet gets very close
       var far = Math.max(0, Math.min(1, 1 - (-zz) / (DEPTH * 1.25)));
       var near = zz > FADE_FROM ? 1 - (zz - FADE_FROM) / (FADE_TO - FADE_FROM) : 1;
-      el.style.transform = 'translate3d(' + jx + 'px,' + jy + 'px,' + zz.toFixed(1) + 'px)';
+      el.style.transform = 'translate3d(' + jx + 'px,' + (jy + lift).toFixed(1) + 'px,' + zz.toFixed(1) + 'px)';
       el.style.opacity = ((0.22 + far * 0.78) * near).toFixed(3);
       el.style.zIndex = String(1000 + Math.round(zz));
     });
   }
 
-  z.addEventListener('input', function () { layout((+z.value) / 100); });
+  // Wheel scrolling arrives in coarse steps. Rather than jump the camera on
+  // each step, ease it toward the target once per animation frame, so wheel
+  // scrolling glides the way a click on the slider does. Dragging the
+  // slider itself moves the camera directly.
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var cur = 0, target = 0, raf = 0;
+  function step() {
+    raf = 0;
+    var d = target - cur;
+    cur = Math.abs(d) < 0.0005 ? target : cur + d * 0.2;
+    layout(cur);
+    if (cur !== target) raf = requestAnimationFrame(step);
+  }
+  function goTo(p, instant) {
+    target = p;
+    if (instant || reduce) { cur = p; layout(p); return; }
+    if (!raf) raf = requestAnimationFrame(step);
+  }
+
+  z.addEventListener('input', function () { goTo((+z.value) / 100, true); });
 
   // Scrolling the page flies the camera through the WHOLE stack: sheet 1
   // is in front as the stage enters the bottom of the screen, the last
@@ -2229,7 +2253,7 @@
     var start = vh * 0.85, end = vh * 0.05;
     var prog = Math.max(0, Math.min(1, (start - r.top) / (start - end)));
     z.value = (prog * 100).toFixed(1);
-    layout(prog);
+    goTo(prog, false);
   }, { passive: true });
 
   layout(0);
