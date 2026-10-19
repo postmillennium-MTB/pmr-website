@@ -379,7 +379,8 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
         <div class="row"><label for="blend-smooth">Blend smoothness</label><span class="val" id="smooth-val">30</span></div>
         <input type="range" id="blend-smooth" min="0" max="100" step="1" value="30">
       </div>
-      <div class="ctl"><label for="blend-color">Output chroma</label><input type="color" id="blend-color" value="#fcee0a"></div>
+      <div class="ctl"><label for="blend-color-a">Color A (left base)</label><input type="color" id="blend-color-a" value="#fcee0a"></div>
+      <div class="ctl"><label for="blend-color-b">Color B (right target)</label><input type="color" id="blend-color-b" value="#fcee0a"></div>
     </div>
     <!-- Re-roll draws fresh samples for the two selected sequences; Surprise also picks new models. The play icon is added by init() from ICON_PATHS. -->
     <div class="btn-row">
@@ -865,7 +866,7 @@ const MODELS=[
    gen3:()=>{ const beta=dialParam("lorenz","pull"), rho=dialParam("lorenz","rho"), f=([x,y,z])=>[LORENZ_SIGMA*(y-x),x*(rho-z)-y,x*y-beta*z];
       return integrateFlow(f,[1+LORENZ_START_SPAN*attractorStart[2],1,1],LORENZ_DT,spanSteps(LORENZ_STEPS_PER_POINT,"lorenz"),0,NUM_POINTS); }},
 
-  {id:"gauss",    cat:"cop", name:"Gaussian Copula (ρ=0.8)",    type:"scatter", color:"#aa00ff", copula:true,
+  {id:"gauss",    cat:"cop", name:"Gaussian Copula (ρ=0.8)",    type:"scatter", color:"#aa00ff", on:true, copula:true,
    gen:()=>{ const pts=[]; for(let i=0;i<NUM_POINTS;i++){ const z1=randn_bm(),z2=randn_bm();
       pts.push({x:z1,y:COPULA_RHO*z1+Math.sqrt(1-COPULA_RHO*COPULA_RHO)*z2}); } return pts; }},
   // Student-t via normal / sqrt(chi-square/nu). Chi-square(4) is exactly the sum
@@ -903,7 +904,7 @@ const MODELS=[
   // Lower-tail dependent: joint crashes cluster in the bottom-left corner. Plotted on
   // UNIFORM margins natively; the "Normal margins" setting maps them to N(0,1) via probit
   // so the tail shape is comparable with the Gaussian and Student-t copulas.
-  {id:"clayton",  cat:"cop", name:"Clayton Copula (θ=2)", type:"scatter", color:"#7cff4d", copula:true,
+  {id:"clayton",  cat:"cop", name:"Clayton Copula (θ=2)", type:"scatter", color:"#7cff4d", on:true, copula:true,
    toNormal:probit,
    gen:()=>{ const pts=[], inv=-1/CLAYTON_THETA;
       for(let i=0;i<NUM_POINTS;i++){
@@ -1493,7 +1494,8 @@ function drawGrid(ctx,cv,color){
 
 // `shared` (optional {lo,hi}) forces one common axis range for both axes instead of
 // auto-fitting this layer, so several layers can be overlaid on the same scale.
-function plotData(ctx,cv,data,col,type,lineW,shared){
+// `colors` (optional) is one CSS color per point; it overrides `col` (used by the Core 2 A -> B color blend).
+function plotData(ctx,cv,data,col,type,lineW,shared,colors){
   if(!data.length) return;
   let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
   if(shared){ minX=minY=shared.lo; maxX=maxY=shared.hi; }
@@ -1510,7 +1512,13 @@ function plotData(ctx,cv,data,col,type,lineW,shared){
   ctx.shadowBlur=GLOW_BLUR; ctx.shadowColor=col;
   ctx.fillStyle=col; ctx.strokeStyle=col; ctx.lineWidth=lineW;
   if(type==="scatter"){
-    for(const p of data){ ctx.beginPath(); ctx.arc(X(p),Y(p),DOT_R,0,Math.PI*2); ctx.fill(); }
+    data.forEach((p,i)=>{
+      if(colors) ctx.fillStyle=ctx.shadowColor=colors[i];
+      ctx.beginPath(); ctx.arc(X(p),Y(p),DOT_R,0,Math.PI*2); ctx.fill(); });
+  }else if(colors){
+    for(let i=1;i<data.length;i++){
+      ctx.strokeStyle=ctx.shadowColor=colors[i];
+      ctx.beginPath(); ctx.moveTo(X(data[i-1]),Y(data[i-1])); ctx.lineTo(X(data[i]),Y(data[i])); ctx.stroke(); }
   }else{
     ctx.beginPath();
     data.forEach((p,i)=>{ if(i===0) ctx.moveTo(X(p),Y(p)); else ctx.lineTo(X(p),Y(p)); });
@@ -1583,17 +1591,25 @@ function renderBlender(){
   const pos=(parseFloat($("blend-pos").value)+100)/200;   // [-100,100] -> [0,1]
   const smooth=parseFloat($("blend-smooth").value)/100;   // [0,100]  -> [0,1]; width of the crossfade band
 
-  const out=[];
+  const out=[], cols=[], cA=$("blend-color-a").value, cB=$("blend-color-b").value;
   for(let i=0;i<NUM_POINTS;i++){
     const t=i/(NUM_POINTS-1);
     let W;
     if(smooth===0) W=t>=pos?1:0;
     else W=smoothstep(pos-smooth/2,pos+smooth/2,t);
     out.push({x:nA[i].x*(1-W)+nB[i].x*W, y:nA[i].y*(1-W)+nB[i].y*W});
+    cols.push(mixHex(cA,cB,W));
   }
   // A continuous path only makes sense when both ends are paths.
   const type=(A.type==="line"&&B.type==="line")?"line":"scatter";
-  plotData(ctxBlend,cvBlend,out,$("blend-color").value,type,3);
+  plotData(ctxBlend,cvBlend,out,cA,type,3,null,cols);
+}
+
+// Linear blend of two "#rrggbb" colors; t=0 gives a, t=1 gives b. Same colors in, same color out.
+function mixHex(a,b,t){
+  if(a===b) return a;
+  const ch=(h,i)=>parseInt(h.slice(1+2*i,3+2*i),16);
+  return "rgb("+[0,1,2].map(i=>Math.round(ch(a,i)*(1-t)+ch(b,i)*t)).join(",")+")";
 }
 
 function randomizeBlend(){
@@ -1604,11 +1620,11 @@ function randomizeBlend(){
   $("blend-a").value=a.id; $("blend-b").value=b.id;
   $("blend-pos").value=Math.round(Math.random()*200-100);
   $("blend-smooth").value=Math.round(Math.random()*100);
-  $("blend-color").value="#"+Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,"0");
+  for(const id of ["blend-color-a","blend-color-b"]) $(id).value="#"+Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,"0");
   syncBlendReadouts();
   rollBlendSlot("a"); rollBlendSlot("b");
   renderBlender();
-  logTerminal("CORE 2: RNG OVERRIDE  ["+a.name+"] -> ["+b.name+"]", $("blend-color").value);
+  logTerminal("CORE 2: RNG OVERRIDE  ["+a.name+"] -> ["+b.name+"]", $("blend-color-a").value);
 }
 function syncBlendReadouts(){
   $("pos-val").textContent=$("blend-pos").value;
@@ -2002,7 +2018,7 @@ function init(){
   }
   for(const slot of ["a","b"]) $("blend-"+slot).addEventListener("change",()=>{ rollBlendSlot(slot); renderBlender(); });
   for(const id of ["blend-pos","blend-smooth"]) $(id).addEventListener("input",()=>{ syncBlendReadouts(); renderBlender(); });
-  $("blend-color").addEventListener("change",renderBlender);
+  for(const id of ["blend-color-a","blend-color-b"]) $(id).addEventListener("change",renderBlender);
   $("opt-normal-margins").addEventListener("change",()=>{ renderStandard(); renderBlender(); });
 
   // Middle-Square switch, built from MS_MODES. Icons: Lucide, inline, attributes kept per CLAUDE.md.
