@@ -6,9 +6,7 @@ the formula and parameters the code uses, where it came from, and how well that 
 that anyone can trace a model back to its origin and re-check it.
 
 > **Status: working draft.** Citations were assembled from memory and from a research pass that opened
-> few primary papers. Treat every entry as a pointer to the literature, not as an authority. The
-> confidence tags below say how far each claim has been checked. The disclaimer at the bottom is a
-> **placeholder**.
+> few primary papers. Treat every entry as a pointer to the literature, not as an authority. The confidence tags below say how far each claim has been checked. The disclaimer is at the bottom.
 
 ## How to read the confidence tags
 
@@ -32,7 +30,7 @@ A line with no tag has not been checked at all.
 8. [Verification log](#verification-log)
 9. [Not yet included](#not-yet-included)
 10. [Adding a model](#adding-a-model)
-11. [Disclaimer (placeholder)](#disclaimer-placeholder)
+11. [Disclaimer](#disclaimer)
 
 ## Conventions used by the tool
 
@@ -399,22 +397,14 @@ Candidates from the research pass that are **not** implemented (attractors still
 3. Add its published constants (with a comment pointing here) to the tuning-constants block.
 4. Add an entry to this file with the formula, origin, and a confidence tag. Run a numeric check before tagging anything **[N]**.
 
-## Disclaimer (placeholder)
+## Disclaimer
 
-> **PLACEHOLDER — NOT FINAL. To be reviewed and replaced before wider promotion of this page.**
->
-> This tool and document are provided for **educational and illustrative purposes only**. All outputs are
-> **simulated and hypothetical**. They are not forecasts, predictions, or projections of any real
-> investment, security, index, or market, and they do not represent actual or expected results. Model
-> parameters are illustrative and have not been calibrated to market data. Nothing here is investment,
-> legal, tax, or accounting advice or a recommendation or offer to buy or sell any security or product.
-> Simulated and hypothetical results have inherent limitations and are not indicative of future results.
->
-> Citations and formulas were compiled from memory and secondary sources and **may contain errors**; the
-> confidence tags show how far each has been checked. Verify against primary sources before relying on
-> any of it.
->
-> [Placeholder: statement of authorship and independence — e.g. that this is a personal educational
-> project and does not represent the views of any employer or advisory firm.]
-> [Placeholder: any firm-specific compliance language, if required.]
-> [Placeholder: license and reuse terms for the code and this document.]
+**LEGAL & EDUCATIONAL DISCLAIMER:** Stochastic OS and all mathematical models, generators, and visualizers hosted on Post Millennium Renaissance are provided strictly for educational, experimental, and academic purposes. The outputs of these stochastic processes, copulas, and Monte Carlo simulations do not constitute financial, investment, legal, or tax advice. Furthermore, these tools are independent, personal software projects. They do not represent the views, strategies, risk management frameworks, or fiduciary recommendations of any registered investment advisor, alternative investment sponsor, or financial institution.
+
+All financial and asset-pricing models are purely theoretical simulations relying on pseudorandom number generation. They are inherently incapable of predicting actual market performance, pricing, or real-world default correlations. Users must not base any personal or professional trading, capital allocation, or private debt analysis on the outputs of this software. This tool is provided "as is" without warranty of any kind regarding its computational accuracy or statistical validity.
+
+*The same text appears at the bottom of the tool's page.*
+
+**About the references in this document:** citations and formulas were compiled from memory and secondary sources and may contain errors; the confidence tags near the top show how far each has been checked. Verify against primary sources before relying on any of it.
+
+*Still open:* license and reuse terms for the code and this document.
