@@ -132,6 +132,12 @@ h3{margin:.5rem 0 .25rem; font-size:.8rem; text-transform:uppercase}
 .model-row:hover{background:rgba(0,255,255,.1)}
 .model-row label{display:flex; align-items:center; gap:.5rem; flex:1; cursor:pointer; font-size:.8rem; color:var(--ink)}
 
+#dial-box{margin-top:.5rem; border-top:1px solid rgba(0,255,255,.25); padding-top:.25rem}
+#dial-box[hidden], .dial[hidden]{display:none}
+.dial{display:flex; flex-direction:column; gap:.15rem; margin:.5rem .5rem 0; padding-left:.5rem; border-left:2px solid currentColor; font-size:.75rem}
+.dial .row{display:flex; justify-content:space-between; gap:.5rem; color:var(--ink)}
+.dial .val{color:#fff; white-space:nowrap}
+.dial .help{margin:0 0 .15rem; font-size:.7rem; line-height:1.3; color:var(--ink-dim)}
 .opt-help{margin:.25rem .5rem 0; font-size:.7rem; line-height:1.3; color:var(--ink-dim)}
 
 /* Three-way segmented switch (native radios, so arrow keys and screen readers work).
@@ -226,6 +232,8 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
         <div id="seq-box"></div>
         <h3 style="color:var(--green)">Financial Stochastics</h3>
         <div id="fin-box"></div>
+        <!-- Attraction dials: BUILT FROM each model's `dials` in the `MODELS` registry; a dial shows only while its model is checked. -->
+        <div id="dial-box" hidden></div>
         <div class="model-row" style="margin-top:.5rem; border-top:1px solid rgba(0,255,255,.25)">
           <label for="opt-normal-margins">
             <input type="checkbox" id="opt-normal-margins">
@@ -434,6 +442,10 @@ function nextLogistic(){ lmState=LOGISTIC_R*lmState*(1-lmState); return lmState;
      color  default plot color (user can change per model in Core 1)
      on     checked by default in Core 1
      defA / defB   default selection in the Core 2 A / B dropdown
+     dials  optional [{id,label,help,weak,strong,classic,fmt}] — one 0–100% slider per entry, shown in
+            Core 1 while the model is checked. 0% = `weak` value of the real parameter, 100% = `strong`,
+            linear between; the slider starts at wherever `classic` falls. fmt(value) prints the real
+            parameter. The generator reads it with dialParam(modelId, dialId). More % always = more pull.
      copula   true for dependence-structure models; with "Normal margins" ON these share
               one axis range in Core 1 so their tails can be compared directly
      toNormal optional fn mapping ONE coordinate from this model's native margin to a
@@ -454,18 +466,30 @@ const MODELS=[
    gen:()=>{ const pts=[]; for(let i=0;i<NUM_POINTS;i++) pts.push({x:i/NUM_POINTS,y:nextLogistic()}); return pts; }},
   {id:"halton",   cat:"seq", name:"Halton Sequence (Low-Disc.)",type:"scatter", color:"#fcee0a", on:true,
    gen:()=>{ const pts=[]; for(let i=1;i<=NUM_POINTS;i++) pts.push({x:halton(i,2),y:halton(i,3)}); return pts; }},
-  // Hénon map (a=1.4, b=0.3): a 2-D strange attractor. Start near the origin with a
-  // small random nudge, discard the transient, then record the orbit.
+  // Hénon map (a=1.4): a 2-D strange attractor. The Attraction dial sets b, the area-contraction
+  // factor per step: smaller b = stronger pull (the attractor thins toward a curve).
+  // Start near the origin, discard the transient, then record the orbit.
   {id:"henon",    cat:"seq", name:"Hénon Map (Strange Attractor)", type:"scatter", color:"#4dffd2",
-   gen:()=>{ let x=Math.random()*0.1, y=Math.random()*0.1; const pts=[];
-      for(let i=-HENON_BURN_IN;i<NUM_POINTS;i++){ const nx=1-HENON_A*x*x+y; y=HENON_B*x; x=nx; if(i>=0) pts.push({x,y}); }
+   dials:[{id:"pull", label:"Attraction", weak:0.31, strong:0.02, classic:0.30, fmt:b=>"b = "+b.toFixed(3),
+     help:"Sets the contraction factor b: more attraction = smaller b, so the orbit is squeezed onto a thinner curve. Classic is b = 0.30. Weaker than b ≈ 0.31 the attractor dies and orbits escape to infinity, so the dial stops there."}],
+   gen:()=>{ const b=dialParam("henon","pull");
+      let x=HENON_START_SPAN*attractorStart[0], y=HENON_START_SPAN*attractorStart[1]; const pts=[];
+      for(let i=-HENON_BURN_IN;i<NUM_POINTS;i++){
+        let nx=1-HENON_A*x*x+y; y=b*x; x=nx;
+        if(!isFinite(x)||Math.abs(x)>HENON_ESCAPE){ x=HENON_START_SPAN*attractorStart[0]; y=HENON_START_SPAN*attractorStart[1]; }   // escaped: restart rather than plot garbage
+        if(i>=0) pts.push({x,y}); }
       return pts; }},
-  // Lorenz system (sigma=10, rho=28, beta=8/3) integrated with RK4; plotted as the x–z
-  // projection, which is the familiar butterfly. Drawn as a line so the lobes read as one orbit.
+  // Lorenz system (sigma=10, rho=28) integrated with RK4; plotted as the x–z projection, the
+  // familiar butterfly, as a line so the lobes read as one orbit. The Attraction dial sets beta,
+  // which (with sigma) is the volume-contraction rate sigma+1+beta: more attraction = larger beta.
+  // Beyond beta ≈ 3.2 the chaos dies and the orbit spirals into a fixed point.
   {id:"lorenz",   cat:"seq", name:"Lorenz Attractor (x–z)",     type:"line", color:"#ff8c66",
-   gen:()=>{ let s=[1+Math.random()*0.1,1,1]; const pts=[];
-      for(let i=-LORENZ_BURN_IN;i<NUM_POINTS*LORENZ_STEPS_PER_POINT;i++){
-        s=lorenzStep(s); if(i>=0 && i%LORENZ_STEPS_PER_POINT===0) pts.push({x:s[0],y:s[2]}); }
+   dials:[{id:"pull", label:"Attraction", weak:0.5, strong:6, classic:8/3, fmt:b=>"β = "+b.toFixed(2),
+     help:"Sets β, the dissipation: more attraction = larger β. Classic is β = 8/3. Weak: a looser, larger butterfly. Strong (β above about 3.2): the chaos dies and the orbit spirals into a single point."}],
+   gen:()=>{ const beta=dialParam("lorenz","pull");
+      let s=[1+LORENZ_START_SPAN*attractorStart[2],1,1]; const pts=[];
+      for(let i=0;i<NUM_POINTS*LORENZ_STEPS_PER_POINT;i++){
+        s=lorenzStep(s,beta); if(i%LORENZ_STEPS_PER_POINT===0) pts.push({x:s[0],y:s[2]}); }
       return pts; }},
 
   {id:"gauss",    cat:"fin", name:"Gaussian Copula (ρ=0.8)",    type:"scatter", color:"#aa00ff", copula:true,
@@ -564,12 +588,15 @@ const HESTON_MU=0.05, HESTON_KAPPA=3, HESTON_THETA=0.04, HESTON_XI=0.6, HESTON_R
                                 // drift; mean-reversion speed; long-run variance (20% vol); vol-of-vol (higher = wilder clustering);
                                 // price/vol correlation (negative = the equity "leverage effect"); starting variance
 const CLAYTON_THETA=2;          // Clayton dependence; 2 -> Kendall tau 0.5. Raise for tighter lower-tail clustering (must be > 0)
-const HENON_A=1.4, HENON_B=0.3; // classic chaotic parameters; the attractor disappears if you stray far from these
+const HENON_A=1.4;              // classic; b comes from the Attraction dial. The attractor only exists for b below ~0.31 at this a
 const HENON_BURN_IN=100;        // iterations discarded so the orbit has settled onto the attractor
-const LORENZ_SIGMA=10, LORENZ_RHO=28, LORENZ_BETA=8/3;   // classic chaotic parameters
+const HENON_ESCAPE=1e3;         // |x| beyond this means the orbit has escaped to infinity; restart from the start point
+const HENON_START_SPAN=0.1;     // the start point is attractorStart * this, a small nudge near the origin
+const LORENZ_SIGMA=10, LORENZ_RHO=28;   // classic chaotic values; beta comes from the Attraction dial
 const LORENZ_DT=0.01;           // RK4 step; much larger and the orbit drifts off the attractor
 const LORENZ_STEPS_PER_POINT=2; // integration steps per plotted point -> 1500 points span ~30 time units (~20 lobes)
-const LORENZ_BURN_IN=500;       // steps discarded before recording
+const LORENZ_START_SPAN=0.1;    // x0 = 1 + attractorStart * this. No burn-in on purpose: the approach to the
+                                // attractor is exactly what the Attraction dial changes, so it stays on screen
 const T_NU=4;                  // Student-t degrees of freedom; must stay 4 (the chi-square above is a 4-term sum)
 const LOAD_PER_UNIT=20;         // sqrt() calls per point per notch of the Compute Weight slider. The original used 200,
                                 // which at slider max (1000x) froze the tab for seconds; 20 keeps the top end ~0.1–0.5 s
@@ -599,10 +626,21 @@ function viewPoints(m,pts){
 }
 let forgeQueued=false;
 let stdCache={};                       // Core 1 points per model id; cleared by the Re-roll button
+// Start-point jitter for the two attractors. Fixed between redraws (so dragging an Attraction dial
+// morphs ONE picture smoothly instead of reshuffling it) and re-drawn only on Re-roll / Surprise.
+let attractorStart=[Math.random(),Math.random(),Math.random()];
+function reseedAttractorStart(){ attractorStart=[Math.random(),Math.random(),Math.random()]; }
+
+// Real parameter value behind a model's 0–100% dial: linear from `weak` (0%) to `strong` (100%).
+// Falls back to `classic` if the slider isn't built yet.
+function dialParam(modelId,dialId){
+  const d=modelById(modelId).dials.find(x=>x.id===dialId), el=$("dial-"+modelId+"-"+dialId);
+  return el ? d.weak+(d.strong-d.weak)*parseFloat(el.value)/100 : d.classic;
+}
 
 // One RK4 step of the Lorenz system.
-function lorenzStep(s){
-  const f=([x,y,z])=>[LORENZ_SIGMA*(y-x), x*(LORENZ_RHO-z)-y, x*y-LORENZ_BETA*z];
+function lorenzStep(s,beta){
+  const f=([x,y,z])=>[LORENZ_SIGMA*(y-x), x*(LORENZ_RHO-z)-y, x*y-beta*z];
   const add=(a,b,k)=>a.map((v,i)=>v+b[i]*k);
   const k1=f(s), k2=f(add(s,k1,LORENZ_DT/2)), k3=f(add(s,k2,LORENZ_DT/2)), k4=f(add(s,k3,LORENZ_DT));
   return s.map((v,i)=>v+LORENZ_DT/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i]));
@@ -662,8 +700,8 @@ function plotData(ctx,cv,data,col,type,lineW,shared){
 // Points are cached per model: toggling a checkbox or recoloring only redraws, so
 // the other layers hold still and you see exactly what the change did. Only the
 // Re-roll button (reroll=true) throws the cache away and draws fresh samples.
-function renderStandard(reroll){
-  if(reroll) stdCache={};
+function renderStandard(reroll,quiet){
+  if(reroll){ stdCache={}; reseedAttractorStart(); }
   drawGrid(ctxStd,cvStd,"rgba(0,255,255,.05)");
   const layers=[];
   for(const m of MODELS){
@@ -682,8 +720,9 @@ function renderStandard(reroll){
   }
   for(const L of layers)
     plotData(ctxStd,cvStd,L.pts,$("col-"+L.m.id).value,L.m.type,2,L.m.copula?shared:null);
-  logTerminal((reroll?"CORE 1: RE-ROLLED. ":"CORE 1: REDRAWN. ")+"LAYERS ACTIVE: "+layers.length+(normalMargins()?" [NORMAL MARGINS]":""),
-    layers.length>0?"#00ff88":"#ff0000");
+  if(!quiet)   // dial drags redraw every frame; keep them out of the terminal
+    logTerminal((reroll?"CORE 1: RE-ROLLED. ":"CORE 1: REDRAWN. ")+"LAYERS ACTIVE: "+layers.length+(normalMargins()?" [NORMAL MARGINS]":""),
+      layers.length>0?"#00ff88":"#ff0000");
 }
 
 /* ==== CORE 2 — BLENDER ==================================================== */
@@ -717,6 +756,7 @@ function renderBlender(){
 }
 
 function randomizeBlend(){
+  reseedAttractorStart();
   let a=MODELS[Math.floor(Math.random()*MODELS.length)], b=a;
   while(b===a) b=MODELS[Math.floor(Math.random()*MODELS.length)];
   $("blend-a").value=a.id; $("blend-b").value=b.id;
@@ -789,6 +829,45 @@ function setMsMode(id){
   renderStandard(); renderBlender();
 }
 
+// Attraction dials ----------------------------------------------------------------
+// One group per (model, dial). The slider is 0–100% "pull"; the real parameter it maps to
+// is printed beside it. A group is visible only while its model is checked, and takes the model's color.
+let dialQueued=false;
+function dialReadout(m,d){
+  const el=$("dial-"+m.id+"-"+d.id);
+  $("dial-"+m.id+"-"+d.id+"-val").textContent=Math.round(el.value)+"% · "+d.fmt(dialParam(m.id,d.id));
+}
+function syncDials(){
+  let any=false;
+  for(const g of document.querySelectorAll(".dial")){
+    const on=$("chk-"+g.dataset.model).checked;
+    g.hidden=!on; any=any||on;
+    g.style.color=$("col-"+g.dataset.model).value;
+  }
+  $("dial-box").hidden=!any;
+}
+function buildDials(){
+  for(const m of MODELS) for(const d of (m.dials||[])){
+    const id="dial-"+m.id+"-"+d.id, g=document.createElement("div");
+    g.className="dial"; g.dataset.model=m.id;
+    g.innerHTML=
+      '<div class="row"><label for="'+id+'">'+m.name+' — '+d.label+'</label><span class="val" id="'+id+'-val"></span></div>'+
+      '<p class="help">'+d.help+'</p>'+
+      '<input type="range" id="'+id+'" min="0" max="100" step="any" value="'+(100*(d.classic-d.weak)/(d.strong-d.weak))+'">';
+    $("dial-box").appendChild(g);
+    $(id).addEventListener("input",()=>{
+      dialReadout(m,d);
+      delete stdCache[m.id];                                            // new parameter -> new points
+      for(const slot of ["a","b"]) if($("blend-"+slot).value===m.id) rollBlendSlot(slot);
+      if(dialQueued) return;                                            // coalesce a drag to one redraw per frame
+      dialQueued=true;
+      requestAnimationFrame(()=>{ dialQueued=false; renderStandard(false,true); renderBlender(); });
+    });
+    dialReadout(m,d);
+  }
+  syncDials();
+}
+
 /* ==== INIT ================================================================ */
 function init(){
   $("pts-tag").textContent=NUM_POINTS+" PT/SEQ";
@@ -827,8 +906,8 @@ function init(){
   $("btn-run").addEventListener("click",()=>renderStandard(true));
   $("btn-surprise").addEventListener("click",randomizeBlend);
   for(const m of MODELS){
-    $("chk-"+m.id).addEventListener("change",()=>renderStandard());
-    $("col-"+m.id).addEventListener("input",()=>renderStandard());   // "input" so color drags preview live
+    $("chk-"+m.id).addEventListener("change",()=>{ syncDials(); renderStandard(); });
+    $("col-"+m.id).addEventListener("input",()=>{ syncDials(); renderStandard(); });   // "input" so color drags preview live
   }
   for(const slot of ["a","b"]) $("blend-"+slot).addEventListener("change",()=>{ rollBlendSlot(slot); renderBlender(); });
   for(const id of ["blend-pos","blend-smooth"]) $(id).addEventListener("input",()=>{ syncBlendReadouts(); renderBlender(); });
@@ -851,6 +930,7 @@ function init(){
   msMode=(MS_MODES.find(m=>m.def)||MS_MODES[0]).id;
   $("ms-help").textContent=MS_MODES.find(m=>m.id===msMode).help;
 
+  buildDials();
   logTerminal("SYS_INIT: "+MODELS.length+" models loaded.","#ff00ff");
   renderStandard(); renderBlender(); queueForge();
 }
