@@ -26,7 +26,8 @@
     · MODELS ..................... 15 core + 34 advanced (adv:true) generators, one entry each
     · FORGE_PARAMS ............... the three Core 3 sliders
     · VIEW3D_PARAMS .............. the Core 4 view sliders (azimuth, elevation, speed, zoom, perspective, size)
-    · ICON_PATHS ................. the Lucide icons used (toggle, play, chevron, power-off)
+    · FIN_TERMS .................. the disclaimer points a visitor must accept before Financial models appear
+    · ICON_PATHS ................. the Lucide icons used (toggle, play, chevron, power-off, lock)
     · MS_MODES ................... the Middle-Square collapse switch (reseed / report / pure)
     ==== END OF DATA ====
     · tuning constants ........... point counts, sizes, load factor
@@ -150,6 +151,34 @@ h3{margin:.5rem 0 .25rem; font-size:.8rem; text-transform:uppercase}
 .model-row label{display:flex; align-items:center; gap:.5rem; flex:1; cursor:pointer; font-size:.8rem; color:var(--ink)}
 
 .model-row[hidden]{display:none}
+#model-box h3[hidden], #model-box div[hidden], .adv-row[hidden], #adv-box h4[hidden]{display:none}
+
+/* One-line notice between Core 1 and Core 2. */
+.notice{margin:0; padding:.5rem .75rem; text-align:center; font-size:.75rem; line-height:1.4; color:var(--ink-dim);
+  border-top:1px solid rgba(0,255,255,.18); border-bottom:1px solid rgba(0,255,255,.18)}
+.notice a{color:var(--ink); text-decoration:underline}
+
+/* Financial-model gate: a button under the Advanced menu, and the disclaimer dialog it opens. */
+.fin-gate{margin-top:.75rem; border-top:1px solid rgba(0,255,255,.25); padding-top:.6rem}
+.btn-ghost{display:flex; align-items:center; gap:.5rem; width:100%; min-height:44px; padding:.35rem .75rem; cursor:pointer;
+  font-family:var(--mono); font-size:.8rem; text-align:left; color:var(--green); background:rgba(0,255,136,.06);
+  border:1px solid var(--green); border-radius:4px; transition:background .2s,color .2s}
+.btn-ghost:hover{background:var(--green); color:#000}
+.fin-ico svg{width:18px; height:18px; display:block}
+.fin-dialog{max-width:min(40rem,calc(100vw - 2rem)); max-height:calc(100vh - 2rem); overflow:auto; padding:1.25rem; color:var(--ink);
+  background:#0a0019; border:1px solid var(--green); border-radius:4px; box-shadow:0 0 30px rgba(0,255,136,.25); font-family:var(--mono)}
+.fin-dialog::backdrop{background:rgba(0,0,0,.75)}
+.fin-dialog h2{font-size:1.05rem; color:var(--green)}
+.fin-lead{font-size:.8rem; color:var(--ink-dim); margin:.5rem 0 .75rem}
+.fin-terms{margin:0; padding-left:1.25rem; font-size:.8rem; line-height:1.45}
+.fin-terms li{margin:0 0 .6rem}
+.fin-terms strong{color:var(--green)}
+.fin-agree{display:flex; align-items:flex-start; gap:.6rem; margin:1rem 0 .75rem; padding:.6rem .75rem; font-size:.85rem; cursor:pointer;
+  border:1px solid rgba(0,255,136,.4); border-radius:4px}
+.fin-actions{display:grid; grid-template-columns:1fr; gap:.5rem}
+.fin-actions .btn{margin-top:0}
+.fin-actions .btn:disabled{opacity:.4; cursor:not-allowed}
+@media (min-width:560px){ .fin-actions{grid-template-columns:2fr 1fr} }
 
 /* Disclaimer footer at the bottom of the page. */
 .legal{margin-top:2rem; padding-top:1rem; border-top:1px solid rgba(0,255,255,.15); color:var(--ink-dim); font-size:.7rem; line-height:1.5}
@@ -293,6 +322,11 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
             <a class="adv-link" href="https://github.com/postmillennium-MTB/pmr-website/blob/main/random/README.md" target="_blank" rel="noopener">Model details, formulas &amp; sources (README) ↗</a>
           </div>
         </details>
+        <!-- Financial stochastic models are OFF by default. This button opens the disclaimer dialog below; the models are only added after the box is ticked. -->
+        <div class="fin-gate">
+          <button type="button" class="btn-ghost" id="btn-fin" aria-haspopup="dialog"><span id="fin-ico" class="fin-ico"></span><span id="fin-label"></span></button>
+          <p class="opt-help" id="fin-help"></p>
+        </div>
         <!-- Attraction dials: BUILT FROM each model's `dials` in the `MODELS` registry; a dial shows only while its model is checked. -->
         <div id="dial-box" hidden></div>
         <div class="model-row" style="margin-top:.5rem; border-top:1px solid rgba(0,255,255,.25)">
@@ -320,6 +354,9 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
       <canvas id="cv-std" width="1200" height="800" role="img" aria-label="Scatter and line plot of the selected models"></canvas>
     </div>
   </section>
+
+  <!-- One-line notice between Core 1 and Core 2; links to the full disclaimer footer (id="legal"). -->
+  <p class="notice" role="note">Educational simulation only: hypothetical results, not investment advice. <a href="#legal">Full disclaimer ↓</a></p>
 
   <!-- CORE 2 -->
   <section class="panel panel-2" aria-labelledby="h-core2">
@@ -390,12 +427,22 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
   </section>
 
   <!-- Disclaimer (wording supplied by the author). Styled by .legal; text is deliberately muted but kept above 11px and at full opacity so it stays readable. -->
-  <footer class="legal" aria-label="Legal and educational disclaimer">
+  <footer class="legal" id="legal" aria-label="Legal and educational disclaimer">
     <p><strong>LEGAL &amp; EDUCATIONAL DISCLAIMER:</strong> Stochastic OS and all mathematical models, generators, and visualizers hosted on Post Millennium Renaissance are provided strictly for educational, experimental, and academic purposes. The outputs of these stochastic processes, copulas, and Monte Carlo simulations do not constitute financial, investment, legal, or tax advice. Furthermore, these tools are independent, personal software projects. They do not represent the views, strategies, risk management frameworks, or fiduciary recommendations of any registered investment advisor, alternative investment sponsor, or financial institution.</p>
     <p>All financial and asset-pricing models are purely theoretical simulations relying on pseudorandom number generation. They are inherently incapable of predicting actual market performance, pricing, or real-world default correlations. Users must not base any personal or professional trading, capital allocation, or private debt analysis on the outputs of this software. This tool is provided "as is" without warranty of any kind regarding its computational accuracy or statistical validity.</p>
   </footer>
 
-</div>
+<!-- Disclaimer dialog for the financial models. The six points are BUILT FROM the `FIN_TERMS` registry in the script below. -->
+<dialog id="fin-dialog" class="fin-dialog" aria-labelledby="fin-dlg-h">
+  <h2 id="fin-dlg-h">Before adding financial stochastic models</h2>
+  <p class="fin-lead">Please read all six points. The financial models stay hidden until you accept them.</p>
+  <ol id="fin-terms" class="fin-terms"></ol>
+  <label class="fin-agree"><input type="checkbox" id="fin-agree"> <span>I have read and understand all six points above, and I agree.</span></label>
+  <div class="fin-actions">
+    <button type="button" class="btn btn-pink" id="fin-ok" disabled>Add financial models</button>
+    <button type="button" class="btn btn-yellow" id="fin-cancel">Cancel</button>
+  </div>
+</dialog>
 
 <script>
 /* ==== ENGINE — math helpers and the stateful generators ====================
@@ -713,7 +760,7 @@ const SPAN_DIAL={id:"span", label:"Orbit length", weak:0.25, strong:4, classic:1
      type   "scatter" or "line" (line models draw as a connected path)
      color  default plot color (user can change per model in Core 1)
      on     checked by default in Core 1
-     defA / defB   default selection in the Core 2 A / B dropdown
+     defA / defB   default selection in the Core 2 A / B dropdown (must not be a Financial model: those start hidden)
      adv    true = an ADVANCED model: hidden from the Core 1 list and the Core 2 dropdowns until its
             switch is turned on in the "Advanced models" menu
      dials  optional [{id,label,help,weak,strong,classic,fmt,log}] — one 0–100% slider per entry, shown in
@@ -763,7 +810,7 @@ const MODELS=[
   // so the lobes read as one orbit. Dial "Attraction" sets beta, which (with sigma) is the volume-contraction rate
   // sigma+1+beta: more attraction = larger beta. Beyond beta ≈ 3.2 the chaos dies and the orbit spirals into a
   // fixed point. Dial rho is the other classic control: below ≈ 24.7 the orbit is pulled into a fixed point too.
-  {id:"lorenz",   cat:"att", name:"Lorenz Attractor (x–z)",     type:"line", color:"#ff8c66", proj:["x","z"],
+  {id:"lorenz",   cat:"att", name:"Lorenz Attractor (x–z)",     type:"line", color:"#ff8c66", proj:["x","z"], defB:true,
    dials:[{id:"pull", label:"Attraction", weak:0.5, strong:6, classic:8/3, fmt:b=>"β = "+b.toFixed(2),
      help:"Sets β, the dissipation: more attraction = larger β. Classic is β = 8/3. Weak: a looser, larger butterfly. Strong (β above about 3.2): the chaos dies and the orbit spirals into a single point."},
     {id:"rho", label:"Heating ρ (Rayleigh number)", weak:10, strong:45, classic:28, fmt:r=>"ρ = "+r.toFixed(1),
@@ -783,7 +830,7 @@ const MODELS=[
       const w=randn_bm()**2+randn_bm()**2+randn_bm()**2+randn_bm()**2;
       const s=Math.sqrt(T_NU/w);
       pts.push({x:z1*s, y:(COPULA_RHO*z1+Math.sqrt(1-COPULA_RHO*COPULA_RHO)*z2)*s}); } return pts; }},
-  {id:"gbm",      cat:"fin", name:"Geometric Brownian (GBM)",   type:"line", color:"#00ff88", defB:true,
+  {id:"gbm",      cat:"fin", name:"Geometric Brownian (GBM)",   type:"line", color:"#00ff88",
    gen:()=>{ const pts=[{x:0,y:100}], dt=1/NUM_POINTS; let S=100;       // mu=5%, sigma=20%
       for(let i=1;i<NUM_POINTS;i++){ S*=Math.exp((0.05-0.5*0.04)*dt+0.2*randn_bm()*Math.sqrt(dt)); pts.push({x:i,y:S}); } return pts; }},
   {id:"vasicek",  cat:"fin", name:"Vasicek (Mean Reverting)",   type:"line", color:"#ffaa00",
@@ -1100,6 +1147,22 @@ const VIEW3D_PARAMS=[
    help:"Thickness of the trace (or dot size for scatter models)."},
 ];
 
+/* ==== FIN_TERMS REGISTRY — the points a visitor must accept before the Financial Stochastics models appear. ====
+   Shown in the dialog opened by the "Add financial stochastic models" button, in this order. The wording is the
+   author's disclaimer spelled out point by point; have it reviewed by compliance before wider promotion.
+   TO CHANGE THE TERMS: edit this list (the dialog text and the "all N points" count come from it).
+
+     head  bold lead-in         body  the sentence(s)                                                          */
+const FIN_TERMS=[
+  {head:"Education only.", body:"Stochastic OS and every model, generator and visualizer on this page are provided strictly for educational, experimental and academic purposes."},
+  {head:"No advice.", body:"Nothing here is financial, investment, legal or tax advice, or a recommendation, offer or solicitation to buy or sell any security or product. Using it creates no advisory or fiduciary relationship."},
+  {head:"No firm affiliation.", body:"These are independent, personal software projects. They do not represent the views, strategies, risk-management frameworks or fiduciary recommendations of any registered investment adviser, alternative-investment sponsor or financial institution."},
+  {head:"Hypothetical, simulated results.", body:"Every output is simulated from pseudorandom numbers and is hypothetical. It is not a forecast or prediction, does not reflect any actual or expected result, and no representation is made that any investor would achieve similar results. Parameters are illustrative and not calibrated to market data."},
+  {head:"No reliance.", body:"You must not base any personal or professional trading, capital-allocation or private-debt analysis on these outputs. The models cannot predict market performance, pricing or real-world default correlations."},
+  {head:"“As is”.", body:"Provided as is, without warranty of any kind regarding computational accuracy or statistical validity. Formulas and references may contain errors."},
+];
+const FIN_KEY="pmrFinanceAccepted";   // sessionStorage key: acceptance lasts for this browser tab/session only, never longer
+
 /* ==== ICON_PATHS REGISTRY — the Lucide icons this page uses (https://lucide.dev/icons/). ===
    Inner markup copied UNMODIFIED from lucide.dev, per CLAUDE.md: inline SVG only, never hand-drawn.
    lucide(name) wraps it in the standard Lucide <svg> attributes. TO ADD AN ICON: paste its inner
@@ -1110,6 +1173,8 @@ const ICON_PATHS={
   "power-off":    '<path d="M18.36 6.64A9 9 0 0 1 20.77 15"/><path d="M6.16 6.16a9 9 0 1 0 12.68 12.68"/><path d="M12 2v4"/><path d="m2 2 20 20"/>',
   "chevron-down": '<path d="m6 9 6 6 6-6"/>',
   "play":         '<path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/>',
+  "lock":         '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  "lock-open":    '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>',
 };
 
 /* ==== MS_MODES REGISTRY — the Middle-Square collapse switch (Core 1). ========
@@ -1584,8 +1649,12 @@ function setMsMode(id){
 // Switching a model ON adds its row to the Core 1 list and its option to both Core 2 dropdowns;
 // OFF removes it from both (and unchecks it so it leaves the plot). Models start off.
 const advancedOn=new Set();
-const ADV_COUNT=MODELS.filter(m=>m.adv).length;
-const enabledModels=()=>MODELS.filter(m=>!m.adv||advancedOn.has(m.id));
+// Financial models are hidden (not merely unchecked) until the visitor accepts the disclaimer dialog.
+let financeUnlocked=false;
+try{ financeUnlocked=sessionStorage.getItem(FIN_KEY)==="1"; }catch(e){}   // storage can be blocked: then it simply asks each time
+const isLocked=m=>m.cat==="fin"&&!financeUnlocked;
+const isVisible=m=>!isLocked(m)&&(!m.adv||advancedOn.has(m.id));
+const enabledModels=()=>MODELS.filter(isVisible);
 
 // Standard Lucide <svg> wrapper (attributes per CLAUDE.md) around ICON_PATHS[name].
 const lucide=name=>'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" '+
@@ -1604,18 +1673,58 @@ function rebuildBlendOptions(){
       if(g.children.length) sel.appendChild(g);
     }
     const kept=[...sel.options].some(o=>o.value===prev);
-    sel.value=kept?prev:MODELS.find(m=>slot==="a"?m.defA:m.defB).id;
+    sel.value=kept?prev:(enabledModels().find(m=>slot==="a"?m.defA:m.defB)||enabledModels()[0]).id;
     if(!kept) blendCache[slot]=null;
   }
 }
+// One place that decides what is visible: Core 1 rows and group headings, and the Advanced menu's switches.
 function syncAdvancedUI(){
-  for(const m of MODELS.filter(x=>x.adv)){
+  for(const m of MODELS){
+    $("row-"+m.id).hidden=!isVisible(m);
+    if(!m.adv) continue;
     const on=advancedOn.has(m.id), b=$("adv-"+m.id);
-    $("row-"+m.id).hidden=!on;
+    b.hidden=isLocked(m);
     b.setAttribute("aria-checked",on?"true":"false");
     b.querySelector(".adv-ico").innerHTML=lucide(on?"toggle-right":"toggle-left");
   }
-  $("adv-count").textContent=advancedOn.size+" of "+ADV_COUNT+" on";
+  for(const cat of CATEGORIES){          // hide a group's heading when none of its rows is showing (the locked Financial group)
+    const any=MODELS.some(m=>m.cat===cat.id&&isVisible(m)||m.cat===cat.id&&!m.adv&&!isLocked(m));
+    $("cat-h-"+cat.id).hidden=!any; $("cat-box-"+cat.id).hidden=!any;
+    const h4=$("adv-h-"+cat.id); if(h4) h4.hidden=cat.id==="fin"&&!financeUnlocked;
+  }
+  $("adv-count").textContent=advancedOn.size+" of "+MODELS.filter(m=>m.adv&&!isLocked(m)).length+" on";
+}
+
+// Financial-model gate ---------------------------------------------------------------
+function syncFinanceGate(){
+  $("fin-ico").innerHTML=lucide(financeUnlocked?"lock-open":"lock");
+  $("fin-label").textContent=financeUnlocked?"Hide financial stochastic models":"Add financial stochastic models…";
+  $("fin-help").textContent=financeUnlocked
+    ? "On for this browser session. Hiding them removes them; adding them again asks you to accept the disclaimer again."
+    : "Off by default. Adding them first shows a short disclaimer that you must accept.";
+}
+function setFinance(on){
+  financeUnlocked=on;
+  try{ if(on) sessionStorage.setItem(FIN_KEY,"1"); else sessionStorage.removeItem(FIN_KEY); }catch(e){}
+  if(!on) for(const m of MODELS.filter(x=>x.cat==="fin")){ advancedOn.delete(m.id); $("chk-"+m.id).checked=false; delete stdCache[m.id]; }
+  syncAdvancedUI(); rebuildBlendOptions(); syncDials(); syncFinanceGate();
+  renderStandard(false,true); renderBlender();
+  logTerminal(on?"FINANCIAL MODELS ADDED (DISCLAIMER ACCEPTED)":"FINANCIAL MODELS HIDDEN", on?"#00ff88":"#ff5c8a");
+}
+function openFinanceDialog(){
+  const dlg=$("fin-dialog");
+  $("fin-agree").checked=false; $("fin-ok").disabled=true;
+  if(dlg.showModal){ dlg.showModal(); return; }
+  // Very old browsers without <dialog>: fall back to a plain confirm with the same six points.
+  if(confirm(FIN_TERMS.map((t,i)=>(i+1)+". "+t.head+" "+t.body).join("\n\n")+"\n\nDo you agree to all of the above?")) setFinance(true);
+}
+function initFinanceGate(){
+  $("fin-terms").innerHTML=FIN_TERMS.map(t=>"<li><strong>"+t.head+"</strong> "+t.body+"</li>").join("");
+  $("btn-fin").addEventListener("click",()=>{ if(financeUnlocked) setFinance(false); else openFinanceDialog(); });
+  $("fin-agree").addEventListener("change",()=>{ $("fin-ok").disabled=!$("fin-agree").checked; });
+  $("fin-ok").addEventListener("click",()=>{ if(!$("fin-agree").checked) return; $("fin-dialog").close(); setFinance(true); });
+  $("fin-cancel").addEventListener("click",()=>$("fin-dialog").close());
+  syncFinanceGate();
 }
 function setAdvanced(id,on){
   if(on) advancedOn.add(id); else { advancedOn.delete(id); $("chk-"+id).checked=false; delete stdCache[id]; }
@@ -1625,7 +1734,7 @@ function setAdvanced(id,on){
 function buildAdvancedMenu(){
   for(const cat of CATEGORIES){
     const list=MODELS.filter(m=>m.adv&&m.cat===cat.id); if(!list.length) continue;
-    const h=document.createElement("h4"); h.textContent=cat.label; h.style.color=cat.color; $("adv-box").appendChild(h);
+    const h=document.createElement("h4"); h.id="adv-h-"+cat.id; h.textContent=cat.label; h.style.color=cat.color; $("adv-box").appendChild(h);
     for(const m of list){
       const b=document.createElement("button"); b.type="button"; b.className="adv-row"; b.id="adv-"+m.id; b.setAttribute("role","switch");
       b.innerHTML='<span class="adv-ico"></span><span class="adv-name"></span>'; b.querySelector(".adv-name").textContent=m.name;
@@ -1695,8 +1804,8 @@ function init(){
   // stays hidden until the model is switched on in the Advanced menu (Core 2's dropdowns are built
   // from the enabled models by rebuildBlendOptions()).
   for(const cat of CATEGORIES){
-    const h=document.createElement("h3"); h.textContent=cat.label; h.style.color=cat.color;
-    const box=document.createElement("div");
+    const h=document.createElement("h3"); h.id="cat-h-"+cat.id; h.textContent=cat.label; h.style.color=cat.color;
+    const box=document.createElement("div"); box.id="cat-box-"+cat.id;
     $("model-box").append(h,box);
 
     for(const m of MODELS.filter(x=>x.cat===cat.id)){
@@ -1715,6 +1824,7 @@ function init(){
   }
   rebuildBlendOptions();
   buildAdvancedMenu();
+  initFinanceGate();
 
   for(const p of FORGE_PARAMS){
     const d=document.createElement("div"); d.className="ctl";

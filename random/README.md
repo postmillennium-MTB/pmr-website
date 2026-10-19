@@ -294,6 +294,8 @@ Sampling for the Archimedean families uses one template (Marshall & Olkin 1988 *
 
 Time-step models use 252 steps per year unless noted. Simulated paths illustrate model behavior; they are not forecasts.
 
+**Hidden by default.** The whole financial group (its Core 1 rows, its Advanced-menu switches and its Core 2 choices) is hidden until you press *Add financial stochastic models…* at the bottom of Core 1 and accept a six-point disclaimer: education only; no advice; no firm affiliation; hypothetical, simulated results; no reliance for trading, allocation or private-debt analysis; "as is". The OK button stays disabled until the *I agree* box is ticked. Acceptance lasts for the browser tab's session (`sessionStorage`, key `pmrFinanceAccepted`); *Hide financial stochastic models* removes the models again and a new accept is required. Core 2 defaults to Logistic (A) and Lorenz (B) so it works while the group is hidden. The six points live in `FIN_TERMS` in `index.html`. Two sentences go beyond the original wording (no advisory or fiduciary relationship; no representation that any investor would achieve similar results) and can be removed. A one-line notice (*Educational simulation only: hypothetical results, not investment advice*) sits between Core 1 and Core 2 and links to the full disclaimer in the footer.
+
 ### Core models
 
 #### Geometric Brownian (GBM)
