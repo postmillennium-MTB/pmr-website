@@ -296,13 +296,13 @@
 
   /* Unlabeled icon link — deliberately bare (no border, no text) so it
      doesn't compete with the theme toggle for attention. */
-  .clock-link {
+  .clock-link, .random-link {
     display: flex; align-items: center; justify-content: center;
     color: var(--text-muted); text-decoration: none;
     transition: color 0.2s;
   }
-  .clock-link:hover { color: var(--text); }
-  .clock-link svg { width: 19px; height: 19px; }
+  .clock-link:hover, .random-link:hover { color: var(--text); }
+  .clock-link svg, .random-link svg { width: 19px; height: 19px; }
 
   /* ═══════════════════════════════════════════════════════════════
      HERO
@@ -1123,6 +1123,16 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+      </svg>
+    </a>
+
+    <a class="random-link" href="/random/" aria-label="Stochastic OS — randomness lab">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+           stroke-linejoin="round" class="lucide lucide-dices" aria-hidden="true" focusable="false">
+        <rect width="12" height="12" x="2" y="10" rx="2" ry="2"/>
+        <path d="m17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6"/>
+        <path d="M6 18h.01"/><path d="M10 14h.01"/><path d="M15 6h.01"/><path d="M18 9h.01"/>
       </svg>
     </a>
 
