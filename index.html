@@ -554,8 +554,27 @@
     max-width: none; padding-left: 0; padding-right: 0;
     --pl-bg: #14120D; --pl-ink: #D9CFBC; --pl-dim: #8C8371;
     --pl-rule: #342D1E; --pl-amber: #C8912F;
-    background: var(--pl-bg); color: var(--pl-ink);
+    /* derived surfaces: card target for the colour drift, the stack's
+       spotlight, search field and sheet backgrounds */
+    --pl-card: #1C1913; --pl-stage-a: #1A1610; --pl-stage-b: #0B0A06;
+    --pl-field: #0B0A06; --pl-sheet: #18140D;
+    /* Soft edges: the plate dissolves into the page colour over --pl-fade
+       at its top and bottom instead of meeting it in a hard line. The page
+       colour itself is drifting toward this palette (see THE SPINE), so the
+       two converge as the plate arrives. */
+    --pl-fade: 240px;
+    background: linear-gradient(to bottom, var(--bg) 0, var(--pl-bg) var(--pl-fade),
+                var(--pl-bg) calc(100% - var(--pl-fade)), var(--bg) 100%);
+    color: var(--pl-ink);
     margin-top: 2rem; position: relative;
+  }
+  /* Autumn: a warm mid-brown archive instead of near-black, so the plate
+     reads as dusk rather than night. Other themes keep the dark default. */
+  [data-theme="autumn"] .plate-archive {
+    --pl-bg: #35291C; --pl-ink: #EADFC8; --pl-dim: #A89A80;
+    --pl-rule: #55452F; --pl-amber: #D9A040;
+    --pl-card: #3B2E1F; --pl-stage-a: #44362A; --pl-stage-b: #2A2016;
+    --pl-field: #281F15; --pl-sheet: #2E2418;
   }
   /* USD28,278 (Crowe, 1898, expired -> public domain), cropped to its true
      woven repeat and shipped as an alpha mask -- see images/pmr-carpet-1898-SOURCE.md for the
@@ -571,7 +590,7 @@
     -webkit-mask-repeat: repeat; mask-repeat: repeat;
     -webkit-mask-size: 480px auto; mask-size: 480px auto;
   }
-  .plate-archive .plate-inner { position: relative; max-width: 1200px; margin: 0 auto; padding: 4rem 2.5rem; }
+  .plate-archive .plate-inner { position: relative; max-width: 1200px; margin: 0 auto; padding: 7rem 2.5rem; }
   .plate-archive .plate-tag { color: var(--pl-amber); }
   .plate-archive .plate-h { color: var(--pl-ink); }
   .plate-archive .plate-p { color: var(--pl-dim); }
@@ -581,13 +600,13 @@
   .stack-stage {
     position: relative; height: 440px; overflow: hidden; margin-top: 2rem;
     perspective: 900px; perspective-origin: 50% 46%;
-    background: radial-gradient(ellipse at 50% 45%, #1A1610 0%, #0B0A06 78%);
+    background: radial-gradient(ellipse at 50% 45%, var(--pl-stage-a) 0%, var(--pl-stage-b) 78%);
     border: 1px solid var(--pl-rule);
   }
   .sheet {
     position: absolute; left: 50%; top: 50%; width: 272px; height: 232px;
     margin: -116px 0 0 -136px; padding: 10px 11px;
-    border: 1px solid rgba(200,145,47,0.42); background: #18140D;
+    border: 1px solid rgba(200,145,47,0.42); background: var(--pl-sheet);
     cursor: pointer; transform-style: preserve-3d;
     transition: opacity 0.3s ease, border-color 0.2s ease;
   }
@@ -616,7 +635,7 @@
 
   .stack-ctl { display: flex; gap: 0.9rem; flex-wrap: wrap; align-items: center; margin-top: 1.2rem; }
   .stack-ctl input[type="search"] {
-    flex: 1 1 210px; background: #0B0A06; border: 1px solid var(--pl-rule);
+    flex: 1 1 210px; background: var(--pl-field); border: 1px solid var(--pl-rule);
     color: var(--pl-ink); font-family: var(--ff-mono); font-size: 0.72rem;
     padding: 0.6rem 0.75rem; letter-spacing: 0.05em;
   }
@@ -662,7 +681,8 @@
 
   @media (max-width: 900px) {
     .plate-wheel .plate-grid { grid-template-columns: 1fr; gap: 2rem; }
-    .plate-archive .plate-inner { padding: 3rem 1.5rem; }
+    .plate-archive { --pl-fade: 140px; }
+    .plate-archive .plate-inner { padding: 5rem 1.5rem; }
     .stack-stage { height: 370px; }
   }
 
@@ -2254,16 +2274,9 @@
     var v = m[1].split(',').map(function (n) { return parseFloat(n); });
     return [v[0], v[1], v[2], v.length > 3 ? v[3] : 1];
   }
-  function mix(a, b, t) {
-    return 'rgba(' + Math.round(a[0] + (b[0] - a[0]) * t) + ',' +
-                     Math.round(a[1] + (b[1] - a[1]) * t) + ',' +
-                     Math.round(a[2] + (b[2] - a[2]) * t) + ',' +
-                     (a[3] + (b[3] - a[3]) * t).toFixed(3) + ')';
-  }
-
   var root = document.documentElement;
   var archive = document.getElementById('plate-archive');
-  var DRIFT = ['--bg', '--bg-card', '--bg-rule', '--text', '--text-muted', '--accent', '--nav-bg', '--castle-fill'];
+  var DRIFT = ['--bg', '--bg-card', '--bg-rule', '--text', '--text-muted', '--accent', '--blue', '--nav-bg', '--castle-fill'];
 
   var base = {}, target = {};
   function readTargets() {
@@ -2275,11 +2288,12 @@
     var amber = pc.getPropertyValue('--pl-amber').trim() || '#C8912F';
     var bgv = parse(bg);
     target['--bg'] = bgv;
-    target['--bg-card'] = parse('#1C1913');
+    target['--bg-card'] = parse(pc.getPropertyValue('--pl-card').trim() || '#1C1913');
     target['--bg-rule'] = parse(rule);
     target['--text'] = parse(ink);
     target['--text-muted'] = parse(dim);
     target['--accent'] = parse(amber);
+    target['--blue'] = parse(dim);
     target['--nav-bg'] = [bgv[0], bgv[1], bgv[2], 0.93];
     target['--castle-fill'] = parse(ink);
   }
@@ -2296,19 +2310,55 @@
   }
   readTargets(); readBase();
   window.addEventListener('pmr:themechange', function () {
-    var t = lastT; readBase(); lastT = -1; apply(Math.max(0, t), true);
+    var t = lastT; readTargets(); readBase(); lastT = -1; apply(Math.max(0, t), true);
   });
+
+  // Straight interpolation between a light page and a dark one passes
+  // through a mid-tone where text and cards are the SAME colour (measured:
+  // contrast 1.0 at the midpoint). So text colours are guarded: wherever
+  // the blended text would fall below a readable ratio against the blended
+  // surfaces, it is pushed toward whichever end of the text range reads
+  // better. The result is a continuous fade that never goes unreadable.
+  var GUARD = { '--text': 4.5, '--text-muted': 3.5, '--accent': 3, '--blue': 3 };
+  function lum(c) {
+    function f(v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
+    return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]);
+  }
+  function ratio(a, b) {
+    var x = lum(a), y = lum(b);
+    return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+  }
+  function mixv(a, b, t) {
+    return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t, a[3] + (b[3] - a[3]) * t];
+  }
+  function css(c) {
+    return 'rgba(' + Math.round(c[0]) + ',' + Math.round(c[1]) + ',' + Math.round(c[2]) + ',' + c[3].toFixed(3) + ')';
+  }
+  function guarded(k, c, surfaces) {
+    var need = GUARD[k];
+    if (!need) return c;
+    function worst(x) { return Math.min(ratio(x, surfaces[0]), ratio(x, surfaces[1])); }
+    if (worst(c) >= need) return c;
+    var a = base['--text'], b = target['--text'];
+    var best = worst(a) >= worst(b) ? a : b;
+    for (var s = 0.125; s <= 1.0001; s += 0.125) {
+      var x = mixv(c, best, s);
+      if (worst(x) >= need) return x;
+    }
+    return best;
+  }
 
   var lastT = -1;
   function apply(t, force) {
-    if (!force && Math.abs(t - lastT) < 0.004) return;
+    if (!force && Math.abs(t - lastT) < 0.002) return;
     lastT = t;
-    if (t < 0.004) {
+    if (t < 0.002) {
       DRIFT.forEach(function (k) { root.style.removeProperty(k); });
       return;
     }
+    var surfaces = [mixv(base['--bg'], target['--bg'], t), mixv(base['--bg-card'], target['--bg-card'], t)];
     DRIFT.forEach(function (k) {
-      if (base[k] && target[k]) root.style.setProperty(k, mix(base[k], target[k], t));
+      if (base[k] && target[k]) root.style.setProperty(k, css(guarded(k, mixv(base[k], target[k], t), surfaces)));
     });
   }
 
@@ -2368,11 +2418,13 @@
       read.style.top = (top + open / 2 - 6) + 'px';
     }
 
-    // drift: 1 whenever the viewport centre is inside the archive
-    // plate, ramping over three-quarters of a viewport either side
+    // drift: 1 whenever the viewport centre is inside the archive plate,
+    // ramping over most of a viewport either side. The ramp is eased
+    // (smoothstep) so it starts and ends gently instead of with a kink.
     var ar = archive.getBoundingClientRect();
     var dist = Math.max(0, ar.top - mid, mid - ar.bottom);
-    apply(Math.max(0, Math.min(1, 1 - dist / (vh * 0.45))));
+    var raw = Math.max(0, Math.min(1, 1 - dist / (vh * 0.95)));
+    apply(raw * raw * (3 - 2 * raw));
   }
 
   var ticking = false;
