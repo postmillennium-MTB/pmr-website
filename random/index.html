@@ -23,6 +23,7 @@
     ==== ALL DATA LIVES IN ONE CONTIGUOUS BLOCK ====
     · MODELS ..................... the 15 generators, one entry each
     · FORGE_PARAMS ............... the three Core 3 sliders
+    · MS_MODES ................... the Middle-Square collapse switch (reseed / report / pure)
     ==== END OF DATA ====
     · tuning constants ........... point counts, sizes, load factor
     · renderers .................. renderStandard / renderBlender / renderForge
@@ -132,6 +133,21 @@ h3{margin:.5rem 0 .25rem; font-size:.8rem; text-transform:uppercase}
 .model-row label{display:flex; align-items:center; gap:.5rem; flex:1; cursor:pointer; font-size:.8rem; color:var(--ink)}
 
 .opt-help{margin:.25rem .5rem 0; font-size:.7rem; line-height:1.3; color:var(--ink-dim)}
+
+/* Three-way segmented switch (native radios, so arrow keys and screen readers work).
+   The radio itself is visually hidden; its sibling .seg-face is the visible button. */
+.seg-set{margin:.75rem 0 0; padding:.5rem 0 0; border:0; border-top:1px solid rgba(0,255,255,.25); min-width:0}
+.seg-set legend{padding:0 .5rem 0 0; font-size:.8rem; color:var(--ink)}
+.seg{display:grid; grid-template-columns:repeat(3,1fr); gap:.35rem; margin-top:.35rem}
+.seg-btn{position:relative; display:block; cursor:pointer}
+.seg-btn input{position:absolute; opacity:0; inset:0; width:100%; height:100%; margin:0; cursor:pointer}
+.seg-face{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.2rem; min-height:56px;
+  padding:.35rem .25rem; border:1px solid var(--cyan); border-radius:4px; text-align:center; font-size:.7rem; line-height:1.15;
+  color:var(--cyan); background:transparent; transition:background .2s,color .2s}
+.seg-face svg{width:22px; height:22px; flex:none}
+.seg-btn:hover .seg-face{background:rgba(0,255,255,.12)}
+.seg-btn input:checked + .seg-face{background:var(--cyan); color:#000; font-weight:bold}
+.seg-btn input:focus-visible + .seg-face{outline:2px solid var(--pink); outline-offset:2px}
 #terminal-log{font-size:.75rem; height:120px; overflow-y:auto; border-left:2px solid var(--pink); padding-left:.5rem; color:var(--ink)}
 .log-boot{color:var(--pink)}
 .metric{border:1px solid var(--green); background:rgba(0,0,0,.6); color:var(--green); font-size:.75rem; padding:.2rem .6rem}
@@ -217,6 +233,12 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
           </label>
         </div>
         <p class="opt-help">Maps the Student-t and Clayton copulas to standard-normal margins and puts all copulas on one shared axis range, so their dependence and tail shape are directly comparable. Also applies to Core 2.</p>
+        <!-- Middle-Square collapse switch: radios BUILT FROM the `MS_MODES` registry in the script below. -->
+        <fieldset class="seg-set">
+          <legend>Middle-Square collapse</legend>
+          <div class="seg" id="ms-seg"></div>
+          <p class="opt-help" id="ms-help"></p>
+        </fieldset>
         <button type="button" class="btn btn-pink" id="btn-run">Re-roll Sequences</button>
       </div>
       <div class="panel panel-1">
@@ -368,12 +390,29 @@ function nextXorShift(){
 }
 
 // 3. Von Neumann middle-square, 6 digits: square, pad to 12, keep the middle 6.
-let msState=123456;
+//    The method is known to collapse: from the textbook seed it lands on the fixed
+//    point 625000 (625000^2 = 390625000000, whose middle six digits are 625000) after
+//    145 steps and never leaves. msMode (set by the Core 1 switch) decides what we do:
+//      "pure"   textbook behavior: fixed seed, replayed from the start on every render, runs
+//               until it collapses — so the plot is ~73 points plus one dot
+//      "reseed" on collapse (fixed point, zero, or any repeated value) draw a fresh random seed
+//      "report" same as "reseed", and the terminal reports how many collapses occurred
+const MS_SEED=123456;                 // the textbook seed used by "pure"
+let msMode="report";                  // "pure" | "reseed" | "report"
+let msState=MS_SEED;
+let msSeen=new Set();                 // values already visited in the current chain; a repeat means a cycle
+let msCollapses=0;                    // collapses during the current generation (reported in "report" mode)
+const msRawStep=s=>parseInt((s*s).toString().padStart(12,"0").substring(3,9),10);
+function msReseed(){ msState=100000+Math.floor(Math.random()*900000); msSeen=new Set([msState]); }   // 6-digit seeds only
 function nextMiddleSquare(){
-  const sq=(msState*msState).toString().padStart(12,"0");
-  msState=parseInt(sq.substring(3,9),10);
-  if(msState===0||msState===100000) msState=123456;   // known collapse points; reseed so the plot isn't blank
-  return msState/999999;
+  const next=msRawStep(msState);
+  if(msMode==="pure"){
+    msState=(next===0||next===100000)?MS_SEED:next;    // original guard: only the two commonest dead ends
+    return msState/999999;
+  }
+  if(next===0||next===msState||msSeen.has(next)){ msCollapses++; msReseed(); return msState/999999; }
+  msSeen.add(next); msState=next;
+  return next/999999;
 }
 
 // 4. Logistic map at r=3.99 (fully chaotic regime)
@@ -404,7 +443,12 @@ function nextLogistic(){ lmState=LOGISTIC_R*lmState*(1-lmState); return lmState;
 const MODELS=[
   {id:"prng",     cat:"seq", name:"Math.random (browser PRNG)", type:"scatter", color:"#00ffff", gen:()=>scatterFrom(Math.random)},
   {id:"lcg",      cat:"seq", name:"Linear Congruential (LCG)",  type:"scatter", color:"#ff00aa", gen:()=>scatterFrom(nextLCG)},
-  {id:"midsq",    cat:"seq", name:"Middle-Square (Von Neumann)",type:"scatter", color:"#ff7700", gen:()=>scatterFrom(nextMiddleSquare)},
+  {id:"midsq",    cat:"seq", name:"Middle-Square (Von Neumann)",type:"scatter", color:"#ff7700",
+   gen:()=>{ msCollapses=0;
+      if(msMode==="pure") msState=MS_SEED; else if(!msSeen.size) msReseed();
+      const pts=scatterFrom(nextMiddleSquare);
+      if(msMode==="report") logTerminal("MIDDLE-SQUARE: "+msCollapses+" COLLAPSES IN "+(NUM_POINTS*2)+" DRAWS, RESEEDED EACH TIME","#ff7700");
+      return pts; }},
   {id:"xor",      cat:"seq", name:"Xorshift Engine",            type:"scatter", color:"#aaff00", gen:()=>scatterFrom(nextXorShift)},
   {id:"logistic", cat:"seq", name:"Logistic Map (Chaos)",       type:"scatter", color:"#ff0055", on:true, defA:true,
    gen:()=>{ const pts=[]; for(let i=0;i<NUM_POINTS;i++) pts.push({x:i/NUM_POINTS,y:nextLogistic()}); return pts; }},
@@ -485,6 +529,28 @@ const FORGE_PARAMS=[
    help:"Xorshift passes applied to each output. 0 shows the strict linear planes of a raw LCG; more passes spread them out."},
   {id:"speed", label:"Compute Weight", min:1, max:1000, step:10, value:10, fmt:v=>v+"×",
    help:"Dummy square-root work per point, simulating the cost of a heavier algorithm. Watch the render timer."},
+];
+
+/* ==== MS_MODES REGISTRY — the Middle-Square collapse switch (Core 1). ========
+   TO ADD A MODE: add ONE entry and handle its id in nextMiddleSquare() (engine script).
+   The radio, its icon and the help line are generated from this array.
+
+     id     value stored in msMode
+     label  button text (the icon is decorative; the text carries the meaning)
+     icon   Lucide icon name  } copied unmodified from lucide.dev, per CLAUDE.md:
+     paths  Lucide inner markup} inline SVG only, no hand-drawn paths
+     help   one-line explanation shown under the switch
+     def    selected on load                                                    */
+const MS_MODES=[
+  {id:"reseed", label:"Reseed", icon:"toggle-right", def:false,
+   paths:'<circle cx="15" cy="12" r="3"/><rect width="20" height="14" x="2" y="5" rx="7"/>',
+   help:"When the sequence collapses (fixed point, zero or a repeat) it restarts from a fresh random seed, so you get a distributed cloud."},
+  {id:"report", label:"Reseed + report", icon:"toggle-left", def:true,
+   paths:'<circle cx="9" cy="12" r="3"/><rect width="20" height="14" x="2" y="5" rx="7"/>',
+   help:"Same as Reseed, and the terminal reports how many times it collapsed — the weakness stays visible."},
+  {id:"pure", label:"Pure", icon:"power-off", def:false,
+   paths:'<path d="M18.36 6.64A9 9 0 0 1 20.77 15"/><path d="M6.16 6.16a9 9 0 1 0 12.68 12.68"/><path d="M12 2v4"/><path d="m2 2 20 20"/>',
+   help:"Textbook behavior: fixed seed 123456, no rescue. It collapses to the single point 625000 after 145 steps, so most of the plot is one dot."},
 ];
 
 /* ================== END OF DATA — everything below is logic ================== */
@@ -712,6 +778,17 @@ function queueForge(){
   requestAnimationFrame(()=>{ forgeQueued=false; renderForge(); });
 }
 
+// Switching modes discards every cached Middle-Square sample (Core 1 and any Core 2 slot
+// showing it) and redraws, so the new behavior is visible immediately. msSeen is cleared
+// so a mode that reseeds starts a fresh chain instead of inheriting "pure"'s dead end.
+function setMsMode(id){
+  msMode=id; msSeen=new Set();
+  $("ms-help").textContent=MS_MODES.find(m=>m.id===id).help;
+  delete stdCache.midsq;
+  for(const slot of ["a","b"]) if($("blend-"+slot).value==="midsq") rollBlendSlot(slot);
+  renderStandard(); renderBlender();
+}
+
 /* ==== INIT ================================================================ */
 function init(){
   $("pts-tag").textContent=NUM_POINTS+" PT/SEQ";
@@ -757,6 +834,22 @@ function init(){
   for(const id of ["blend-pos","blend-smooth"]) $(id).addEventListener("input",()=>{ syncBlendReadouts(); renderBlender(); });
   $("blend-color").addEventListener("change",renderBlender);
   $("opt-normal-margins").addEventListener("change",()=>{ renderStandard(); renderBlender(); });
+
+  // Middle-Square switch, built from MS_MODES. Icons: Lucide, inline, attributes kept per CLAUDE.md.
+  for(const mode of MS_MODES){
+    const lab=document.createElement("label"); lab.className="seg-btn";
+    lab.innerHTML=
+      '<input type="radio" name="ms-mode" value="'+mode.id+'"'+(mode.def?" checked":"")+'>'+
+      '<span class="seg-face">'+
+        '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"'+
+        ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-'+mode.icon+'"'+
+        ' aria-hidden="true" focusable="false">'+mode.paths+'</svg>'+
+        '<span>'+mode.label+'</span></span>';
+    $("ms-seg").appendChild(lab);
+    lab.querySelector("input").addEventListener("change",()=>setMsMode(mode.id));
+  }
+  msMode=(MS_MODES.find(m=>m.def)||MS_MODES[0]).id;
+  $("ms-help").textContent=MS_MODES.find(m=>m.id===msMode).help;
 
   logTerminal("SYS_INIT: "+MODELS.length+" models loaded.","#ff00ff");
   renderStandard(); renderBlender(); queueForge();
