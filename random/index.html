@@ -151,6 +151,12 @@ h3{margin:.5rem 0 .25rem; font-size:.8rem; text-transform:uppercase}
 
 .model-row[hidden]{display:none}
 
+/* Disclaimer footer at the bottom of the page. */
+.legal{margin-top:2rem; padding-top:1rem; border-top:1px solid rgba(0,255,255,.15); color:var(--ink-dim); font-size:.7rem; line-height:1.5}
+.legal p{margin:0 0 .75rem}
+.legal strong{color:var(--ink)}
+@media (min-width:560px){ .legal{text-align:justify} }
+
 /* Advanced models menu: native <details>, collapsed by default; each model is a switch with a Lucide toggle icon. */
 .adv{margin-top:.75rem; border-top:1px solid rgba(0,255,255,.25)}
 .adv summary{display:flex; align-items:center; gap:.5rem; min-height:44px; cursor:pointer; list-style:none; color:var(--ink); font-size:.8rem}
@@ -382,6 +388,12 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
     <div class="ctl-grid p" id="c4-view"></div>
     <div id="c4-dials" class="c4-dials" aria-label="Dials for the selected 3-D model"></div>
   </section>
+
+  <!-- Disclaimer (wording supplied by the author). Styled by .legal; text is deliberately muted but kept above 11px and at full opacity so it stays readable. -->
+  <footer class="legal" aria-label="Legal and educational disclaimer">
+    <p><strong>LEGAL &amp; EDUCATIONAL DISCLAIMER:</strong> Stochastic OS and all mathematical models, generators, and visualizers hosted on Post Millennium Renaissance are provided strictly for educational, experimental, and academic purposes. The outputs of these stochastic processes, copulas, and Monte Carlo simulations do not constitute financial, investment, legal, or tax advice. Furthermore, these tools are independent, personal software projects. They do not represent the views, strategies, risk management frameworks, or fiduciary recommendations of any registered investment advisor, alternative investment sponsor, or financial institution.</p>
+    <p>All financial and asset-pricing models are purely theoretical simulations relying on pseudorandom number generation. They are inherently incapable of predicting actual market performance, pricing, or real-world default correlations. Users must not base any personal or professional trading, capital allocation, or private debt analysis on the outputs of this software. This tool is provided "as is" without warranty of any kind regarding its computational accuracy or statistical validity.</p>
+  </footer>
 
 </div>
 
