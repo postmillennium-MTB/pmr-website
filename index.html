@@ -312,9 +312,10 @@
   .hero {
     position: relative;
     max-width: 1200px; margin: 0 auto;
-    min-height: 85vh;
+    /* Height follows the content, not the viewport: a vh-based min-height
+       made the gaps above and below the hero grow with the screen. */
     display: flex; flex-direction: column; justify-content: center;
-    padding: 9rem 2.5rem 3rem;
+    padding: 6.5rem 2.5rem 1rem;
   }
 
   /* ── The painting ────────────────────────────────────────────── */
@@ -982,11 +983,18 @@
   .tool-icon { position: absolute; right: calc(1.5rem + var(--icon-r, 0px)); bottom: calc(1.5rem + var(--icon-b, 0px)); width: var(--icon-size, 38px); height: var(--icon-size, 38px); color: var(--accent); pointer-events: none; transition: color 0.5s ease; }
   .tool-icon svg { display: block; width: 100%; height: 100%; fill: currentColor; }
   .has-icon .tool-desc { padding-right: 3.5rem; }
-  .tool-child.reveal { animation: childReveal 0.35s ease both; }
-  .tool-child.reveal + .tool-child.reveal { animation-delay: 0.07s; }
-  @keyframes childReveal { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+  /* The two opened cards read as a set apart from the grid: accent tint,
+     a fine diagonal hatch, a bar across the top and an inset outline. All
+     of it is built from --accent, so it follows every theme. */
+  .tool-child {
+    background-color: var(--bg-card);
+    background-color: color-mix(in srgb, var(--accent) 10%, var(--bg-card));
+    background-image: repeating-linear-gradient(135deg,
+      color-mix(in srgb, var(--accent) 16%, transparent) 0 1px, transparent 1px 10px);
+    box-shadow: inset 0 3px 0 var(--accent), inset 0 0 0 1px color-mix(in srgb, var(--accent) 38%, transparent);
+  }
+  .tool-child:hover { background-color: color-mix(in srgb, var(--accent) 18%, var(--bg-card)); }
   @media (prefers-reduced-motion: reduce) {
-    .tool-child.reveal { animation: none; }
     .group-mark svg { transition: none; }
   }
 
@@ -1602,13 +1610,58 @@
     grid.innerHTML = window.PMR_TOOLS.map(render).join('');
 
     // Open / close a group. Its children are the cards that follow it.
+    // The other cards are not just re-flowed: each one is animated from where
+    // it WAS to where it now is (FLIP), so the grid visibly slides aside to
+    // make room for the opened cards, and slides back when they close.
+    var EASE = 'cubic-bezier(0.2, 0.8, 0.2, 1)', busy = false;
+    var calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function others() {
+      return Array.prototype.filter.call(grid.querySelectorAll('.tool-card'), function (c) {
+        return !c.hidden && !c.classList.contains('tool-child');
+      });
+    }
+    function slideFrom(before) {
+      before.forEach(function (b) {
+        var r = b.el.getBoundingClientRect(), dx = b.r.left - r.left, dy = b.r.top - r.top;
+        if (dx || dy) b.el.animate(
+          [{ transform: 'translate(' + dx + 'px,' + dy + 'px)' }, { transform: 'none' }],
+          { duration: 520, easing: EASE });
+      });
+    }
     function setGroup(card, open) {
-      var hit = card.querySelector('.group-hit');
-      card.classList.toggle('open', open);
-      hit.setAttribute('aria-expanded', open ? 'true' : 'false');
-      for (var n = card.nextElementSibling; n && n.classList.contains('tool-child'); n = n.nextElementSibling) {
-        n.hidden = !open;
-        n.classList.toggle('reveal', open);
+      if (busy) return;
+      var hit = card.querySelector('.group-hit'), kids = [];
+      for (var n = card.nextElementSibling; n && n.classList.contains('tool-child'); n = n.nextElementSibling) kids.push(n);
+      function apply(state) {
+        card.classList.toggle('open', state);
+        hit.setAttribute('aria-expanded', state ? 'true' : 'false');
+        kids.forEach(function (k) { k.hidden = !state; });
+      }
+      if (calm || !card.animate) { apply(open); return; }
+
+      var before = others().map(function (c) { return { el: c, r: c.getBoundingClientRect() }; });
+      if (open) {
+        apply(true);
+        slideFrom(before);
+        kids.forEach(function (k, i) {
+          k.animate([{ opacity: 0, transform: 'scale(0.8)' }, { opacity: 1, transform: 'none' }],
+                    { duration: 480, delay: 140 + i * 90, easing: EASE, fill: 'backwards' });
+        });
+      } else {
+        busy = true;
+        var left = kids.length;
+        kids.forEach(function (k) {
+          var a = k.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(0.8)' }],
+                            { duration: 220, easing: 'ease-in', fill: 'forwards' });
+          a.onfinish = function () {
+            if (--left) return;
+            apply(false);
+            kids.forEach(function (c) { c.getAnimations().forEach(function (x) { x.cancel(); }); });
+            slideFrom(before);
+            busy = false;
+          };
+        });
       }
     }
     grid.addEventListener('click', function (e) {
