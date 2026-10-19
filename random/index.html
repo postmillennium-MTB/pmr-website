@@ -390,6 +390,7 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
     <div class="panel-head" style="color:var(--green)">
       <h2 id="h-core3" class="flicker">Core 3: Algorithmic Forge</h2>
       <span class="metric">RENDER: <b id="forge-time">0.00</b> ms</span>
+      <span class="metric">WORK: <b id="forge-work">0</b> sqrt/pt · <b id="forge-rounds">0</b> hash rounds</span>
       <span class="tag">LCG + XORSHIFT PARAMETERIZATION</span>
     </div>
     <div class="stage">
@@ -1235,7 +1236,7 @@ const FORGE_PARAMS=[
   {id:"comp",  label:"Statistical Randomness", min:0, max:10, step:1, value:2, fmt:v=>v+" shifts",
    help:"Xorshift passes applied to each output. 0 shows the strict linear planes of a raw LCG; more passes spread them out."},
   {id:"speed", label:"Compute Weight", min:1, max:1000, step:10, value:10, fmt:v=>v+"×",
-   help:"Dummy square-root work per point, simulating the cost of a heavier algorithm. Watch the render timer."},
+   help:"Simulates a heavier algorithm. Below 100× it only slows the render timer (the image stays the same). Every 100× adds one real hash round that scrambles the pattern further."},
 ];
 
 /* ==== VIEW3D_PARAMS REGISTRY — the Core 4 view sliders. =====================
@@ -1384,7 +1385,9 @@ const C4_MAX_FRAME_S=0.1;       // longest time step per animation frame, so ret
 const T_NU=4;                 // Student-t degrees of freedom; must stay 4 (the chi-square above is a 4-term sum)
 const LOAD_PER_UNIT=20;         // sqrt() calls per point per notch of the Compute Weight slider. The original used 200,
                                 // which at slider max (1000x) froze the tab for seconds; 20 keeps the top end ~0.1–0.5 s
-const SLOW_RENDER_MS=50;        // render time above which the Core 3 timer turns red
+const HASH_ROUND_EVERY=100;     // Compute Weight notches per real hash round (0 rounds below this, 10 at the 1000x max)
+const HASH_MULT=0x45d9f3b;      // odd multiplier for the extra hash rounds (Thomas Mueller's integer hash constant)
+const SLOW_RENDER_MS=50;       // render time above which the Core 3 timer turns red
 const LOW_MEMORY_WARN_BITS=8;   // Core 3 logs a degeneration warning at or below this bit-depth
 const FORGE_SEED=8675309;       // fixed so the geometric lattice is reproducible between slider moves
 const LCG_A=1664525, LCG_C=1013904223;   // Numerical Recipes LCG constants (shared with Core 1)
@@ -1612,8 +1615,12 @@ function generateForgeData(memBits,comp,load){
   // it is coerced back through ToInt32, and 32 bits uses the all-ones mask.
   const mask=memBits===32?0xFFFFFFFF:(1<<memBits)-1;
   const divisor=memBits===32?4294967296:(1<<memBits);
+  // Real work: every HASH_ROUND_EVERY notches of weight adds one multiply-xorshift round, which scrambles the
+  // lattice further. Below that threshold the weight is timing only (the sqrt loop below).
+  const rounds=Math.floor(load/HASH_ROUND_EVERY), hashShift=Math.max(1,memBits>>1);
   const mix=v=>{
     for(let c=0;c<comp;c++){ v^=(v<<XS_A)&mask; v^=(v>>>XS_B)&mask; v^=(v<<XS_C)&mask; }
+    for(let r=0;r<rounds;r++){ v=Math.imul(v,HASH_MULT)&mask; v^=v>>>hashShift; }
     return (v>>>0)/divisor;
   };
   let state=FORGE_SEED, sink=0;
@@ -1626,7 +1633,7 @@ function generateForgeData(memBits,comp,load){
     pts.push({x,y});
   }
   forgeSink+=sink;
-  return {points:pts, ms:performance.now()-t0};
+  return {points:pts, ms:performance.now()-t0, loops, rounds};
 }
 
 function renderForge(){
@@ -1637,6 +1644,8 @@ function renderForge(){
   const t=$("forge-time");
   t.textContent=r.ms.toFixed(2);
   t.className=r.ms>SLOW_RENDER_MS?"slow":"";
+  $("forge-work").textContent=r.loops.toLocaleString();
+  $("forge-rounds").textContent=r.rounds;
   if(bits<=LOW_MEMORY_WARN_BITS) logTerminal("CORE 3 WARNING: "+bits+"-bit state. DEGENERATION DETECTED.","#ff5c8a");
 }
 
