@@ -709,7 +709,7 @@ const MODELS=[
       const w=randn_bm()**2+randn_bm()**2+randn_bm()**2+randn_bm()**2;
       const s=Math.sqrt(T_NU/w);
       pts.push({x:z1*s, y:(COPULA_RHO*z1+Math.sqrt(1-COPULA_RHO*COPULA_RHO)*z2)*s}); } return pts; }},
-  {id:"gbm",      cat:"fin", name:"Geometric Brownian (GBM)",   type:"line", color:"#00ff88", on:true, defB:true,
+  {id:"gbm",      cat:"fin", name:"Geometric Brownian (GBM)",   type:"line", color:"#00ff88", defB:true,
    gen:()=>{ const pts=[{x:0,y:100}], dt=1/NUM_POINTS; let S=100;       // mu=5%, sigma=20%
       for(let i=1;i<NUM_POINTS;i++){ S*=Math.exp((0.05-0.5*0.04)*dt+0.2*randn_bm()*Math.sqrt(dt)); pts.push({x:i,y:S}); } return pts; }},
   {id:"vasicek",  cat:"fin", name:"Vasicek (Mean Reverting)",   type:"line", color:"#ffaa00",
