@@ -17,6 +17,7 @@
     · CORE 1 .................... model toggles + isolated render
     · CORE 2 .................... formula blender (crossfade between two models)
     · CORE 3 .................... algorithmic forge (LCG + xorshift parameter lab)
+    · CORE 4 .................... 3-D attractor viewer (rotation, tilt, zoom, perspective, model dials)
 
   <script> #1  ENGINE ............. math helpers + the four stateful generators
   <script> #2
@@ -24,6 +25,7 @@
     · CATEGORIES ................. the four Core 1 groups (generators / attractors / copulas / financial)
     · MODELS ..................... 15 core + 29 advanced (adv:true) generators, one entry each
     · FORGE_PARAMS ............... the three Core 3 sliders
+    · VIEW3D_PARAMS .............. the Core 4 view sliders (azimuth, elevation, speed, zoom, perspective, size)
     · ICON_PATHS ................. the Lucide icons used (toggle, play, chevron, power-off)
     · MS_MODES ................... the Middle-Square collapse switch (reseed / report / pure)
     ==== END OF DATA ====
@@ -108,6 +110,7 @@ h3{margin:.5rem 0 .25rem; font-size:.8rem; text-transform:uppercase}
 .panel-1{border-color:var(--cyan);   box-shadow:0 0 10px rgba(0,255,255,.1)}
 .panel-2{border-color:var(--yellow); box-shadow:0 0 10px rgba(252,238,10,.1)}
 .panel-3{border-color:var(--green);  box-shadow:0 0 10px rgba(0,255,136,.1)}
+.panel-4{border-color:var(--pink);   box-shadow:0 0 10px rgba(255,0,255,.1)}
 .panel-head{display:flex; justify-content:space-between; align-items:center; gap:.5rem; flex-wrap:wrap;
   border-bottom:1px solid currentColor; padding-bottom:.5rem; margin-bottom:.75rem}
 .tag{font-size:.75rem; opacity:.8}
@@ -120,6 +123,7 @@ h3{margin:.5rem 0 .25rem; font-size:.8rem; text-transform:uppercase}
 #cv-std{border-color:var(--cyan);   box-shadow:0 0 20px rgba(0,255,255,.2);  aspect-ratio:3/2}
 #cv-blend{border-color:var(--yellow); box-shadow:0 0 20px rgba(252,238,10,.2); aspect-ratio:8/3}
 #cv-forge{border-color:var(--green);  box-shadow:0 0 20px rgba(0,255,136,.2);  aspect-ratio:2/1}
+#cv-3d{border-color:var(--pink);      box-shadow:0 0 20px rgba(255,0,255,.2);   aspect-ratio:12/7}
 /* Chart labels sit in a bar ABOVE the canvas (not overlaid on it) so they never cover plotted points. */
 .stage-head{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:.25rem .75rem; margin-bottom:.35rem}
 .badge{font-size:.7rem; font-weight:bold; letter-spacing:.1em; padding:.15rem .5rem; border:1px solid currentColor}
@@ -129,6 +133,8 @@ h3{margin:.5rem 0 .25rem; font-size:.8rem; text-transform:uppercase}
   color:var(--cyan); background:rgba(0,255,255,.08); border:1px solid var(--cyan); border-radius:3px; transition:background .2s,color .2s}
 .play-btn svg{width:14px; height:14px}
 .play-btn:hover{background:var(--cyan); color:#000}
+.play-btn-pink{color:var(--pink); background:rgba(255,0,255,.08); border-color:var(--pink)}
+.play-btn-pink:hover{background:var(--pink)}
 @media (pointer:coarse){ .play-btn{width:44px; height:36px} .play-btn svg{width:18px; height:18px} }
 .formula{font-size:.65rem; letter-spacing:.05em; color:rgba(0,255,136,.8); line-height:1.3}
 
@@ -196,6 +202,14 @@ h3{margin:.5rem 0 .25rem; font-size:.8rem; text-transform:uppercase}
   background:rgba(0,0,0,.4); border:1px solid; border-radius:4px}
 .ctl-grid.y{border-color:rgba(252,238,10,.3); color:var(--yellow)}
 .ctl-grid.g{border-color:rgba(0,255,136,.3);  color:var(--green)}
+.ctl-grid.p{border-color:rgba(255,0,255,.3);  color:var(--pink)}
+.ctl-grid.p .help{color:#e0a8e0}
+.ctl-grid.p select{color:var(--pink); border-color:var(--pink)}
+.ctl-grid.p .adv-row{color:var(--ink)}
+.ctl-grid.p .adv-row[aria-checked="true"] .adv-ico{color:var(--pink); filter:drop-shadow(0 0 4px var(--pink))}
+.ctl-grid.p .adv-row[aria-checked="false"] .adv-ico{color:var(--ink-dim)}
+.c4-dials{margin-top:.5rem; display:grid; grid-template-columns:1fr; gap:.25rem 1.5rem}
+.c4-dials .dial{margin:.5rem 0 0}
 .ctl{display:flex; flex-direction:column; gap:.25rem; font-size:.75rem}
 .ctl .row{display:flex; justify-content:space-between; gap:.5rem}
 .ctl .help{margin:0 0 .25rem; font-size:.7rem; line-height:1.3; color:#7ddbb0}
@@ -234,6 +248,8 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
   h1{font-size:2.25rem}
   .ctl-grid.y{grid-template-columns:1fr 1fr}
   .ctl-grid.g{grid-template-columns:1fr 1fr 1fr; gap:2rem}
+  .ctl-grid.p{grid-template-columns:1fr 1fr; gap:1.25rem 2rem}
+  .c4-dials{grid-template-columns:1fr 1fr}
 }
 @media (min-width:960px){
   body{padding:2rem 1rem 5rem}
@@ -341,6 +357,30 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
       <canvas id="cv-forge" width="1200" height="600" role="img" aria-label="Pair-correlation plot of the forged generator"></canvas>
     </div>
     <div class="ctl-grid g" id="forge-box"></div>
+  </section>
+
+  <!-- CORE 4: the 3-D viewer. Model list, its dials and the view sliders are BUILT FROM the `MODELS` (gen3) and `VIEW3D_PARAMS` registries. -->
+  <section class="panel panel-4" aria-labelledby="h-core4">
+    <div class="panel-head" style="color:var(--pink)">
+      <h2 id="h-core4" class="flicker">Core 4: 3-D Attractor Viewer</h2>
+      <span class="tag">ROTATING PROJECTION</span>
+    </div>
+    <div class="stage">
+      <div class="stage-head stage-head-left">
+        <span class="badge" style="color:var(--pink)">CORE 4 // 3-D VIEW</span>
+        <button type="button" class="play-btn play-btn-pink" id="btn-run-3d" aria-label="Re-roll the 3-D orbit" title="Re-roll the 3-D orbit"></button>
+      </div>
+      <canvas id="cv-3d" width="1200" height="700" role="img" aria-label="Rotating 3-D plot of the selected attractor"></canvas>
+    </div>
+    <div class="ctl-grid p">
+      <div class="ctl"><label for="c4-model">3-D model</label><select id="c4-model"></select></div>
+      <div class="ctl">
+        <button type="button" class="adv-row" id="c4-auto" role="switch" aria-checked="true"><span class="adv-ico"></span><span class="adv-name">Auto-rotate</span></button>
+        <p class="help">On: the model turns by itself at the speed below. Off: it holds still and you steer with Azimuth and Elevation.</p>
+      </div>
+    </div>
+    <div class="ctl-grid p" id="c4-view"></div>
+    <div id="c4-dials" class="c4-dials" aria-label="Dials for the selected 3-D model"></div>
   </section>
 
 </div>
@@ -494,6 +534,19 @@ function rk4Step(f,s,dt){
   return s.map((v,i)=>v+dt/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i]));
 }
 
+// Integrate a 3-D flow with RK4 and return `n` points {x,y,z}, one every `every` steps after `burn` steps are
+// discarded. A run-away orbit (non-finite, or beyond FLOW_ESCAPE) restarts from s0 instead of being plotted.
+const FLOW_ESCAPE=1e3;
+function integrateFlow(f,s0,dt,every,burn,n){
+  let s=s0.slice(); const pts=[];
+  for(let i=-burn;i<n*every;i++){
+    s=rk4Step(f,s,dt);
+    if(!s.every(isFinite)||Math.max(Math.abs(s[0]),Math.abs(s[1]),Math.abs(s[2]))>FLOW_ESCAPE) s=s0.slice();
+    if(i>=0&&i%every===0) pts.push({x:s[0],y:s[1],z:s[2]});
+  }
+  return pts;
+}
+
 // -- Random-number generators ------------------------------------------------
 // RANDU (IBM, 1960s): x' = 65539 x mod 2^31. 65539 * 2^31 < 2^53, so the double multiply is exact.
 let randuState=1;
@@ -632,6 +685,11 @@ const CATEGORIES=[
   {id:"fin", label:"Financial Stochastics",          color:"var(--green)"},
 ];
 
+// Shared "Orbit length" dial for the 3-D flows: scales how many integration steps sit between plotted
+// points, i.e. how much of the trajectory the 1,500 points cover. Short = a few sweeps; long = the full filigree.
+const SPAN_DIAL={id:"span", label:"Orbit length", weak:0.25, strong:4, classic:1, log:true, fmt:v=>v.toFixed(2)+"× orbit",
+  help:"How much of the trajectory the 1,500 points cover. Short: a few sweeps, so you can see the direction of motion. Long: the whole filigree of the attractor."};
+
 /* ==== MODELS REGISTRY — the single source of truth for every generator. =====
    TO ADD A MODEL: write a generator (returns [{x,y},…] of length NUM_POINTS),
    then add ONE entry here. Core 1 row, both Core 2 dropdowns and the render
@@ -656,6 +714,9 @@ const CATEGORIES=[
      toNormal optional fn mapping ONE coordinate from this model's native margin to a
               standard normal; applied only when "Normal margins" is ON. Omit it when the
               model is already N(0,1) per axis (the Gaussian copula)
+     gen3   optional (3-D models): function returning NUM_POINTS {x,y,z}; powers the Core 4 viewer. With
+            `proj` (two of "x","y","z") the 2-D `gen` is derived from it automatically
+     only2d on a dial: hide it in Core 4 (it only makes sense for the 2-D view)
      gen    function returning the points                                   */
 const MODELS=[
   {id:"prng",     cat:"seq", name:"Math.random (browser PRNG)", type:"scatter", color:"#00ffff", gen:()=>scatterFrom(Math.random)},
@@ -671,31 +732,32 @@ const MODELS=[
    gen:()=>{ const pts=[]; for(let i=0;i<NUM_POINTS;i++) pts.push({x:i/NUM_POINTS,y:nextLogistic()}); return pts; }},
   {id:"halton",   cat:"seq", name:"Halton Sequence (Low-Disc.)",type:"scatter", color:"#fcee0a", on:true,
    gen:()=>{ const pts=[]; for(let i=1;i<=NUM_POINTS;i++) pts.push({x:halton(i,2),y:halton(i,3)}); return pts; }},
-  // Hénon map (a=1.4): a 2-D strange attractor. The Attraction dial sets b, the area-contraction
-  // factor per step: smaller b = stronger pull (the attractor thins toward a curve).
+  // Hénon map (b=0.3): a 2-D strange attractor. The Attraction dial sets b, the area-contraction factor per step:
+  // smaller b = stronger pull (the attractor thins toward a curve). Dial a walks the period-doubling route to chaos.
   // Start near the origin, discard the transient, then record the orbit.
   {id:"henon",    cat:"att", name:"Hénon Map (Strange Attractor)", type:"scatter", color:"#4dffd2",
    dials:[{id:"pull", label:"Attraction", weak:0.31, strong:0.02, classic:0.30, fmt:b=>"b = "+b.toFixed(3),
-     help:"Sets the contraction factor b: more attraction = smaller b, so the orbit is squeezed onto a thinner curve. Classic is b = 0.30. Weaker than b ≈ 0.31 the attractor dies and orbits escape to infinity, so the dial stops there."}],
-   gen:()=>{ const b=dialParam("henon","pull");
+     help:"Sets the contraction factor b: more attraction = smaller b, so the orbit is squeezed onto a thinner curve. Classic is b = 0.30. Weaker than b ≈ 0.31 the attractor dies and orbits escape to infinity, so the dial stops there."},
+    {id:"a", label:"Parameter a", weak:0.8, strong:1.42, classic:1.4, fmt:a=>"a = "+a.toFixed(3),
+     help:"Walk a upward from 0.8 to watch the period-doubling cascade (2, 4, 8 … points) into chaos near 1.1, a periodic window near 1.3, and full chaos at the classic 1.4. Past about 1.43 the orbit escapes, so the dial stops at 1.42."}],
+   gen:()=>{ const b=dialParam("henon","pull"), a=dialParam("henon","a");
       let x=HENON_START_SPAN*attractorStart[0], y=HENON_START_SPAN*attractorStart[1]; const pts=[];
       for(let i=-HENON_BURN_IN;i<NUM_POINTS;i++){
-        let nx=1-HENON_A*x*x+y; y=b*x; x=nx;
+        let nx=1-a*x*x+y; y=b*x; x=nx;
         if(!isFinite(x)||Math.abs(x)>HENON_ESCAPE){ x=HENON_START_SPAN*attractorStart[0]; y=HENON_START_SPAN*attractorStart[1]; }   // escaped: restart rather than plot garbage
         if(i>=0) pts.push({x,y}); }
       return pts; }},
-  // Lorenz system (sigma=10, rho=28) integrated with RK4; plotted as the x–z projection, the
-  // familiar butterfly, as a line so the lobes read as one orbit. The Attraction dial sets beta,
-  // which (with sigma) is the volume-contraction rate sigma+1+beta: more attraction = larger beta.
-  // Beyond beta ≈ 3.2 the chaos dies and the orbit spirals into a fixed point.
-  {id:"lorenz",   cat:"att", name:"Lorenz Attractor (x–z)",     type:"line", color:"#ff8c66",
+  // Lorenz system (sigma=10) integrated with RK4; plotted as the x–z projection, the familiar butterfly, as a line
+  // so the lobes read as one orbit. Dial "Attraction" sets beta, which (with sigma) is the volume-contraction rate
+  // sigma+1+beta: more attraction = larger beta. Beyond beta ≈ 3.2 the chaos dies and the orbit spirals into a
+  // fixed point. Dial rho is the other classic control: below ≈ 24.7 the orbit is pulled into a fixed point too.
+  {id:"lorenz",   cat:"att", name:"Lorenz Attractor (x–z)",     type:"line", color:"#ff8c66", proj:["x","z"],
    dials:[{id:"pull", label:"Attraction", weak:0.5, strong:6, classic:8/3, fmt:b=>"β = "+b.toFixed(2),
-     help:"Sets β, the dissipation: more attraction = larger β. Classic is β = 8/3. Weak: a looser, larger butterfly. Strong (β above about 3.2): the chaos dies and the orbit spirals into a single point."}],
-   gen:()=>{ const beta=dialParam("lorenz","pull");
-      let s=[1+LORENZ_START_SPAN*attractorStart[2],1,1]; const pts=[];
-      for(let i=0;i<NUM_POINTS*LORENZ_STEPS_PER_POINT;i++){
-        s=lorenzStep(s,beta); if(i%LORENZ_STEPS_PER_POINT===0) pts.push({x:s[0],y:s[2]}); }
-      return pts; }},
+     help:"Sets β, the dissipation: more attraction = larger β. Classic is β = 8/3. Weak: a looser, larger butterfly. Strong (β above about 3.2): the chaos dies and the orbit spirals into a single point."},
+    {id:"rho", label:"Heating ρ (Rayleigh number)", weak:10, strong:45, classic:28, fmt:r=>"ρ = "+r.toFixed(1),
+     help:"The driving strength. Below about 24 the orbit spirals into one of two fixed points (order); above it the motion is chaotic: the butterfly."}, SPAN_DIAL],
+   gen3:()=>{ const beta=dialParam("lorenz","pull"), rho=dialParam("lorenz","rho"), f=([x,y,z])=>[LORENZ_SIGMA*(y-x),x*(rho-z)-y,x*y-beta*z];
+      return integrateFlow(f,[1+LORENZ_START_SPAN*attractorStart[2],1,1],LORENZ_DT,spanSteps(LORENZ_STEPS_PER_POINT,"lorenz"),0,NUM_POINTS); }},
 
   {id:"gauss",    cat:"cop", name:"Gaussian Copula (ρ=0.8)",    type:"scatter", color:"#aa00ff", copula:true,
    gen:()=>{ const pts=[]; for(let i=0;i<NUM_POINTS;i++){ const z1=randn_bm(),z2=randn_bm();
@@ -749,9 +811,13 @@ const MODELS=[
 
   // ---- Randomness & chaos: generators and low-discrepancy sequences ----
   {id:"randu", adv:true, cat:"seq", name:"RANDU (IBM, 15 planes)", type:"scatter", color:"#ff4d4d",
-   dials:[{id:"view", label:"Viewing angle", weak:90, strong:0, classic:0, fmt:a=>a.toFixed(0)+"° from edge-on",
+   dials:[{id:"view", only2d:true, label:"Viewing angle", weak:90, strong:0, classic:0, fmt:a=>a.toFixed(0)+"° from edge-on",
      help:"Consecutive RANDU triples (x, y, z) lie on only 15 parallel planes, 9x − 6y + z = k. At 0° we look along the planes, so they show as 15 vertical lines; rotate toward 90° and the structure disappears into apparent noise."}],
-   gen:()=>randuView(dialParam("randu","view"),NUM_POINTS)},
+   gen:()=>randuView(dialParam("randu","view"),NUM_POINTS),
+   // Raw triples (x_n, x_n+1, x_n+2) for the Core 4 3-D viewer: rotate it to find the 15 planes yourself.
+   gen3:()=>{ randuState=1; let a=nextRandu(), b=nextRandu(); const pts=[];
+      for(let k=0;k<NUM_POINTS;k++){ const z=nextRandu(); pts.push({x:a-0.5,y:b-0.5,z:z-0.5}); a=b; b=z; }
+      return pts; }},
   {id:"sobol", adv:true, cat:"seq", name:"Sobol Sequence (2-D)", type:"scatter", color:"#9dff4d",
    gen:()=>{ const pts=[]; for(let n=1;n<=NUM_POINTS;n++) pts.push(sobolPoint(n)); return pts; }},
   {id:"r2", adv:true, cat:"seq", name:"R2 Sequence (golden-ratio lattice)", type:"scatter", color:"#4dd2ff",
@@ -766,25 +832,22 @@ const MODELS=[
    gen:()=>{ if(!pcgSeeded) pcgSeed(42,54); return scatterFrom(()=>pcgNext()/4294967296); }},
 
   // ---- Randomness & chaos: chaotic maps and flows ----
-  // Rössler: x'=-y-z, y'=x+ay, z'=b+z(x-c), a=b=0.2. The dial is c: ~3 period-2, ~4 period-4, 5.7 chaos.
-  {id:"rossler", adv:true, cat:"att", name:"Rössler Attractor (x–y)", type:"scatter", color:"#ff9d4d",
+  // Rössler: x'=-y-z, y'=x+ay, z'=b+z(x-c), b=0.2. Main dial c: ~3 period-2, ~4 period-4, 5.7 chaos. Dial a sets the
+  // spiral tightness: with c = 5.7, a >= 0.2 is chaotic and a near 0.1–0.15 settles to a regular loop (checked numerically).
+  {id:"rossler", adv:true, cat:"att", name:"Rössler Attractor (x–y)", type:"scatter", color:"#ff9d4d", proj:["x","y"],
    dials:[{id:"c", label:"Control parameter c", weak:2.5, strong:9, classic:5.7, fmt:c=>"c = "+c.toFixed(2),
-     help:"Walk c upward to watch order break down: a single loop, then period-doubling (2, 4, 8 loops) into chaos near the classic c = 5.7, then wider bands."}],
-   gen:()=>{ const c=dialParam("rossler","c"), f=([x,y,z])=>[-y-z, x+ROSSLER_A*y, ROSSLER_B+z*(x-c)];
-      let s=[1+attractorStart[0],1,attractorStart[1]]; const pts=[];
-      for(let i=-ROSSLER_BURN_IN;i<NUM_POINTS*ROSSLER_STEPS_PER_POINT;i++){ s=rk4Step(f,s,ROSSLER_DT);
-        if(i>=0&&i%ROSSLER_STEPS_PER_POINT===0) pts.push({x:s[0],y:s[1]}); }
-      return pts; }},
+     help:"Walk c upward to watch order break down: a single loop, then period-doubling (2, 4, 8 loops) into chaos near the classic c = 5.7, then wider bands."},
+    {id:"a", label:"Spiral parameter a", weak:0.1, strong:0.35, classic:0.2, fmt:a=>"a = "+a.toFixed(3),
+     help:"Below about 0.15 the orbit settles to a regular loop; from 0.2 up it is chaotic, and the attractor grows wider as a rises."}, SPAN_DIAL],
+   gen3:()=>{ const c=dialParam("rossler","c"), a=dialParam("rossler","a"), f=([x,y,z])=>[-y-z, x+a*y, ROSSLER_B+z*(x-c)];
+      return integrateFlow(f,[1+attractorStart[0],1,attractorStart[1]],ROSSLER_DT,spanSteps(ROSSLER_STEPS_PER_POINT,"rossler"),ROSSLER_BURN_IN,NUM_POINTS); }},
   // Thomas' cyclically symmetric attractor: x'=sin y - b x (and cyclic). b is damping: large b = sink/cycle,
   // chaos below b ≈ 0.208, b = 0 is conservative (the orbit wanders ergodically).
-  {id:"thomas", adv:true, cat:"att", name:"Thomas Attractor (x–y)", type:"scatter", color:"#d24dff",
+  {id:"thomas", adv:true, cat:"att", name:"Thomas Attractor (x–y)", type:"scatter", color:"#d24dff", proj:["x","y"],
    dials:[{id:"b", label:"Damping b", weak:0.35, strong:0.02, classic:0.19, fmt:b=>"b = "+b.toFixed(3),
-     help:"Less damping (right) takes the orbit from a limit cycle through chaos (onset b ≈ 0.208) toward a labyrinth that fills space as b → 0."}],
-   gen:()=>{ const b=dialParam("thomas","b"), f=([x,y,z])=>[Math.sin(y)-b*x, Math.sin(z)-b*y, Math.sin(x)-b*z];
-      let s=[0.1+attractorStart[0],0,0.1*attractorStart[1]]; const pts=[];
-      for(let i=-THOMAS_BURN_IN;i<NUM_POINTS*THOMAS_STEPS_PER_POINT;i++){ s=rk4Step(f,s,THOMAS_DT);
-        if(i>=0&&i%THOMAS_STEPS_PER_POINT===0) pts.push({x:s[0],y:s[1]}); }
-      return pts; }},
+     help:"Less damping (right) takes the orbit from a limit cycle through chaos (onset b ≈ 0.208) toward a labyrinth that fills space as b → 0."}, SPAN_DIAL],
+   gen3:()=>{ const b=dialParam("thomas","b"), f=([x,y,z])=>[Math.sin(y)-b*x, Math.sin(z)-b*y, Math.sin(x)-b*z];
+      return integrateFlow(f,[0.1+attractorStart[0],0,0.1*attractorStart[1]],THOMAS_DT,spanSteps(THOMAS_STEPS_PER_POINT,"thomas"),THOMAS_BURN_IN,NUM_POINTS); }},
   // Chirikov standard map: p' = p + K sin θ, θ' = θ + p' (both mod 2π). Several orbits from spread-out starts.
   {id:"chirikov", adv:true, cat:"seq", name:"Chirikov Standard Map", type:"scatter", color:"#4dff9d",
    dials:[{id:"K", label:"Kick strength K", weak:0.2, strong:5, classic:1, fmt:k=>"K = "+k.toFixed(2),
@@ -805,54 +868,49 @@ const MODELS=[
 
   // ---- Strange attractors (more 3-D flows plotted as 2-D projections, plus Tinkerbell) ----
   // Chen: x'=a(y-x), y'=(c-a)x - xz + cy, z'=xy - bz, a=35, b=3. Chaotic for c in [20, 28.4] (checked numerically).
-  {id:"chen", adv:true, cat:"att", name:"Chen Attractor (x–z)", type:"line", color:"#4dffe0",
+  {id:"chen", adv:true, cat:"att", name:"Chen Attractor (x–z)", type:"line", color:"#4dffe0", proj:["x","z"],
    dials:[{id:"c", label:"Control parameter c", weak:20, strong:28.4, classic:28, fmt:c=>"c = "+c.toFixed(1),
-     help:"A cousin of Lorenz found in 1999 by 'anti-controlling' chaos. The orbit is chaotic across c = 20 to 28.4; larger c gives a taller, wider double-scroll."}],
-   gen:()=>{ const c=dialParam("chen","c"), f=([x,y,z])=>[CHEN_A*(y-x),(c-CHEN_A)*x-x*z+c*y,x*y-CHEN_B*z];
-      let s=[-3+0.1*attractorStart[0],2,20+0.1*attractorStart[1]]; const pts=[];
-      for(let i=-CHEN_BURN_IN;i<NUM_POINTS*CHEN_STEPS_PER_POINT;i++){ s=rk4Step(f,s,CHEN_DT);
-        if(i>=0&&i%CHEN_STEPS_PER_POINT===0) pts.push({x:s[0],y:s[2]}); }
-      return pts; }},
+     help:"A cousin of Lorenz found in 1999 by 'anti-controlling' chaos. The orbit is chaotic across c = 20 to 28.4; larger c gives a taller, wider double-scroll."}, SPAN_DIAL],
+   gen3:()=>{ const c=dialParam("chen","c"), f=([x,y,z])=>[CHEN_A*(y-x),(c-CHEN_A)*x-x*z+c*y,x*y-CHEN_B*z];
+      return integrateFlow(f,[-3+0.1*attractorStart[0],2,20+0.1*attractorStart[1]],CHEN_DT,spanSteps(CHEN_STEPS_PER_POINT,"chen"),CHEN_BURN_IN,NUM_POINTS); }},
   // Aizawa (also circulated as the Langford system): a sphere with a tube through it. Dial b shifts the
   // z-offset: below ~0.58 the orbit collapses to a point; above ~0.8 it relaxes to a regular torus.
-  {id:"aizawa", adv:true, cat:"att", name:"Aizawa Attractor (x–z)", type:"line", color:"#ffa64d",
+  {id:"aizawa", adv:true, cat:"att", name:"Aizawa Attractor (x–z)", type:"line", color:"#ffa64d", proj:["x","z"],
    dials:[{id:"b", label:"Offset b", weak:0.6, strong:0.9, classic:0.7, fmt:b=>"b = "+b.toFixed(2),
-     help:"Chaotic near the classic b = 0.7. Raise b and the motion becomes a regular quasi-periodic ring; below about 0.58 it collapses to a point."}],
-   gen:()=>{ const b=dialParam("aizawa","b"), f=([x,y,z])=>[(z-b)*x-AIZAWA_D*y, AIZAWA_D*x+(z-b)*y,
+     help:"Chaotic near the classic b = 0.7. Raise b and the motion becomes a regular quasi-periodic ring; below about 0.58 it collapses to a point."}, SPAN_DIAL],
+   gen3:()=>{ const b=dialParam("aizawa","b"), f=([x,y,z])=>[(z-b)*x-AIZAWA_D*y, AIZAWA_D*x+(z-b)*y,
         AIZAWA_C+AIZAWA_A*z-z*z*z/3-(x*x+y*y)*(1+AIZAWA_E*z)+AIZAWA_F*z*x*x*x];
-      let s=[0.1+0.05*attractorStart[0],0,0]; const pts=[];
-      for(let i=-AIZAWA_BURN_IN;i<NUM_POINTS*AIZAWA_STEPS_PER_POINT;i++){ s=rk4Step(f,s,AIZAWA_DT);
-        if(i>=0&&i%AIZAWA_STEPS_PER_POINT===0) pts.push({x:s[0],y:s[2]}); }
-      return pts; }},
+      return integrateFlow(f,[0.1+0.05*attractorStart[0],0,0],AIZAWA_DT,spanSteps(AIZAWA_STEPS_PER_POINT,"aizawa"),AIZAWA_BURN_IN,NUM_POINTS); }},
   // Chua's circuit (dimensionless): x'=α(y-x-g(x)), y'=x-y+z, z'=-βy, g piecewise linear. Dial α walks from a
   // fixed point, through limit cycles and single-scroll chaos, to the double scroll.
-  {id:"chua", adv:true, cat:"att", name:"Chua Double Scroll (x–z)", type:"line", color:"#7a9dff",
+  {id:"chua", adv:true, cat:"att", name:"Chua Double Scroll (x–z)", type:"line", color:"#7a9dff", proj:["x","z"],
    dials:[{id:"alpha", label:"Gain α", weak:9, strong:18, classic:15.6, fmt:a=>"α = "+a.toFixed(1),
-     help:"Low α: the circuit settles to a point or a loop. Around 14 it makes chaos on ONE scroll; from about 15 the orbit hops between two scrolls (the double scroll). The first chaos found in an electronic circuit."}],
-   gen:()=>{ const al=dialParam("chua","alpha"), g=x=>CHUA_M1*x+0.5*(CHUA_M0-CHUA_M1)*(Math.abs(x+1)-Math.abs(x-1)),
-        f=([x,y,z])=>[al*(y-x-g(x)),x-y+z,-CHUA_BETA*y];
-      let s=[0.7+0.1*attractorStart[0],0,0]; const pts=[];
-      for(let i=-CHUA_BURN_IN;i<NUM_POINTS*CHUA_STEPS_PER_POINT;i++){ s=rk4Step(f,s,CHUA_DT);
-        if(i>=0&&i%CHUA_STEPS_PER_POINT===0) pts.push({x:s[0],y:s[2]}); }
-      return pts; }},
+     help:"Low α: the circuit settles to a point or a loop. Around 14 it makes chaos on ONE scroll; from about 15 the orbit hops between two scrolls (the double scroll). The first chaos found in an electronic circuit."},
+    {id:"beta", label:"Coupling β", weak:24, strong:36, classic:28, fmt:b=>"β = "+b.toFixed(1),
+     help:"Strength of the inductor feedback. Chaotic from about 24 to 32; by about 36 the orbit settles onto a single regular scroll. Below about 22 the orbit can run away, so the dial stops at 24."}, SPAN_DIAL],
+   gen3:()=>{ const al=dialParam("chua","alpha"), be=dialParam("chua","beta"), g=x=>CHUA_M1*x+0.5*(CHUA_M0-CHUA_M1)*(Math.abs(x+1)-Math.abs(x-1)),
+        f=([x,y,z])=>[al*(y-x-g(x)),x-y+z,-be*y];
+      return integrateFlow(f,[0.7+0.1*attractorStart[0],0,0],CHUA_DT,spanSteps(CHUA_STEPS_PER_POINT,"chua"),CHUA_BURN_IN,NUM_POINTS); }},
   // Halvorsen: three-fold cyclic symmetry, x'=-ax-4y-4z-y² (and cyclic). Classic a = 1.4 is chaotic
-  // (checked); a = 1.89, which some sources quote, is not. The orbit can run away at small a, so a guard restarts it.
-  {id:"halvorsen", adv:true, cat:"att", name:"Halvorsen Attractor (x–y)", type:"line", color:"#ff7ae0",
+  // (checked); a = 1.89, which some sources quote, is not. The orbit can run away at small a, so integrateFlow restarts it.
+  // The start is fixed (limited basin); Re-roll picks a different stretch of the same orbit via a random burn-in.
+  {id:"halvorsen", adv:true, cat:"att", name:"Halvorsen Attractor (x–y)", type:"line", color:"#ff7ae0", proj:["x","y"],
    dials:[{id:"a", label:"Damping a", weak:1.3, strong:2.6, classic:1.4, fmt:a=>"a = "+a.toFixed(2),
-     help:"Chaotic near a = 1.4. More damping makes the orbit regular; much less (below about 1.2) and it can run away to infinity, which is why the dial stops at 1.3."}],
-   gen:()=>{ const a=dialParam("halvorsen","a"), f=([x,y,z])=>[-a*x-4*y-4*z-y*y,-a*y-4*z-4*x-z*z,-a*z-4*x-4*y-x*x], start=HALVORSEN_START;
-      let s=start.slice(); const pts=[];
-      for(let i=-HALVORSEN_BURN_IN;i<NUM_POINTS*HALVORSEN_STEPS_PER_POINT;i++){ s=rk4Step(f,s,HALVORSEN_DT);
-        if(!s.every(isFinite)||Math.abs(s[0])>HALVORSEN_ESCAPE) s=start.slice();      // ran away: restart rather than plot garbage
-        if(i>=0&&i%HALVORSEN_STEPS_PER_POINT===0) pts.push({x:s[0],y:s[1]}); }
-      return pts; }},
+     help:"Chaotic near a = 1.4. More damping makes the orbit regular; much less (below about 1.2) and it can run away to infinity, which is why the dial stops at 1.3."}, SPAN_DIAL],
+   gen3:()=>{ const a=dialParam("halvorsen","a"), f=([x,y,z])=>[-a*x-4*y-4*z-y*y,-a*y-4*z-4*x-z*z,-a*z-4*x-4*y-x*x];
+      const burn=HALVORSEN_BURN_IN+Math.floor(attractorStart[0]*HALVORSEN_BURN_JITTER);
+      return integrateFlow(f,HALVORSEN_START,HALVORSEN_DT,spanSteps(HALVORSEN_STEPS_PER_POINT,"halvorsen"),burn,NUM_POINTS); }},
   // Tinkerbell map: x'=x²-y²+ax+by, y'=2xy+cx+dy. A tiny basin: most starting points and parameters escape to
-  // infinity, so the start is fixed and the dial stops at a = 0.9 (a >= 0.91 escapes).
+  // infinity, so the start is fixed and the dials stop at the edge (a >= 0.91 or b <= -0.605 escapes). Re-roll
+  // picks a different stretch of the SAME orbit (a random burn-in), since the orbit itself is deterministic.
   {id:"tinkerbell", adv:true, cat:"att", name:"Tinkerbell Map", type:"scatter", color:"#ffd2f0",
    dials:[{id:"a", label:"Parameter a", weak:0.75, strong:0.9, classic:0.9, fmt:a=>"a = "+a.toFixed(3),
-     help:"Chaotic over this whole range (a = 0.9 is the classic value, right at the edge: from about 0.91 orbits escape to infinity). Lower a gives a smaller, tighter attractor."}],
-   gen:()=>{ const a=dialParam("tinkerbell","a"); let x=TINKERBELL_X0, y=TINKERBELL_Y0; const pts=[];
-      for(let i=-TINKERBELL_BURN_IN;i<NUM_POINTS;i++){ const nx=x*x-y*y+a*x+TINKERBELL_B*y; y=2*x*y+TINKERBELL_C*x+TINKERBELL_D*y; x=nx;
+     help:"Chaotic over this whole range (a = 0.9 is the classic value, right at the edge: from about 0.91 orbits escape to infinity). Lower a gives a smaller, tighter attractor."},
+    {id:"b", label:"Parameter b", weak:-0.45, strong:-0.6013, classic:-0.6013, fmt:b=>"b = "+b.toFixed(4),
+     help:"Less negative b shrinks and simplifies the attractor; the classic −0.6013 is at the edge of the basin (at about −0.605 or below orbits escape)."}],
+   gen:()=>{ const a=dialParam("tinkerbell","a"), b=dialParam("tinkerbell","b"); let x=TINKERBELL_X0, y=TINKERBELL_Y0; const pts=[];
+      const burn=TINKERBELL_BURN_IN+Math.floor(attractorStart[0]*TINKERBELL_BURN_JITTER);
+      for(let i=-burn;i<NUM_POINTS;i++){ const nx=x*x-y*y+a*x+b*y; y=2*x*y+TINKERBELL_C*x+TINKERBELL_D*y; x=nx;
         if(!isFinite(x)||Math.abs(x)>TINKERBELL_ESCAPE){ x=TINKERBELL_X0; y=TINKERBELL_Y0; }
         if(i>=0) pts.push({x,y}); }
       return pts; }},
@@ -969,6 +1027,28 @@ const FORGE_PARAMS=[
    help:"Dummy square-root work per point, simulating the cost of a heavier algorithm. Watch the render timer."},
 ];
 
+/* ==== VIEW3D_PARAMS REGISTRY — the Core 4 view sliders. =====================
+   TO ADD A VIEW CONTROL: add ONE entry, then read it in render3D() with view3d(id). The slider,
+   readout and help line are generated.
+
+     id, label, min, max, step, value
+     fmt    readout text for the current value
+     help   one-line explanation shown under the label                          */
+const VIEW3D_PARAMS=[
+  {id:"az",    label:"Azimuth (turn)",     min:0,  max:360, step:1,   value:0,   fmt:v=>v+"°",
+   help:"Turn the model around its vertical axis. While Auto-rotate is on this slider moves by itself."},
+  {id:"el",    label:"Elevation (tilt)",   min:-90,max:90,  step:1,   value:20,  fmt:v=>v+"°",
+   help:"Look from above (+90°), level (0°) or from below (−90°)."},
+  {id:"speed", label:"Rotation speed",     min:0,  max:90,  step:1,   value:12,  fmt:v=>v+"°/s",
+   help:"How fast Auto-rotate turns the model. 0 holds it still even with Auto-rotate on."},
+  {id:"zoom",  label:"Zoom",               min:40, max:250, step:5,   value:100, fmt:v=>v+"%",
+   help:"Scale the model up to inspect detail, or down to see all of it."},
+  {id:"persp", label:"Perspective",        min:0,  max:100, step:1,   value:40,  fmt:v=>v+"%",
+   help:"0 % is flat (no depth effect). Higher exaggerates depth: parts nearer to you look bigger."},
+  {id:"size",  label:"Line / point size",  min:1,  max:8,   step:0.5, value:2,   fmt:v=>v,
+   help:"Thickness of the trace (or dot size for scatter models)."},
+];
+
 /* ==== ICON_PATHS REGISTRY — the Lucide icons this page uses (https://lucide.dev/icons/). ===
    Inner markup copied UNMODIFIED from lucide.dev, per CLAUDE.md: inline SVG only, never hand-drawn.
    lucide(name) wraps it in the standard Lucide <svg> attributes. TO ADD AN ICON: paste its inner
@@ -1010,11 +1090,11 @@ const HESTON_MU=0.05, HESTON_KAPPA=3, HESTON_THETA=0.04, HESTON_XI=0.6, HESTON_R
                                 // drift; mean-reversion speed; long-run variance (20% vol); vol-of-vol (higher = wilder clustering);
                                 // price/vol correlation (negative = the equity "leverage effect"); starting variance
 const CLAYTON_THETA=2;          // Clayton dependence; 2 -> Kendall tau 0.5. Raise for tighter lower-tail clustering (must be > 0)
-const HENON_A=1.4;              // classic; b comes from the Attraction dial. The attractor only exists for b below ~0.31 at this a
+// (Hénon a is now the "Parameter a" dial, classic 1.4. At a=1.4 the attractor only exists for b below ~0.31.)
 const HENON_BURN_IN=100;        // iterations discarded so the orbit has settled onto the attractor
 const HENON_ESCAPE=1e3;         // |x| beyond this means the orbit has escaped to infinity; restart from the start point
 const HENON_START_SPAN=0.1;     // the start point is attractorStart * this, a small nudge near the origin
-const LORENZ_SIGMA=10, LORENZ_RHO=28;   // classic chaotic values; beta comes from the Attraction dial
+const LORENZ_SIGMA=10;          // classic; beta ("Attraction") and rho are dials
 const LORENZ_DT=0.01;           // RK4 step; much larger and the orbit drifts off the attractor
 const LORENZ_STEPS_PER_POINT=2; // integration steps per plotted point -> 1500 points span ~30 time units (~20 lobes)
 const LORENZ_START_SPAN=0.1;    // x0 = 1 + attractorStart * this. No burn-in on purpose: the approach to the
@@ -1023,7 +1103,7 @@ const LORENZ_START_SPAN=0.1;    // x0 = 1 + attractorStart * this. No burn-in on
 const R2_A1=0.7548776662466927, R2_A2=0.5698402909980532;   // 1/φ and 1/φ², φ = plastic number (real root of x³ = x + 1)
 const R2_SEED=0.5;              // R2 starting offset
 const FIB_N=1597, FIB_PREV=987; // consecutive Fibonacci numbers F17, F16: a Fibonacci lattice has F17 points, we draw the first NUM_POINTS
-const ROSSLER_A=0.2, ROSSLER_B=0.2;       // classic Rössler a, b (c is the dial)
+const ROSSLER_B=0.2;                      // classic Rössler b (a and c are dials)
 const ROSSLER_DT=0.02, ROSSLER_STEPS_PER_POINT=5, ROSSLER_BURN_IN=3000;   // RK4 step; 1500 points span ~150 time units (~25 loops); 60 units discarded
 const THOMAS_DT=0.05, THOMAS_STEPS_PER_POINT=3, THOMAS_BURN_IN=2000;      // Thomas flow is slow; 100 time units discarded
 const CHIRIKOV_ORBITS=10;       // initial conditions drawn per render; more orbits = fuller phase portrait, fewer points each
@@ -1032,14 +1112,15 @@ const CHEN_A=35, CHEN_B=3;      // Chen–Ueta (1999) parameters; c is the dial
 const CHEN_DT=0.002, CHEN_STEPS_PER_POINT=8, CHEN_BURN_IN=5000;      // fast flow (a=35): small RK4 step; 1500 points span ~24 time units
 const AIZAWA_A=0.95, AIZAWA_C=0.6, AIZAWA_D=3.5, AIZAWA_E=0.25, AIZAWA_F=0.1;   // widely circulated Aizawa set; b is the dial
 const AIZAWA_DT=0.01, AIZAWA_STEPS_PER_POINT=4, AIZAWA_BURN_IN=2000; // ~60 time units, about 30 turns of the d = 3.5 rotation
-const CHUA_BETA=28, CHUA_M0=-8/7, CHUA_M1=-5/7;                      // classic dimensionless Chua constants; alpha is the dial
+const CHUA_M0=-8/7, CHUA_M1=-5/7;                                    // classic dimensionless Chua constants; alpha and beta are dials
 const CHUA_DT=0.005, CHUA_STEPS_PER_POINT=6, CHUA_BURN_IN=3000;
 const HALVORSEN_START=[-1.48,-1.51,2.04];                            // fixed start: the basin of the attractor is limited
 const HALVORSEN_DT=0.005, HALVORSEN_STEPS_PER_POINT=5, HALVORSEN_BURN_IN=3000;
-const HALVORSEN_ESCAPE=1e3;     // |x| beyond this means the orbit ran away; restart from HALVORSEN_START
-const TINKERBELL_B=-0.6013, TINKERBELL_C=2, TINKERBELL_D=0.5;        // classic constants; a is the dial
+const HALVORSEN_BURN_JITTER=4000; // extra burn-in steps (random, set by Re-roll) so each re-roll shows a different stretch of the one orbit
+const TINKERBELL_C=2, TINKERBELL_D=0.5;                             // classic constants; a and b are dials
 const TINKERBELL_X0=-0.72, TINKERBELL_Y0=-0.64;                      // standard start inside the basin
 const TINKERBELL_BURN_IN=100, TINKERBELL_ESCAPE=1e3;                 // iterations discarded; escape radius that triggers a restart
+const TINKERBELL_BURN_JITTER=3000; // extra random burn-in iterations (Re-roll): a different stretch of the same deterministic orbit
 const MIX_THETA=2;              // Clayton and Gumbel theta in the mixture (both Kendall tau = 0.5)
 const TRADING_DAYS=252;         // steps per year for the daily-step models (GJR, regime, VG, Kou)
 const GJR_ALPHA=0.04, GJR_GAMMA=0.08, GJR_DAILY_VOL=0.01;    // ARCH and leverage terms; long-run daily volatility 1%
@@ -1049,6 +1130,11 @@ const TRET_DAILY_VOL=0.01;      // fixed daily volatility for the Student-t walk
 const VG_THETA=-0.1, VG_SIGMA=0.2, VG_RATE=0.05;             // variance-gamma drift, volatility, risk-free rate (annual); illustrative
 const KOU_MU=0.10, KOU_SIGMA=0.16, KOU_P=0.4, KOU_ETA1=10, KOU_ETA2=5;   // Kou (2002) example set: P(up jump)=0.4, mean up 1/10, mean down 1/5
 const CIR_KAPPA=0.5, CIR_THETA=0.04, CIR_YEARS=5;            // mean-reversion speed, long-run rate (4%), horizon in years
+const C4_RADIUS_FRAC=0.42;      // the model's unit radius as a fraction of the canvas' shorter side, at 100 % zoom
+const C4_PERSP_MAX=0.5;         // perspective strength at the 100 % slider position; 0.5 keeps near parts under 2x larger
+const C4_DEPTH_BINS=6;          // draw the trace in this many depth layers, far to near, so near parts are brighter and thicker
+const C4_GLOW=8;                // glow radius (canvas px) on the two nearest layers
+const C4_MAX_FRAME_S=0.1;       // longest time step per animation frame, so returning to a hidden tab doesn't make the model jump
 const T_NU=4;                 // Student-t degrees of freedom; must stay 4 (the chi-square above is a 4-term sum)
 const LOAD_PER_UNIT=20;         // sqrt() calls per point per notch of the Compute Weight slider. The original used 200,
                                 // which at slider max (1000x) froze the tab for seconds; 20 keeps the top end ~0.1–0.5 s
@@ -1068,6 +1154,7 @@ const $=id=>document.getElementById(id);
 const cvStd=$("cv-std"), ctxStd=cvStd.getContext("2d");
 const cvBlend=$("cv-blend"), ctxBlend=cvBlend.getContext("2d");
 const cvForge=$("cv-forge"), ctxForge=cvForge.getContext("2d");
+const cv3d=$("cv-3d"), ctx3d=cv3d.getContext("2d");
 let forgeSink=0;                       // accumulates dummy work so the JS engine can't optimize the loop away
 let blendCache={a:null,b:null};        // raw points per Core 2 slot, so sliders re-blend without re-rolling the dice
 const normalMargins=()=>$("opt-normal-margins").checked;
@@ -1092,17 +1179,13 @@ function reseedAttractorStart(){
 // (log:true) geometric. Falls back to `classic` if the slider isn't built yet.
 const dialValueAt=(d,t)=>d.log ? d.weak*Math.pow(d.strong/d.weak,t) : d.weak+(d.strong-d.weak)*t;
 const dialPosOf=d=>100*(d.log ? Math.log(d.classic/d.weak)/Math.log(d.strong/d.weak) : (d.classic-d.weak)/(d.strong-d.weak));
+// One shared position per dial ("model.dial" -> 0..100), so the Core 1 slider and the Core 4 slider for
+// the same dial always agree. Unset = the classic value.
+const dialPct={};
+const dialPctOf=(m,d)=>{ const v=dialPct[m.id+"."+d.id]; return v===undefined?dialPosOf(d):v; };
 function dialParam(modelId,dialId){
-  const d=modelById(modelId).dials.find(x=>x.id===dialId), el=$("dial-"+modelId+"-"+dialId);
-  return el ? dialValueAt(d,parseFloat(el.value)/100) : d.classic;
-}
-
-// One RK4 step of the Lorenz system.
-function lorenzStep(s,beta){
-  const f=([x,y,z])=>[LORENZ_SIGMA*(y-x), x*(LORENZ_RHO-z)-y, x*y-beta*z];
-  const add=(a,b,k)=>a.map((v,i)=>v+b[i]*k);
-  const k1=f(s), k2=f(add(s,k1,LORENZ_DT/2)), k3=f(add(s,k2,LORENZ_DT/2)), k4=f(add(s,k3,LORENZ_DT));
-  return s.map((v,i)=>v+LORENZ_DT/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i]));
+  const m=modelById(modelId), d=m.dials.find(x=>x.id===dialId);
+  return dialValueAt(d,dialPctOf(m,d)/100);
 }
 
 function scatterFrom(fn){ const pts=[]; for(let i=0;i<NUM_POINTS;i++) pts.push({x:fn(),y:fn()}); return pts; }
@@ -1126,6 +1209,10 @@ function hawkesIntensity(n,rng){
   return pts;
 }
 const modelById=id=>MODELS.find(m=>m.id===id);
+// Derive the 2-D generator of every 3-D model from its gen3 and chosen projection (unless it defines its own gen).
+for(const m of MODELS) if(m.gen3&&!m.gen){ const [a,b]=m.proj; m.gen=()=>m.gen3().map(p=>({x:p[a],y:p[b]})); }
+// Integration steps between plotted points, scaled by the model's "Orbit length" dial.
+const spanSteps=(base,id)=>Math.max(1,Math.round(base*dialParam(id,"span")));
 
 // Terminal log. Text goes in via textContent, so model names can never inject markup.
 function logTerminal(msg,color){
@@ -1209,9 +1296,9 @@ function renderStandard(reroll,quiet){
 // (c) the Re-roll button can change them without disturbing Core 1.
 const newSeedPair=()=>({seed:Math.floor(Math.random()*4294967296), start:[Math.random(),Math.random(),Math.random()]});
 let blendSeeds={a:newSeedPair(), b:newSeedPair()};
-function genSeeded(m,pair){
+function genSeeded(m,pair,kind="gen"){
   const s0=simSeed, a0=attractorStart; simSeed=pair.seed; attractorStart=pair.start;
-  try{ return m.gen(); } finally{ simSeed=s0; attractorStart=a0; }
+  try{ return m[kind](); } finally{ simSeed=s0; attractorStart=a0; }
 }
 
 // Regenerate the RAW data for one slot (called when its model changes, or on Re-roll / Surprise).
@@ -1315,6 +1402,113 @@ function queueForge(){
   requestAnimationFrame(()=>{ forgeQueued=false; renderForge(); });
 }
 
+/* ==== CORE 4 — 3-D ATTRACTOR VIEWER ========================================
+   Draws the selected model's real 3-D orbit (its gen3) with a hand-rolled rotation + perspective
+   projection on a 2-D canvas, so it needs no library. Animation only runs while Auto-rotate is on,
+   the canvas is on screen and the tab is visible; otherwise it redraws only when something changes. */
+let c4Model="lorenz", c4Pair=newSeedPair(), c4Pts=[], c4Dirty=true, c4Raf=0, c4Last=0, c4Visible=true;
+let c4Auto=!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches);   // reduced motion: start still
+let c4Az=0;                     // azimuth in degrees, kept as a float: the slider rounds to its 1-degree step, which would swallow the small per-frame turn
+const view3d=id=>parseFloat($("v3-"+id).value);
+const v3Readout=id=>{ $("v3-"+id+"-val").textContent=VIEW3D_PARAMS.find(p=>p.id===id).fmt($("v3-"+id).value); };
+
+// Regenerate the orbit and normalize it: centered on its bounding box, scaled to unit radius, so every
+// model fills the view the same way and rotation is about the middle of the attractor.
+function regenCore4(){
+  const raw=genSeeded(modelById(c4Model),c4Pair,"gen3"), lo=[Infinity,Infinity,Infinity], hi=[-Infinity,-Infinity,-Infinity];
+  for(const p of raw) for(const [k,i] of [["x",0],["y",1],["z",2]]){ if(p[k]<lo[i])lo[i]=p[k]; if(p[k]>hi[i])hi[i]=p[k]; }
+  const c=lo.map((v,i)=>(v+hi[i])/2); let R=0;
+  for(const p of raw) R=Math.max(R,Math.hypot(p.x-c[0],p.y-c[1],p.z-c[2]));
+  R=R>1e-9?R:1;
+  c4Pts=raw.map(p=>({x:(p.x-c[0])/R,y:(p.y-c[1])/R,z:(p.z-c[2])/R}));
+}
+
+function render3D(){
+  const cv=cv3d, ctx=ctx3d, W=cv.width, H=cv.height, m=modelById(c4Model), col=$("col-"+m.id).value;
+  ctx.clearRect(0,0,W,H);
+  drawGrid(ctx,cv,"rgba(255,0,255,.05)");
+  const az=c4Az*Math.PI/180, el=view3d("el")*Math.PI/180, zoom=view3d("zoom")/100,
+        P=view3d("persp")/100*C4_PERSP_MAX, size=view3d("size"), R=Math.min(W,H)*C4_RADIUS_FRAC*zoom,
+        ca=Math.cos(az), sa=Math.sin(az), ce=Math.cos(el), se=Math.sin(el);
+  // Rotate about the vertical (z) axis by azimuth, then tilt by elevation. depth grows away from the viewer.
+  const proj=p=>{ const x1=p.x*ca-p.y*sa, y1=p.x*sa+p.y*ca, up=y1*se+p.z*ce, depth=y1*ce-p.z*se, k=1/(1+P*depth);
+    return {X:W/2+R*x1*k, Y:H/2-R*up*k, near:(1-depth)/2, k}; };
+  const q=c4Pts.map(proj), bins=Array.from({length:C4_DEPTH_BINS},()=>[]);
+  const binOf=n=>Math.min(C4_DEPTH_BINS-1,Math.max(0,Math.floor(n*C4_DEPTH_BINS)));
+  if(m.type==="line"){ for(let i=1;i<q.length;i++) bins[binOf((q[i].near+q[i-1].near)/2)].push(i); }
+  else for(let i=0;i<q.length;i++) bins[binOf(q[i].near)].push(i);
+  ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineCap="round"; ctx.lineJoin="round";
+  for(let b=0;b<C4_DEPTH_BINS;b++){            // far layers first, so near layers draw on top
+    const f=b/(C4_DEPTH_BINS-1);
+    ctx.globalAlpha=0.25+0.75*f; ctx.lineWidth=size*(0.6+0.8*f);
+    ctx.shadowBlur=b>=C4_DEPTH_BINS-2?C4_GLOW:0; ctx.shadowColor=col;
+    if(m.type==="line"){ ctx.beginPath(); for(const i of bins[b]){ ctx.moveTo(q[i-1].X,q[i-1].Y); ctx.lineTo(q[i].X,q[i].Y); } ctx.stroke(); }
+    else { const d=size*(0.7+0.9*f); for(const i of bins[b]) ctx.fillRect(q[i].X-d/2,q[i].Y-d/2,d,d); }
+  }
+  ctx.globalAlpha=1; ctx.shadowBlur=0;
+  // Axis key (x, y, z) so the viewer can tell which way is which.
+  const ox=48, oy=H-48, L=34;
+  ctx.font="14px monospace"; ctx.lineWidth=2; ctx.textAlign="center"; ctx.textBaseline="middle";
+  for(const [name,v,c] of [["x",[1,0,0],"#ff6b6b"],["y",[0,1,0],"#6bff9d"],["z",[0,0,1],"#6bb8ff"]]){
+    const x1=v[0]*ca-v[1]*sa, y1=v[0]*sa+v[1]*ca, up=y1*se+v[2]*ce, ex=ox+L*x1, ey=oy-L*up;
+    ctx.strokeStyle=c; ctx.fillStyle=c; ctx.beginPath(); ctx.moveTo(ox,oy); ctx.lineTo(ex,ey); ctx.stroke();
+    ctx.fillText(name,ox+(L+12)*x1,oy-(L+12)*up);
+  }
+}
+
+function c4Frame(t){
+  c4Raf=0;
+  if(c4Dirty){ regenCore4(); c4Dirty=false; }
+  const speed=view3d("speed");
+  if(c4Auto&&speed>0){
+    const dt=Math.min(C4_MAX_FRAME_S,Math.max(0,(t-c4Last)/1000));
+    c4Az=(c4Az+speed*dt)%360; $("v3-az").value=c4Az; v3Readout("az");
+  }
+  c4Last=t;
+  render3D();
+  if(c4Auto&&speed>0&&c4Visible&&!document.hidden) c4Raf=requestAnimationFrame(c4Frame);
+}
+function queue3D(){ if(c4Raf) return; c4Last=performance.now(); c4Raf=requestAnimationFrame(c4Frame); }
+
+function syncAutoSwitch(){
+  const b=$("c4-auto"); b.setAttribute("aria-checked",c4Auto?"true":"false");
+  b.querySelector(".adv-ico").innerHTML=lucide(c4Auto?"toggle-right":"toggle-left");
+}
+// The selected model's dials, mirrored here so a 3-D model can be reshaped without leaving Core 4.
+function buildCore4Dials(){
+  const box=$("c4-dials"), m=modelById(c4Model); box.innerHTML="";
+  for(const d of (m.dials||[])){
+    if(d.only2d) continue;
+    const g=dialGroup(m,d,"dial4-"); g.style.color=$("col-"+m.id).value; box.appendChild(g);
+    $("dial4-"+m.id+"-"+d.id).addEventListener("input",()=>setDialPct(m,d,parseFloat($("dial4-"+m.id+"-"+d.id).value)));
+    dialReadout(m,d);
+  }
+}
+function initCore4(){
+  $("c4-model").innerHTML=MODELS.filter(m=>m.gen3).map(m=>'<option value="'+m.id+'">'+m.name+'</option>').join("");
+  $("c4-model").value=c4Model;
+  const grid=$("c4-view");
+  for(const p of VIEW3D_PARAMS){
+    const d=document.createElement("div"); d.className="ctl";
+    d.innerHTML=
+      '<div class="row"><label for="v3-'+p.id+'">'+p.label+'</label><span class="val" id="v3-'+p.id+'-val"></span></div>'+
+      '<p class="help">'+p.help+'</p>'+
+      '<input type="range" id="v3-'+p.id+'" min="'+p.min+'" max="'+p.max+'" step="'+p.step+'" value="'+p.value+'">';
+    grid.appendChild(d);
+    $("v3-"+p.id).addEventListener("input",()=>{ if(p.id==="az") c4Az=view3d("az"); v3Readout(p.id); queue3D(); });
+    v3Readout(p.id);
+    if(p.id==="az") c4Az=p.value;
+  }
+  $("btn-run-3d").innerHTML=lucide("play");
+  $("btn-run-3d").addEventListener("click",()=>{ c4Pair=newSeedPair(); c4Dirty=true; queue3D(); });
+  $("c4-model").addEventListener("change",()=>{ c4Model=$("c4-model").value; c4Dirty=true; buildCore4Dials(); queue3D(); });
+  $("c4-auto").addEventListener("click",()=>{ c4Auto=!c4Auto; syncAutoSwitch(); queue3D(); });
+  syncAutoSwitch(); buildCore4Dials();
+  if("IntersectionObserver" in window) new IntersectionObserver(es=>{ c4Visible=es[0].isIntersecting; if(c4Visible) queue3D(); }).observe(cv3d);
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden) queue3D(); });
+  queue3D();
+}
+
 // Switching modes discards every cached Middle-Square sample (Core 1 and any Core 2 slot
 // showing it) and redraws, so the new behavior is visible immediately. msSeen is cleared
 // so a mode that reseeds starts a fresh chain instead of inheriting "pure"'s dead end.
@@ -1387,36 +1581,47 @@ function buildAdvancedMenu(){
 // One group per (model, dial). The slider is 0–100% "pull"; the real parameter it maps to
 // is printed beside it. A group is visible only while its model is checked, and takes the model's color.
 let dialQueued=false;
+// Both the Core 1 slider ("dial-") and the Core 4 slider ("dial4-") for a dial show the same readout.
 function dialReadout(m,d){
-  const el=$("dial-"+m.id+"-"+d.id);
-  $("dial-"+m.id+"-"+d.id+"-val").textContent=Math.round(el.value)+"% · "+d.fmt(dialParam(m.id,d.id));
+  const txt=Math.round(dialPctOf(m,d))+"% · "+d.fmt(dialParam(m.id,d.id));
+  for(const pre of ["dial-","dial4-"]){ const el=$(pre+m.id+"-"+d.id+"-val"); if(el) el.textContent=txt; }
 }
 function syncDials(){
   let any=false;
-  for(const g of document.querySelectorAll(".dial")){
+  for(const g of document.querySelectorAll("#dial-box .dial")){
     const on=$("chk-"+g.dataset.model).checked;
     g.hidden=!on; any=any||on;
     g.style.color=$("col-"+g.dataset.model).value;
   }
   $("dial-box").hidden=!any;
 }
+// Move a dial from either slider: store it, mirror it to the other slider, drop the cached samples that
+// depend on it, and redraw (coalesced to one redraw per animation frame during a drag).
+function setDialPct(m,d,pct){
+  dialPct[m.id+"."+d.id]=pct;
+  for(const pre of ["dial-","dial4-"]){ const el=$(pre+m.id+"-"+d.id); if(el&&parseFloat(el.value)!==pct) el.value=pct; }
+  dialReadout(m,d);
+  delete stdCache[m.id];                                            // new parameter -> new points
+  for(const slot of ["a","b"]) if($("blend-"+slot).value===m.id) rollBlendSlot(slot);
+  if(m.id===c4Model){ c4Dirty=true; queue3D(); }
+  if(dialQueued) return;
+  dialQueued=true;
+  requestAnimationFrame(()=>{ dialQueued=false; renderStandard(false,true); renderBlender(); });
+}
+// A dial group (label, readout, help, slider). `pre` is "dial-" (Core 1) or "dial4-" (Core 4).
+function dialGroup(m,d,pre){
+  const id=pre+m.id+"-"+d.id, g=document.createElement("div");
+  g.className="dial"; g.dataset.model=m.id;
+  g.innerHTML=
+    '<div class="row"><label for="'+id+'">'+(pre==="dial-"?m.name+' — ':'')+d.label+'</label><span class="val" id="'+id+'-val"></span></div>'+
+    '<p class="help">'+d.help+'</p>'+
+    '<input type="range" id="'+id+'" min="0" max="100" step="any" value="'+dialPctOf(m,d)+'">';
+  return g;
+}
 function buildDials(){
   for(const m of MODELS) for(const d of (m.dials||[])){
-    const id="dial-"+m.id+"-"+d.id, g=document.createElement("div");
-    g.className="dial"; g.dataset.model=m.id;
-    g.innerHTML=
-      '<div class="row"><label for="'+id+'">'+m.name+' — '+d.label+'</label><span class="val" id="'+id+'-val"></span></div>'+
-      '<p class="help">'+d.help+'</p>'+
-      '<input type="range" id="'+id+'" min="0" max="100" step="any" value="'+dialPosOf(d)+'">';
-    $("dial-box").appendChild(g);
-    $(id).addEventListener("input",()=>{
-      dialReadout(m,d);
-      delete stdCache[m.id];                                            // new parameter -> new points
-      for(const slot of ["a","b"]) if($("blend-"+slot).value===m.id) rollBlendSlot(slot);
-      if(dialQueued) return;                                            // coalesce a drag to one redraw per frame
-      dialQueued=true;
-      requestAnimationFrame(()=>{ dialQueued=false; renderStandard(false,true); renderBlender(); });
-    });
+    $("dial-box").appendChild(dialGroup(m,d,"dial-"));
+    $("dial-"+m.id+"-"+d.id).addEventListener("input",()=>setDialPct(m,d,parseFloat($("dial-"+m.id+"-"+d.id).value)));
     dialReadout(m,d);
   }
   syncDials();
@@ -1470,7 +1675,7 @@ function init(){
   $("btn-reroll-blend").insertAdjacentHTML("afterbegin",lucide("play"));
   for(const m of MODELS){
     $("chk-"+m.id).addEventListener("change",()=>{ syncDials(); renderStandard(); });
-    $("col-"+m.id).addEventListener("input",()=>{ syncDials(); renderStandard(); });   // "input" so color drags preview live
+    $("col-"+m.id).addEventListener("input",()=>{ syncDials(); renderStandard(); if(m.id===c4Model) queue3D(); });   // "input" so color drags preview live
   }
   for(const slot of ["a","b"]) $("blend-"+slot).addEventListener("change",()=>{ rollBlendSlot(slot); renderBlender(); });
   for(const id of ["blend-pos","blend-smooth"]) $(id).addEventListener("input",()=>{ syncBlendReadouts(); renderBlender(); });
@@ -1490,6 +1695,7 @@ function init(){
   $("ms-help").textContent=MS_MODES.find(m=>m.id===msMode).help;
 
   buildDials();
+  initCore4();
   logTerminal("SYS_INIT: "+MODELS.length+" models loaded.","#ff00ff");
   renderStandard(); renderBlender(); queueForge();
 }
