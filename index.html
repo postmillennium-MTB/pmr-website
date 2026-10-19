@@ -1001,7 +1001,8 @@
 
   @media (max-width: 640px) {
     nav { padding: 0.875rem 1.25rem; }
-    .nav-links { gap: 1.25rem; }
+    .nav-right { gap: 0.9rem; }
+    .nav-links { gap: 1rem; }
     .nav-links li:nth-child(n+3) { display: none; }
     .nav-wordmark { display: none; }
     .hero { padding: 7.5rem 1.25rem 3rem; min-height: auto; }
@@ -1042,6 +1043,16 @@
     .group-mark svg { width: 12px; height: 12px; }
     .share-btn svg { width: 12px; height: 12px; }
     .copied-label { font-size: 0.52rem; padding: 3px 6px; right: calc(100% + 6px); }
+  }
+
+  /* Narrow phones: the colour-scheme button drops its label (the icon stays),
+     and below 340px only the first link is kept, so the Stochastic OS icon
+     at the end of the row is never pushed off screen. */
+  @media (max-width: 400px) {
+    #theme-label { display: none; }
+  }
+  @media (max-width: 340px) {
+    .nav-links li:nth-child(n+2) { display: none; }
   }
 
   /* ═══════════════════════════════════════════════════════════════
@@ -1191,16 +1202,6 @@
       </svg>
     </a>
 
-    <a class="random-link" href="/random/" aria-label="Stochastic OS — randomness lab">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-           stroke-linejoin="round" class="lucide lucide-dices" aria-hidden="true" focusable="false">
-        <rect width="12" height="12" x="2" y="10" rx="2" ry="2"/>
-        <path d="m17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6"/>
-        <path d="M6 18h.01"/><path d="M10 14h.01"/><path d="M15 6h.01"/><path d="M18 9h.01"/>
-      </svg>
-    </a>
-
     <button class="theme-btn" id="theme-btn" aria-label="Cycle color scheme">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1209,6 +1210,17 @@
       </svg>
       <span id="theme-label">Day</span>
     </button>
+
+    <a class="random-link" href="/random/" aria-label="Stochastic OS — randomness lab">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+           stroke-linejoin="round" class="lucide lucide-galaxy" aria-hidden="true" focusable="false">
+        <path d="M16.005 15.108a5.041 6.52 28.25 00-8.008-6.217 5.041 6.52 28.25 008.008 6.217A11.884 7.288-60.76 014.029 7.001"/>
+        <path d="M17 21h.01"/><path d="M7 3h.01"/>
+        <path d="M7.997 8.891a11.885 7.288-60.756 0111.977 8.107"/>
+        <circle cx="12" cy="12" r="1" fill="currentColor"/>
+      </svg>
+    </a>
   </div>
 </nav>
 
