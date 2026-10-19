@@ -131,6 +131,7 @@ h3{margin:.5rem 0 .25rem; font-size:.8rem; text-transform:uppercase}
 .model-row:hover{background:rgba(0,255,255,.1)}
 .model-row label{display:flex; align-items:center; gap:.5rem; flex:1; cursor:pointer; font-size:.8rem; color:var(--ink)}
 
+.opt-help{margin:.25rem .5rem 0; font-size:.7rem; line-height:1.3; color:var(--ink-dim)}
 #terminal-log{font-size:.75rem; height:120px; overflow-y:auto; border-left:2px solid var(--pink); padding-left:.5rem; color:var(--ink)}
 .log-boot{color:var(--pink)}
 .metric{border:1px solid var(--green); background:rgba(0,0,0,.6); color:var(--green); font-size:.75rem; padding:.2rem .6rem}
@@ -209,6 +210,13 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
         <div id="seq-box"></div>
         <h3 style="color:var(--green)">Financial Stochastics</h3>
         <div id="fin-box"></div>
+        <div class="model-row" style="margin-top:.5rem; border-top:1px solid rgba(0,255,255,.25)">
+          <label for="opt-normal-margins">
+            <input type="checkbox" id="opt-normal-margins">
+            <span>Normal margins (copulas)</span>
+          </label>
+        </div>
+        <p class="opt-help">Maps the Student-t and Clayton copulas to standard-normal margins and puts all copulas on one shared axis range, so their dependence and tail shape are directly comparable. Also applies to Core 2.</p>
         <button type="button" class="btn btn-pink" id="btn-run">Re-roll Sequences</button>
       </div>
       <div class="panel panel-1">
@@ -293,6 +301,35 @@ function gammaSample(shape){
   }
 }
 
+// Inverse standard-normal CDF (probit), Acklam's rational approximation (relative
+// error < 1.2e-9: far below one canvas pixel). Input is clamped away from 0 and 1
+// because a Clayton draw can underflow to exactly 0, and probit(0) = -Infinity
+// would poison the min/max scaling.
+const PROBIT_EPS=1e-12;
+function probit(p){
+  const a=[-3.969683028665376e+01,2.209460984245205e+02,-2.759285104469687e+02,1.383577518672690e+02,-3.066479806614716e+01,2.506628277459239e+00];
+  const b=[-5.447609879822406e+01,1.615858368580409e+02,-1.556989798598866e+02,6.680131188771972e+01,-1.328068155288572e+01];
+  const c=[-7.784894002430293e-03,-3.223964580411365e-01,-2.400758277161838e+00,-2.549732539343734e+00,4.374664141464968e+00,2.938163982698783e+00];
+  const d=[7.784695709041462e-03,3.224671290700398e-01,2.445134137142996e+00,3.754408661907416e+00];
+  const P_LOW=0.02425;                               // below this (and above 1-P_LOW) use the tail formula
+  p=Math.min(1-PROBIT_EPS,Math.max(PROBIT_EPS,p));
+  let q,r;
+  if(p<P_LOW){
+    q=Math.sqrt(-2*Math.log(p));
+    return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+  }
+  if(p>1-P_LOW){
+    q=Math.sqrt(-2*Math.log(1-p));
+    return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+  }
+  q=p-0.5; r=q*q;
+  return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
+}
+
+// Student-t CDF for exactly nu=4, which has a closed form (x = t/sqrt(4+t^2)).
+// Only valid for nu=4 — keep in step with T_NU.
+function tCdf4(t){ const x=t/Math.sqrt(4+t*t); return 0.5+0.75*x-0.25*x*x*x; }
+
 // Van der Corput radical inverse; pairing bases 2 and 3 gives the 2-D Halton set.
 function halton(index,base){
   let result=0,f=1/base,i=index;
@@ -358,6 +395,11 @@ function nextLogistic(){ lmState=LOGISTIC_R*lmState*(1-lmState); return lmState;
      color  default plot color (user can change per model in Core 1)
      on     checked by default in Core 1
      defA / defB   default selection in the Core 2 A / B dropdown
+     copula   true for dependence-structure models; with "Normal margins" ON these share
+              one axis range in Core 1 so their tails can be compared directly
+     toNormal optional fn mapping ONE coordinate from this model's native margin to a
+              standard normal; applied only when "Normal margins" is ON. Omit it when the
+              model is already N(0,1) per axis (the Gaussian copula)
      gen    function returning the points                                   */
 const MODELS=[
   {id:"prng",     cat:"seq", name:"Math.random (browser PRNG)", type:"scatter", color:"#00ffff", gen:()=>scatterFrom(Math.random)},
@@ -382,12 +424,13 @@ const MODELS=[
         s=lorenzStep(s); if(i>=0 && i%LORENZ_STEPS_PER_POINT===0) pts.push({x:s[0],y:s[2]}); }
       return pts; }},
 
-  {id:"gauss",    cat:"fin", name:"Gaussian Copula (ρ=0.8)",    type:"scatter", color:"#aa00ff",
+  {id:"gauss",    cat:"fin", name:"Gaussian Copula (ρ=0.8)",    type:"scatter", color:"#aa00ff", copula:true,
    gen:()=>{ const pts=[]; for(let i=0;i<NUM_POINTS;i++){ const z1=randn_bm(),z2=randn_bm();
       pts.push({x:z1,y:COPULA_RHO*z1+Math.sqrt(1-COPULA_RHO*COPULA_RHO)*z2}); } return pts; }},
   // Student-t via normal / sqrt(chi-square/nu). Chi-square(4) is exactly the sum
   // of four squared standard normals, so nu=4 needs no approximation.
-  {id:"tcopula",  cat:"fin", name:"Student-t Copula (ν=4)",     type:"scatter", color:"#0055ff", on:true,
+  {id:"tcopula",  cat:"fin", name:"Student-t Copula (ν=4)",     type:"scatter", color:"#0055ff", on:true, copula:true,
+   toNormal:x=>probit(tCdf4(x)),
    gen:()=>{ const pts=[]; for(let i=0;i<NUM_POINTS;i++){
       const z1=randn_bm(),z2=randn_bm();
       const w=randn_bm()**2+randn_bm()**2+randn_bm()**2+randn_bm()**2;
@@ -417,8 +460,10 @@ const MODELS=[
       return pts; }},
   // Clayton copula via Marshall–Olkin: V~Gamma(1/theta), U_i=(1+E_i/V)^(-1/theta), E_i~Exp(1).
   // Lower-tail dependent: joint crashes cluster in the bottom-left corner. Plotted on
-  // UNIFORM margins (not normal like the other two copulas), so compare tail shape, not scale.
-  {id:"clayton",  cat:"fin", name:"Clayton Copula (θ=2, uniform margins)", type:"scatter", color:"#7cff4d",
+  // UNIFORM margins natively; the "Normal margins" setting maps them to N(0,1) via probit
+  // so the tail shape is comparable with the Gaussian and Student-t copulas.
+  {id:"clayton",  cat:"fin", name:"Clayton Copula (θ=2)", type:"scatter", color:"#7cff4d", copula:true,
+   toNormal:probit,
    gen:()=>{ const pts=[], inv=-1/CLAYTON_THETA;
       for(let i=0;i<NUM_POINTS;i++){
         const V=gammaSample(1/CLAYTON_THETA);
@@ -479,7 +524,13 @@ const cvStd=$("cv-std"), ctxStd=cvStd.getContext("2d");
 const cvBlend=$("cv-blend"), ctxBlend=cvBlend.getContext("2d");
 const cvForge=$("cv-forge"), ctxForge=cvForge.getContext("2d");
 let forgeSink=0;                       // accumulates dummy work so the JS engine can't optimize the loop away
-let blendCache={a:null,b:null};        // normalized points per Core 2 slot, so sliders re-blend without re-rolling the dice
+let blendCache={a:null,b:null};        // raw points per Core 2 slot, so sliders re-blend without re-rolling the dice
+const normalMargins=()=>$("opt-normal-margins").checked;
+// A model's points as the user currently sees them: unchanged, or (Normal margins ON)
+// each coordinate mapped to a standard normal for models that define `toNormal`.
+function viewPoints(m,pts){
+  return (normalMargins()&&m.toNormal)?pts.map(p=>({x:m.toNormal(p.x),y:m.toNormal(p.y)})):pts;
+}
 let forgeQueued=false;
 let stdCache={};                       // Core 1 points per model id; cleared by the Re-roll button
 
@@ -513,10 +564,13 @@ function drawGrid(ctx,cv,color){
   ctx.stroke();
 }
 
-function plotData(ctx,cv,data,col,type,lineW){
+// `shared` (optional {lo,hi}) forces one common axis range for both axes instead of
+// auto-fitting this layer, so several layers can be overlaid on the same scale.
+function plotData(ctx,cv,data,col,type,lineW,shared){
   if(!data.length) return;
   let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
-  for(const p of data){
+  if(shared){ minX=minY=shared.lo; maxX=maxY=shared.hi; }
+  else for(const p of data){
     if(p.x<minX)minX=p.x; if(p.x>maxX)maxX=p.x;
     if(p.y<minY)minY=p.y; if(p.y>maxY)maxY=p.y;
   }
@@ -545,20 +599,33 @@ function plotData(ctx,cv,data,col,type,lineW){
 function renderStandard(reroll){
   if(reroll) stdCache={};
   drawGrid(ctxStd,cvStd,"rgba(0,255,255,.05)");
-  let active=0;
+  const layers=[];
   for(const m of MODELS){
     if(!$("chk-"+m.id).checked) continue;
-    active++;
     if(!stdCache[m.id]) stdCache[m.id]=m.gen();
-    plotData(ctxStd,cvStd,stdCache[m.id],$("col-"+m.id).value,m.type,2);
+    layers.push({m,pts:viewPoints(m,stdCache[m.id])});
   }
-  logTerminal((reroll?"CORE 1: RE-ROLLED. ":"CORE 1: REDRAWN. ")+"LAYERS ACTIVE: "+active, active>0?"#00ff88":"#ff0000");
+  // With normal margins ON, every active copula layer shares one axis range (their union),
+  // so a heavier tail visibly reaches further instead of each layer being stretched to fill the box.
+  let shared=null;
+  if(normalMargins()){
+    let lo=Infinity,hi=-Infinity;
+    for(const L of layers) if(L.m.copula) for(const p of L.pts){
+      lo=Math.min(lo,p.x,p.y); hi=Math.max(hi,p.x,p.y); }
+    if(lo<hi) shared={lo,hi};
+  }
+  for(const L of layers)
+    plotData(ctxStd,cvStd,L.pts,$("col-"+L.m.id).value,L.m.type,2,L.m.copula?shared:null);
+  logTerminal((reroll?"CORE 1: RE-ROLLED. ":"CORE 1: REDRAWN. ")+"LAYERS ACTIVE: "+layers.length+(normalMargins()?" [NORMAL MARGINS]":""),
+    layers.length>0?"#00ff88":"#ff0000");
 }
 
 /* ==== CORE 2 — BLENDER ==================================================== */
-// Regenerate the data for one slot (called when its model changes, or on Surprise).
+// Regenerate the RAW data for one slot (called when its model changes, or on Surprise).
+// Normalization happens at render time so the Normal-margins toggle can re-view the
+// same sample without re-rolling it.
 function rollBlendSlot(slot){
-  blendCache[slot]=normalizeSequence(modelById($("blend-"+slot).value).gen());
+  blendCache[slot]=modelById($("blend-"+slot).value).gen();
 }
 
 function renderBlender(){
@@ -566,7 +633,7 @@ function renderBlender(){
   const A=modelById($("blend-a").value), B=modelById($("blend-b").value);
   if(!blendCache.a) rollBlendSlot("a");
   if(!blendCache.b) rollBlendSlot("b");
-  const nA=blendCache.a, nB=blendCache.b;
+  const nA=normalizeSequence(viewPoints(A,blendCache.a)), nB=normalizeSequence(viewPoints(B,blendCache.b));
   const pos=(parseFloat($("blend-pos").value)+100)/200;   // [-100,100] -> [0,1]
   const smooth=parseFloat($("blend-smooth").value)/100;   // [0,100]  -> [0,1]; width of the crossfade band
 
@@ -689,6 +756,7 @@ function init(){
   for(const slot of ["a","b"]) $("blend-"+slot).addEventListener("change",()=>{ rollBlendSlot(slot); renderBlender(); });
   for(const id of ["blend-pos","blend-smooth"]) $(id).addEventListener("input",()=>{ syncBlendReadouts(); renderBlender(); });
   $("blend-color").addEventListener("change",renderBlender);
+  $("opt-normal-margins").addEventListener("change",()=>{ renderStandard(); renderBlender(); });
 
   logTerminal("SYS_INIT: "+MODELS.length+" models loaded.","#ff00ff");
   renderStandard(); renderBlender(); queueForge();
