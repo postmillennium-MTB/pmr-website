@@ -312,9 +312,10 @@
   .hero {
     position: relative;
     max-width: 1200px; margin: 0 auto;
-    min-height: 85vh;
+    /* Height follows the content, not the viewport: a vh-based min-height
+       made the gaps above and below the hero grow with the screen. */
     display: flex; flex-direction: column; justify-content: center;
-    padding: 9rem 2.5rem 3rem;
+    padding: 6.5rem 2.5rem 1rem;
   }
 
   /* ── The painting ────────────────────────────────────────────── */
