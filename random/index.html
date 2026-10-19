@@ -159,7 +159,15 @@ h3{margin:.5rem 0 .25rem; font-size:.8rem; text-transform:uppercase}
 .notice a{color:var(--ink); text-decoration:underline}
 
 /* Financial-model gate: a button under the Advanced menu, and the disclaimer dialog it opens. */
-.fin-gate{margin-top:.75rem; border-top:1px solid rgba(0,255,255,.25); padding-top:.6rem}
+.fin-gate{margin-top:1.5rem; border-top:1px solid rgba(0,255,255,.25); padding-top:.6rem}
+/* Collapse toggle added to the Core 2-4 panel headers by init(); a collapsed panel keeps only its header. */
+.collapse-btn{display:flex; align-items:center; justify-content:center; width:44px; height:44px; margin:-.5rem 0 -.5rem auto; cursor:pointer;
+  color:inherit; background:none; border:0; border-radius:4px}
+.collapse-btn:hover{background:rgba(255,255,255,.1)}
+.collapse-btn svg{width:22px; height:22px; display:block; transition:transform .2s; transform:rotate(180deg)}  /* up = open, down = collapsed */
+.panel.collapsed .collapse-btn svg{transform:none}
+.panel.collapsed > :not(.panel-head){display:none}
+.panel.collapsed .panel-head{margin-bottom:0; padding-bottom:0; border-bottom:0}
 .btn-ghost{display:flex; align-items:center; gap:.5rem; width:100%; min-height:44px; padding:.35rem .75rem; cursor:pointer;
   font-family:var(--mono); font-size:.8rem; text-align:left; color:var(--green); background:rgba(0,255,136,.06);
   border:1px solid var(--green); border-radius:4px; transition:background .2s,color .2s}
@@ -322,11 +330,6 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
             <a class="adv-link" href="https://github.com/postmillennium-MTB/pmr-website/blob/main/random/README.md" target="_blank" rel="noopener">Model details, formulas &amp; sources (README) ↗</a>
           </div>
         </details>
-        <!-- Financial stochastic models are OFF by default. This button opens the disclaimer dialog below; the models are only added after the box is ticked. -->
-        <div class="fin-gate">
-          <button type="button" class="btn-ghost" id="btn-fin" aria-haspopup="dialog"><span id="fin-ico" class="fin-ico"></span><span id="fin-label"></span></button>
-          <p class="opt-help" id="fin-help"></p>
-        </div>
         <!-- Attraction dials: BUILT FROM each model's `dials` in the `MODELS` registry; a dial shows only while its model is checked. -->
         <div id="dial-box" hidden></div>
         <div class="model-row" style="margin-top:.5rem; border-top:1px solid rgba(0,255,255,.25)">
@@ -426,6 +429,12 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
     <div class="ctl-grid p" id="c4-view"></div>
     <div id="c4-dials" class="c4-dials" aria-label="Dials for the selected 3-D model"></div>
   </section>
+
+  <!-- Financial stochastic models are OFF by default. This button (bottom of the page) opens the disclaimer dialog below; the models are only added after the box is ticked. -->
+  <div class="fin-gate">
+    <button type="button" class="btn-ghost" id="btn-fin" aria-haspopup="dialog"><span id="fin-ico" class="fin-ico"></span><span id="fin-label"></span></button>
+    <p class="opt-help" id="fin-help"></p>
+  </div>
 
   <!-- Disclaimer (wording supplied by the author). Styled by .legal; text is deliberately muted but kept above 11px and at full opacity so it stays readable. -->
   <footer class="legal" id="legal" aria-label="Legal and educational disclaimer">
@@ -1929,6 +1938,20 @@ function buildDials(){
 /* ==== INIT ================================================================ */
 function init(){
   $("pts-tag").textContent=NUM_POINTS+" PT/SEQ";
+
+  // Collapse toggles for Cores 2-4: a button at the end of each panel header hides everything below it.
+  for(const sec of document.querySelectorAll(".panel-2, .panel-3, .panel-4")){
+    const head=sec.querySelector(".panel-head"), title=head.querySelector("h2").textContent;
+    const b=document.createElement("button"); b.type="button"; b.className="collapse-btn";
+    b.setAttribute("aria-expanded","true"); b.setAttribute("aria-label","Collapse "+title); b.title="Collapse / expand";
+    b.innerHTML=lucide("chevron-down");
+    b.addEventListener("click",()=>{
+      const shut=sec.classList.toggle("collapsed");
+      b.setAttribute("aria-expanded",String(!shut));
+      b.setAttribute("aria-label",(shut?"Expand ":"Collapse ")+title);
+    });
+    head.appendChild(b);
+  }
 
   // One group per CATEGORIES entry: a heading + rows in Core 1. Advanced models get a row too, but it
   // stays hidden until the model is switched on in the Advanced menu (Core 2's dropdowns are built
