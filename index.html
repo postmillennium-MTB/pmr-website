@@ -968,8 +968,6 @@
      button sits on a normal card. */
   .group-hit { background: none; border: 0; padding: 0; cursor: pointer; font: inherit; }
   .group-hit:focus-visible { outline: 2px solid var(--accent); outline-offset: -4px; }
-  .group-card.open { background: var(--bg-rule); }
-  .group-card.open::after { width: 100%; }
   .group-mark {
     position: absolute; top: 1.125rem; right: 1.125rem; z-index: 2; pointer-events: none;
     width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
@@ -1010,13 +1008,15 @@
      darker (light themes) or lighter (dark themes) fill, the PMR texture
      on top of it, a bar across the top and an inset outline. The texture
      layer sits behind the card's text (z-index -1 inside an isolated card). */
-  .tool-child {
+  .tool-child, .group-card.open {
     isolation: isolate;
     background-color: var(--bg-card);
     background-color: color-mix(in srgb, var(--shade-ink) var(--shade-amt), var(--bg-card));
     box-shadow: inset 0 3px 0 var(--accent), inset 0 0 0 1px color-mix(in srgb, var(--accent) 38%, transparent);
   }
-  .tool-child:hover { background-color: color-mix(in srgb, var(--shade-ink) calc(var(--shade-amt) * 2), var(--bg-card)); }
+  .tool-child:hover, .group-card.open:hover { background-color: color-mix(in srgb, var(--shade-ink) calc(var(--shade-amt) * 2), var(--bg-card)); }
+  /* the texture layer only shows while the group is open */
+  .group-card:not(.open) > .texture { display: none; }
   @media (prefers-reduced-motion: reduce) {
     .group-mark svg { transition: none; }
   }
@@ -1617,6 +1617,7 @@
       var id = esc(tool.id), name = esc(tool.name);
       return '' +
         '<div class="tool-card group-card" data-tool-id="group:' + id + '" data-group="' + id + '">' +
+          '<div class="texture" aria-hidden="true"></div>' +
           '<button type="button" class="card-hit group-hit" draggable="false" aria-expanded="false" ' +
                   'aria-label="' + name + ': show ' + tool.children.map(function (c) { return esc(c.name); }).join(' and ') + '"></button>' +
           '<div class="tool-tag">'  + esc(tool.tag)  + '</div>' +
