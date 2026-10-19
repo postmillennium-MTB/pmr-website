@@ -922,6 +922,7 @@
     font-family: var(--ff-mono); font-size: 0.66rem; color: var(--text-muted);
     letter-spacing: 0.1em; transition: color 0.5s ease;
   }
+  .footer-credit { font-family: var(--ff-mono); font-size: 0.58rem; color: var(--text-muted); letter-spacing: 0.06em; margin-top: 0.5rem; transition: color 0.5s ease; }
   .footer-meta a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--bg-rule); }
   .footer-meta a:hover { color: var(--accent); border-color: var(--accent); }
 
@@ -983,17 +984,39 @@
   .tool-icon { position: absolute; right: calc(1.5rem + var(--icon-r, 0px)); bottom: calc(1.5rem + var(--icon-b, 0px)); width: var(--icon-size, 38px); height: var(--icon-size, 38px); color: var(--accent); pointer-events: none; transition: color 0.5s ease; }
   .tool-icon svg { display: block; width: 100%; height: 100%; fill: currentColor; }
   .has-icon .tool-desc { padding-right: 3.5rem; }
-  /* The two opened cards read as a set apart from the grid: accent tint,
-     a fine diagonal hatch, a bar across the top and an inset outline. All
-     of it is built from --accent, so it follows every theme. */
+  /* PMR texture layer 1: crowe-1882-13106 (adapted from US Design Patent 13,106) */
+  .texture{
+    position:absolute;
+    inset:0;
+    z-index:-1;
+    pointer-events:none;
+    background-color:var(--tex-ink,#7A3828);
+    opacity:var(--tex-opacity,0.11);
+    -webkit-mask-image:url("https://www.postmillenniumrenaissance.com/textures/masks/crowe-1882-13106.webp");
+    mask-image:url("https://www.postmillenniumrenaissance.com/textures/masks/crowe-1882-13106.webp");
+    -webkit-mask-size:136px auto;
+    mask-size:136px auto;
+    -webkit-mask-repeat:repeat;
+    mask-repeat:repeat;
+  }
+
+  :root{ --tex-ink:#7A3828; --tex-opacity:0.11; --shade-ink:#000; --shade-amt:5%; }
+  [data-theme="spring"] { --tex-ink:#3A6830; --tex-opacity:0.11; }
+  [data-theme="autumn"] { --tex-ink:#904820; --tex-opacity:0.11; }
+  [data-theme="winter"] { --tex-ink:#5A7A8E; --tex-opacity:0.16; --shade-ink:#fff; --shade-amt:6%; }
+  [data-theme="2049"]   { --tex-ink:#C9A227; --tex-opacity:0.12; --shade-ink:#fff; --shade-amt:6%; }
+
+  /* The two opened cards read as a set apart from the grid: a slightly
+     darker (light themes) or lighter (dark themes) fill, the PMR texture
+     on top of it, a bar across the top and an inset outline. The texture
+     layer sits behind the card's text (z-index -1 inside an isolated card). */
   .tool-child {
+    isolation: isolate;
     background-color: var(--bg-card);
-    background-color: color-mix(in srgb, var(--accent) 10%, var(--bg-card));
-    background-image: repeating-linear-gradient(135deg,
-      color-mix(in srgb, var(--accent) 16%, transparent) 0 1px, transparent 1px 10px);
+    background-color: color-mix(in srgb, var(--shade-ink) var(--shade-amt), var(--bg-card));
     box-shadow: inset 0 3px 0 var(--accent), inset 0 0 0 1px color-mix(in srgb, var(--accent) 38%, transparent);
   }
-  .tool-child:hover { background-color: color-mix(in srgb, var(--accent) 18%, var(--bg-card)); }
+  .tool-child:hover { background-color: color-mix(in srgb, var(--shade-ink) calc(var(--shade-amt) * 2), var(--bg-card)); }
   @media (prefers-reduced-motion: reduce) {
     .group-mark svg { transition: none; }
   }
@@ -1573,6 +1596,7 @@
       return '' +
         '<div class="tool-card' + (parentId ? ' tool-child' : '') + (tool.icon ? ' has-icon' : '') + '" data-tool-id="' + path + '"' +
           (parentId ? ' data-parent="group:' + esc(parentId) + '" hidden' : '') + '>' +
+          (parentId ? '<div class="texture" aria-hidden="true"></div>' : '') +
           '<a href="' + path + '" class="card-hit" draggable="false" aria-label="Open ' + name + '"></a>' +
           '<div class="tool-tag">'  + esc(tool.tag)  + '</div>' +
           '<div class="tool-name">' + name           + '</div>' +
@@ -1799,6 +1823,7 @@
 <footer>
   <div class="footer-brand">Post Millennium Renaissance</div>
   <div class="footer-meta">postmillenniumrenaissance.com &nbsp;·&nbsp; Castle Rock, CO &nbsp;·&nbsp; © 2026 &nbsp;·&nbsp; <a href="/privacy/">Privacy</a></div>
+  <div class="footer-credit">Background pattern adapted from US Design Patent No. 13,106 (Eugene A. Crowe, 1882); the patent has long expired.</div>
 </footer>
 
 <!-- ═══════════════════════════════════════════════════════════════
