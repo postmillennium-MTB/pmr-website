@@ -24,13 +24,14 @@ A line with no tag has not been checked at all.
 
 1. [Conventions used by the tool](#conventions-used-by-the-tool)
 2. [Randomness & Chaos generators](#randomness--chaos-generators)
-3. [Copulas](#copulas)
-4. [Financial stochastic processes](#financial-stochastic-processes)
-5. [Shared numerical methods](#shared-numerical-methods)
-6. [Verification log](#verification-log)
-7. [Not yet included](#not-yet-included)
-8. [Adding a model](#adding-a-model)
-9. [Disclaimer (placeholder)](#disclaimer-placeholder)
+3. [Strange attractors](#strange-attractors)
+4. [Copulas](#copulas)
+5. [Financial stochastic processes](#financial-stochastic-processes)
+6. [Shared numerical methods](#shared-numerical-methods)
+7. [Verification log](#verification-log)
+8. [Not yet included](#not-yet-included)
+9. [Adding a model](#adding-a-model)
+10. [Disclaimer (placeholder)](#disclaimer-placeholder)
 
 ## Conventions used by the tool
 
@@ -82,16 +83,6 @@ A line with no tag has not been checked at all.
 - **Origin:** J. H. Halton, *Numerische Mathematik* 2 (1960) 84–90. **[R]**
 - **Shows:** even coverage with no clumps, unlike pseudo-random points.
 
-#### Hénon Map (Strange Attractor) — dial: contraction *b*
-- **Formula:** `x' = 1 − a·x² + y`, `y' = b·x`, `a = 1.4`, `b = 0.30` (dial range 0.02–0.31).
-- **Origin:** M. Hénon, "A two-dimensional mapping with a strange attractor", *Commun. Math. Phys.* 50 (1976) 69–77. **[R]**
-- **Check:** at `a = 1.4` the attractor exists up to `b ≈ 0.31`; at 0.315 about 83 % of starting points escaped to infinity in a test, so the dial stops at 0.31. **[N]**
-
-#### Lorenz Attractor (x–z) — dial: dissipation *β*
-- **Formula:** `x' = σ(y−x)`, `y' = x(ρ−z)−y`, `z' = xy−βz`; `σ = 10`, `ρ = 28`, `β = 8/3` (dial 0.5–6). RK4, step 0.01.
-- **Origin:** E. N. Lorenz, "Deterministic nonperiodic flow", *J. Atmos. Sci.* 20 (1963) 130–141. **[R]**
-- **Check:** with these values the nontrivial fixed points become stable near `β ≈ 3.2`, so at the strong end of the dial the chaos dies and the orbit spirals into a single point; in a test the last 200 points had zero spread at β = 6. **[N]**
-
 ### Advanced models ⚙
 
 #### ⚙ RANDU (IBM, 15 planes) — dial: viewing angle
@@ -133,6 +124,29 @@ A line with no tag has not been checked at all.
 - **Check:** first six outputs for seed `(42, 54)` are `a15c02b7 7b47f409 ba1d3330 83d2f293 bfa4784b cbed606e`, matching the published demo output as recalled — confirm against pcg-random.org. **[N]**
 - **Cost:** BigInt arithmetic; about 3,000 draws per render is fine.
 
+#### ⚙ Chirikov Standard Map — dial: kick strength *K*
+- **Formula:** `p' = p + K sin θ`, `θ' = θ + p'`, both mod 2π. Ten orbits from spread-out starts. This map is area-preserving (conservative), so it has *no attractor*; that is why it is listed here and not under Strange attractors.
+- **Origin:** B. V. Chirikov, "A universal instability of many-dimensional oscillator systems", *Physics Reports* 52(5) (1979) 263–379. **[V]** (citation). Last invariant curve breaks near `K ≈ 0.9716` (J. M. Greene, *J. Math. Phys.* 20 (1979) 1183). **[R]**
+- **Check:** the range of *p* along one orbit grows monotonically with *K* (0.37 at K = 0.2, 1.24 at K = 1, 11 at K = 3). **[N]**
+
+## Strange attractors
+
+Systems whose long-run behavior settles onto a bounded set with fractal structure (a *strange attractor*). Plotted as a scatter of the orbit or a line along it. Each has a dial that moves one parameter through its regimes (for example from regular motion to chaos, or from a thin to a wide attractor).
+
+### Core models
+
+#### Hénon Map (Strange Attractor) — dial: contraction *b*
+- **Formula:** `x' = 1 − a·x² + y`, `y' = b·x`, `a = 1.4`, `b = 0.30` (dial range 0.02–0.31).
+- **Origin:** M. Hénon, "A two-dimensional mapping with a strange attractor", *Commun. Math. Phys.* 50 (1976) 69–77. **[R]**
+- **Check:** at `a = 1.4` the attractor exists up to `b ≈ 0.31`; at 0.315 about 83 % of starting points escaped to infinity in a test, so the dial stops at 0.31. **[N]**
+
+#### Lorenz Attractor (x–z) — dial: dissipation *β*
+- **Formula:** `x' = σ(y−x)`, `y' = x(ρ−z)−y`, `z' = xy−βz`; `σ = 10`, `ρ = 28`, `β = 8/3` (dial 0.5–6). RK4, step 0.01.
+- **Origin:** E. N. Lorenz, "Deterministic nonperiodic flow", *J. Atmos. Sci.* 20 (1963) 130–141. **[R]**
+- **Check:** with these values the nontrivial fixed points become stable near `β ≈ 3.2`, so at the strong end of the dial the chaos dies and the orbit spirals into a single point; in a test the last 200 points had zero spread at β = 6. **[N]**
+
+### Advanced models ⚙
+
 #### ⚙ Rössler Attractor (x–y) — dial: control parameter *c*
 - **Formula:** `x' = −y − z`, `y' = x + a·y`, `z' = b + z(x − c)`; `a = b = 0.2`, `c = 5.7` (dial 2.5–9). RK4, step 0.02.
 - **Origin:** O. E. Rössler, "An equation for continuous chaos", *Phys. Lett. A* 57(5) (1976) 397–398. **[V]** (citation); the classic parameters are **[R]**.
@@ -142,11 +156,6 @@ A line with no tag has not been checked at all.
 - **Formula:** `x' = sin y − b·x`, `y' = sin z − b·y`, `z' = sin x − b·z`; default `b = 0.19` (dial 0.02–0.35). RK4, step 0.05.
 - **Origin:** R. Thomas, "Deterministic chaos seen in terms of feedback circuits", *Int. J. Bifurcation Chaos* 9(10) (1999) 1889–1905. **[V]** Thresholds: Hopf at `b ≈ 0.32899`, chaos onset at `b ≈ 0.208186`, conservative at `b = 0` <https://en.wikipedia.org/wiki/Thomas%27_cyclically_symmetric_attractor> **[V]**
 - **Check:** spread of the last 2,000 steps was 0 at `b = 0.35` (sink), small at 0.28 (limit cycle), large at 0.19 and 0.05 (chaos / wandering). **[N]**
-
-#### ⚙ Chirikov Standard Map — dial: kick strength *K*
-- **Formula:** `p' = p + K sin θ`, `θ' = θ + p'`, both mod 2π. Ten orbits from spread-out starts.
-- **Origin:** B. V. Chirikov, "A universal instability of many-dimensional oscillator systems", *Physics Reports* 52(5) (1979) 263–379. **[V]** (citation). Last invariant curve breaks near `K ≈ 0.9716` (J. M. Greene, *J. Math. Phys.* 20 (1979) 1183). **[R]**
-- **Check:** the range of *p* along one orbit grows monotonically with *K* (0.37 at K = 0.2, 1.24 at K = 1, 11 at K = 3). **[N]**
 
 #### ⚙ Ikeda Map (spiral attractor) — dial: dissipation *u*
 - **Formula:** `x' = 1 + u(x cos t − y sin t)`, `y' = u(x sin t + y cos t)`, `t = 0.4 − 6/(1 + x² + y²)`; `u = 0.9` (dial 0.6–0.99).
