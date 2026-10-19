@@ -23,7 +23,7 @@
   <script> #2
     ==== ALL DATA LIVES IN ONE CONTIGUOUS BLOCK ====
     · CATEGORIES ................. the four Core 1 groups (generators / attractors / copulas / financial)
-    · MODELS ..................... 15 core + 32 advanced (adv:true) generators, one entry each
+    · MODELS ..................... 15 core + 34 advanced (adv:true) generators, one entry each
     · FORGE_PARAMS ............... the three Core 3 sliders
     · VIEW3D_PARAMS .............. the Core 4 view sliders (azimuth, elevation, speed, zoom, perspective, size)
     · ICON_PATHS ................. the Lucide icons used (toggle, play, chevron, power-off)
@@ -921,6 +921,24 @@ const MODELS=[
    gen3:()=>{ const g=dialParam("rabfab","gamma"), f=([x,y,z])=>[y*(z-1+x*x)+g*x,x*(3*z+1-x*x)+g*y,-2*z*(RF_ALPHA+x*y)];
       const burn=RF_BURN_IN+Math.floor(attractorStart[0]*RF_BURN_JITTER);
       return integrateFlow(f,RF_START,RF_DT,spanSteps(RF_STEPS_PER_POINT,"rabfab"),burn,NUM_POINTS); }},
+  // Dadras: x'=y-ax+byz, y'=cy-xz+z, z'=dxy-ez, a=3, b=2.7, c=1.7, d=2, e=9 (the published chaotic set; checked).
+  // Dials c and e: chaos needs c near 1.5–2.1 and e below about 11.
+  {id:"dadras", adv:true, cat:"att", name:"Dadras Attractor (x–y)", type:"line", color:"#ffb34d", proj:["x","y"],
+   dials:[{id:"c", label:"Parameter c", weak:1.5, strong:2.1, classic:1.7, fmt:c=>"c = "+c.toFixed(2),
+     help:"A narrow chaos window: weak near 1.5, strongest around 1.95, and regular again from about 2.2. Changes how the scrolls wind."},
+    {id:"e", label:"Parameter e", weak:6, strong:11.5, classic:9, fmt:e=>"e = "+e.toFixed(1),
+     help:"Damping of the z motion. Chaotic from about 6 to 10 (stronger at the low end); by about 11 the orbit settles into a regular loop."}, SPAN_DIAL],
+   gen3:()=>{ const c=dialParam("dadras","c"), e=dialParam("dadras","e"), f=([x,y,z])=>[y-DADRAS_A*x+DADRAS_B*y*z, c*y-x*z+z, DADRAS_D*x*y-e*z];
+      return integrateFlow(f,[1+0.1*attractorStart[0],1,1+0.1*attractorStart[1]],DADRAS_DT,spanSteps(DADRAS_STEPS_PER_POINT,"dadras"),DADRAS_BURN_IN,NUM_POINTS); }},
+  // Rikitake two-disk dynamo: x'=-μx+yz, y'=-μy+(z-a)x, z'=1-xy. The sign of x flips irregularly (polarity reversals).
+  // Chaotic for μ about 0.7–2.8 and a about 2–8 (checked); regular at μ ≤ 0.5 and μ ≈ 3.
+  {id:"rikitake", adv:true, cat:"att", name:"Rikitake Dynamo (x–z)", type:"line", color:"#d2ff4d", proj:["x","z"],
+   dials:[{id:"mu", label:"Damping μ", weak:0.6, strong:2.8, classic:1, fmt:m=>"μ = "+m.toFixed(2),
+     help:"Ohmic loss in the coupled disks. Near 0.5 the motion is regular; chaotic reversals from about 0.7 to 2.8, strongest near 1; about 3 and above it is regular again."},
+    {id:"a", label:"Asymmetry a", weak:2, strong:8, classic:5, fmt:a=>"a = "+a.toFixed(1),
+     help:"The difference between the two disks. Shifts the orbit and the length of its runs between polarity flips; chaotic across 2 to 8."}, SPAN_DIAL],
+   gen3:()=>{ const mu=dialParam("rikitake","mu"), a=dialParam("rikitake","a"), f=([x,y,z])=>[-mu*x+y*z,-mu*y+(z-a)*x,1-x*y];
+      return integrateFlow(f,[1+0.1*attractorStart[0],0.1*attractorStart[1],0],RIKITAKE_DT,spanSteps(RIKITAKE_STEPS_PER_POINT,"rikitake"),RIKITAKE_BURN_IN,NUM_POINTS); }},
   // Tinkerbell map: x'=x²-y²+ax+by, y'=2xy+cx+dy. A tiny basin: most starting points and parameters escape to
   // infinity, so the start is fixed and the dials stop at the edge (a >= 0.91 or b <= -0.605 escapes). Re-roll
   // picks a different stretch of the SAME orbit (a random burn-in), since the orbit itself is deterministic.
@@ -1144,6 +1162,9 @@ const BURKE_S=10;               // Burke–Shaw s; V is the dial
 const BURKE_DT=0.002, BURKE_STEPS_PER_POINT=8, BURKE_BURN_IN=5000;
 const RF_ALPHA=1.1, RF_START=[-1,0,0.5];                              // Rabinovich–Fabrikant α (γ is the dial) and a start known to stay bounded
 const RF_DT=0.002, RF_STEPS_PER_POINT=10, RF_BURN_IN=5000, RF_BURN_JITTER=5000;   // stiff flow: dt halved to 0.0005 gave identical extents; jitter = extra random burn-in (Re-roll)
+const DADRAS_A=3, DADRAS_B=2.7, DADRAS_D=2;                           // Dadras–Momeni (2009) values; c and e are dials
+const DADRAS_DT=0.005, DADRAS_STEPS_PER_POINT=8, DADRAS_BURN_IN=6000; // ~60 time units across the 1,500 points
+const RIKITAKE_DT=0.01, RIKITAKE_STEPS_PER_POINT=10, RIKITAKE_BURN_IN=3000;   // slow flips: 1,500 points span ~150 time units
 const TINKERBELL_C=2, TINKERBELL_D=0.5;                             // classic constants; a and b are dials
 const TINKERBELL_X0=-0.72, TINKERBELL_Y0=-0.64;                      // standard start inside the basin
 const TINKERBELL_BURN_IN=100, TINKERBELL_ESCAPE=1e3;                 // iterations discarded; escape radius that triggers a restart
