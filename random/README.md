@@ -409,4 +409,6 @@ All financial and asset-pricing models are purely theoretical simulations relyin
 
 **About the references in this document:** citations and formulas were compiled from memory and secondary sources and may contain errors; the confidence tags near the top show how far each has been checked. Verify against primary sources before relying on any of it.
 
-*Still open:* license and reuse terms for the code and this document.
+## License
+
+Code in this folder: [MIT License](LICENSE). This README and other documentation: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Copyright (c) 2026 Post Millennium Renaissance. The site name and branding are not licensed for reuse, and third-party material (for example the linked strange-attractors.jujiplay.com) is not covered. The disclaimer above applies to all uses.
