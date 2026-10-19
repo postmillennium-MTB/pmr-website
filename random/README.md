@@ -25,13 +25,14 @@ A line with no tag has not been checked at all.
 1. [Conventions used by the tool](#conventions-used-by-the-tool)
 2. [Randomness & Chaos generators](#randomness--chaos-generators)
 3. [Strange attractors](#strange-attractors)
-4. [Copulas](#copulas)
-5. [Financial stochastic processes](#financial-stochastic-processes)
-6. [Shared numerical methods](#shared-numerical-methods)
-7. [Verification log](#verification-log)
-8. [Not yet included](#not-yet-included)
-9. [Adding a model](#adding-a-model)
-10. [Disclaimer (placeholder)](#disclaimer-placeholder)
+4. [Core 4 — the 3-D viewer](#core-4--the-3-d-viewer)
+5. [Copulas](#copulas)
+6. [Financial stochastic processes](#financial-stochastic-processes)
+7. [Shared numerical methods](#shared-numerical-methods)
+8. [Verification log](#verification-log)
+9. [Not yet included](#not-yet-included)
+10. [Adding a model](#adding-a-model)
+11. [Disclaimer (placeholder)](#disclaimer-placeholder)
 
 ## Conventions used by the tool
 
@@ -45,6 +46,9 @@ A line with no tag has not been checked at all.
 - Copula models are on **uniform margins** natively. "Normal margins" maps them to standard normal
   (probit) and puts all active copulas on one shared axis range so tails can be compared directly.
 - Parameter values are **illustrative teaching values**, not calibrated to any market, unless noted.
+- Every strange-attractor model has at least one dial. Most 3-D flows also have an **Orbit length** dial (0.25×–4×), which scales how much of the trajectory the 1,500 points cover.
+- **Re-roll** picks a new random start. For the two models whose orbit is deterministic from a fixed start (Halvorsen, Tinkerbell) it instead picks a different stretch of the same orbit, so the picture still changes.
+- **Core 4** (below) shows the 3-D models as a rotating 3-D plot.
 
 ---
 
@@ -135,20 +139,23 @@ Systems whose long-run behavior settles onto a bounded set with fractal structur
 
 ### Core models
 
-#### Hénon Map (Strange Attractor) — dial: contraction *b*
-- **Formula:** `x' = 1 − a·x² + y`, `y' = b·x`, `a = 1.4`, `b = 0.30` (dial range 0.02–0.31).
+#### Hénon Map (Strange Attractor) — dials: contraction *b* ("Attraction"), parameter *a*
+- **Formula:** `x' = 1 − a·x² + y`, `y' = b·x`, `a = 1.4`, `b = 0.30` (dials: *b* 0.02–0.31; *a* 0.8–1.42).
+- **Dial *a*:** at `b = 0.30` the orbit period-doubles as *a* rises: 2 points at a = 0.85, 4 at 1.0, then chaos from about 1.1, a periodic window near 1.3 (7 points), and full chaos at 1.4. **[N]** The attractor disappears at about `a = 1.43` (all 50 test starts escaped), so the dial stops at 1.42. **[N]**
 - **Origin:** M. Hénon, "A two-dimensional mapping with a strange attractor", *Commun. Math. Phys.* 50 (1976) 69–77. **[R]**
 - **Check:** at `a = 1.4` the attractor exists up to `b ≈ 0.31`; at 0.315 about 83 % of starting points escaped to infinity in a test, so the dial stops at 0.31. **[N]**
 
-#### Lorenz Attractor (x–z) — dial: dissipation *β*
-- **Formula:** `x' = σ(y−x)`, `y' = x(ρ−z)−y`, `z' = xy−βz`; `σ = 10`, `ρ = 28`, `β = 8/3` (dial 0.5–6). RK4, step 0.01.
+#### Lorenz Attractor (x–z) — dials: dissipation *β* ("Attraction"), heating *ρ*, orbit length
+- **Formula:** `x' = σ(y−x)`, `y' = x(ρ−z)−y`, `z' = xy−βz`; `σ = 10`, `ρ = 28`, `β = 8/3` (dials: *β* 0.5–6; *ρ* 10–45). RK4, step 0.01.
+- **Dial *ρ*:** the orbit spirals into a fixed point for small *ρ* (last-300-point spread of 0 at ρ = 12, 0.3 at 20) and becomes chaotic from about ρ = 24 (spread 8 at 24, 32 at 28). **[N]** The textbook threshold for sustained chaos at σ = 10, β = 8/3 is `ρ ≈ 24.74` **[R]**; just below it the motion is a long chaotic transient.
 - **Origin:** E. N. Lorenz, "Deterministic nonperiodic flow", *J. Atmos. Sci.* 20 (1963) 130–141. **[R]**
 - **Check:** with these values the nontrivial fixed points become stable near `β ≈ 3.2`, so at the strong end of the dial the chaos dies and the orbit spirals into a single point; in a test the last 200 points had zero spread at β = 6. **[N]**
 
 ### Advanced models ⚙
 
-#### ⚙ Rössler Attractor (x–y) — dial: control parameter *c*
-- **Formula:** `x' = −y − z`, `y' = x + a·y`, `z' = b + z(x − c)`; `a = b = 0.2`, `c = 5.7` (dial 2.5–9). RK4, step 0.02.
+#### ⚙ Rössler Attractor (x–y) — dials: control parameter *c*, spiral parameter *a*, orbit length
+- **Formula:** `x' = −y − z`, `y' = x + a·y`, `z' = b + z(x − c)`; `a = b = 0.2`, `c = 5.7` (dials: *c* 2.5–9; *a* 0.1–0.35). RK4, step 0.02.
+- **Dial *a*:** at `c = 5.7` the Lyapunov estimate is ≈ 0 (regular loop) for `a = 0.1–0.15` and positive (chaos) from 0.2. **[N]**
 - **Origin:** O. E. Rössler, "An equation for continuous chaos", *Phys. Lett. A* 57(5) (1976) 397–398. **[V]** (citation); the classic parameters are **[R]**.
 - **Shows:** a single loop at small *c*, period-doubling, then chaos near 5.7. In a test, *c* = 2.5 gave one peak per loop and *c* = 3.5 gave two. **[N]**
 
@@ -171,20 +178,33 @@ Systems whose long-run behavior settles onto a bounded set with fractal structur
 - **Origin:** **unverified.** The system circulates under the names Aizawa and Langford (W. F. Langford studied torus bifurcations in this family, 1984), and this parameter set is widely reproduced on graphics sites (for example Paul Bourke's attractor pages). No primary source was opened. **[R]**
 - **Check:** below `b ≈ 0.58` the orbit collapses to a fixed point (z range of zero); near 0.7 the Lyapunov estimate was small and positive (≈ 0.10); at 0.8 and above it was ≈ 0 (regular motion). **[N]** So "chaotic" here means weakly chaotic; the picture is mainly a sphere with a tube through it.
 
-#### ⚙ Chua Double Scroll (x–z) — dial: gain α
-- **Formula:** `x' = α(y − x − g(x))`, `y' = x − y + z`, `z' = −βy`, with `g(x) = m₁x + ½(m₀ − m₁)(|x+1| − |x−1|)`; `β = 28`, `m₀ = −8/7`, `m₁ = −5/7`, `α = 15.6` (dial 9–18). RK4, step 0.005.
+#### ⚙ Chua Double Scroll (x–z) — dials: gain α, coupling β, orbit length
+- **Formula:** `x' = α(y − x − g(x))`, `y' = x − y + z`, `z' = −βy`, with `g(x) = m₁x + ½(m₀ − m₁)(|x+1| − |x−1|)`; `β = 28`, `m₀ = −8/7`, `m₁ = −5/7`, `α = 15.6` (dials: α 9–18; β 24–36). RK4, step 0.005.
+- **Dial β:** at α = 15.6 the Lyapunov estimate was positive for β = 24–32 (double scroll to one-sided), ≈ 0 at 36 (a single regular scroll), and the orbit ran away at β = 20. **[N]** The dial therefore starts at 24.
 - **Origin:** T. Matsumoto, "A chaotic attractor from Chua's circuit", *IEEE Trans. Circuits Syst.* 31(12) (1984) 1055–1058; L. O. Chua, M. Komuro & T. Matsumoto, "The double scroll family", *IEEE Trans. Circuits Syst.* 33(11) (1986) 1072–1118. **[R]** The dimensionless constants are the commonly quoted set, also recalled.
 - **Check:** with these constants the dial moves from a point (α = 9) through loops (≈ 11) and one-sided, single-scroll chaos (α ≈ 13.5, *x* confined to 0–2.2) to the two-sided double scroll from about α = 15. **[N]**
 
-#### ⚙ Halvorsen Attractor (x–y) — dial: damping *a*
-- **Formula:** `x' = −ax − 4y − 4z − y²`, `y' = −ay − 4z − 4x − z²`, `z' = −az − 4x − 4y − x²`; `a = 1.4` (dial 1.3–2.6). RK4, step 0.005. Fixed start `(−1.48, −1.51, 2.04)`.
+#### ⚙ Halvorsen Attractor (x–y) — dials: damping *a*, orbit length
+- **Formula:** `x' = −ax − 4y − 4z − y²`, `y' = −ay − 4z − 4x − z²`, `z' = −az − 4x − 4y − x²`; `a = 1.4` (dial 1.3–2.6). RK4, step 0.005. Fixed start `(−1.48, −1.51, 2.04)`; Re-roll discards a random number of extra steps (up to 20 time units) so each re-roll shows a different stretch of the same orbit.
 - **Origin:** presented in J. C. Sprott, *Elegant Chaos* (World Scientific, 2010), where it is named after Arne Dehli Halvorsen. **[R]**
 - **Parameter conflict, resolved numerically:** sources quote `a = 1.4` and `a = 1.89`. At `a = 1.4` the Lyapunov estimate was clearly positive (0.49 after a long transient); at `a = 1.89` it was ≈ 0, so the orbit is regular. The tool uses 1.4. **[N]** Below about `a = 1.2` the orbit ran away to infinity in a test; the tool restarts a runaway orbit instead of plotting it.
 
-#### ⚙ Tinkerbell Map
-- **Formula:** `x' = x² − y² + ax + by`, `y' = 2xy + cx + dy`; `a = 0.9`, `b = −0.6013`, `c = 2`, `d = 0.5`; start `(−0.72, −0.64)`; dial on *a* (0.75–0.9).
+#### ⚙ Tinkerbell Map — dials: parameter *a*, parameter *b*
+- **Formula:** `x' = x² − y² + ax + by`, `y' = 2xy + cx + dy`; `a = 0.9`, `b = −0.6013`, `c = 2`, `d = 0.5`; start `(−0.72, −0.64)`; dials on *a* (0.75–0.9) and *b* (−0.45 to −0.6013). Re-roll discards a random number of extra iterations (up to 3,000), a different stretch of the same deterministic orbit.
 - **Origin:** the name comes from K. T. Alligood, T. D. Sauer & J. A. Yorke, *Chaos: An Introduction to Dynamical Systems* (Springer, 1997). **[R]** Parameters as commonly quoted, recalled.
-- **Check:** the attractor has a very small basin: from the standard start the orbit stayed bounded for `a ≤ 0.9` and escaped for `a ≥ 0.91`, and for `b ≤ −0.61`. The Lyapunov estimate was positive across `a = 0.75–0.9` (0.14–0.21). **[N]** The dial therefore stops at 0.9.
+- **Check:** the attractor has a very small basin: from the standard start the orbit stayed bounded for `a ≤ 0.9` and escaped for `a ≥ 0.91`, and for `b ≤ −0.61`. The Lyapunov estimate was positive across `a = 0.75–0.9` (0.14–0.21). **[N]** The dials therefore stop at *a* = 0.9 and *b* = −0.6013. All four corners of the (*a*, *b*) dial rectangle stayed bounded in a test. **[N]**
+
+---
+
+## Core 4 — the 3-D viewer
+
+A fourth panel that draws the real 3-D orbit of a model and lets you turn it. It lists every model that has a 3-D form: Lorenz, Rössler, Thomas, Chen, Aizawa, Chua, Halvorsen (flows) and RANDU (its raw triples, so the 15 planes can be found by rotating).
+
+- **How it draws:** there is no 3-D library. Each point is rotated about the vertical axis by *azimuth*, tilted by *elevation*, optionally shrunk with distance (*perspective*), and drawn on an ordinary 2-D canvas. The orbit is first centered on its bounding box and scaled to unit radius so every model fills the view the same way. Near parts are drawn brighter and thicker than far parts (six depth layers). A small x/y/z key in the corner shows the orientation.
+- **Controls:** *Auto-rotate* switch (Lucide `toggle-left` / `toggle-right`), *rotation speed* (0–90°/s), *azimuth*, *elevation*, *zoom*, *perspective* and *line / point size*, all generated from the `VIEW3D_PARAMS` list. The model's own dials (attraction, orbit length and so on) are mirrored below the view and stay in step with the same dials in Core 1.
+- **Animation:** it runs only while Auto-rotate is on with a speed above zero, the plot is on screen and the tab is visible; otherwise it redraws only when a control changes. With the system "reduce motion" setting on, it starts with Auto-rotate off.
+- **Why it matters:** a 2-D projection can hide structure. RANDU's planes only show from a particular angle; the Lorenz and Rössler folds are flattened in any single projection.
+- **Check:** all 8 models produce 1,500 finite 3-D points, normalized to a maximum radius of exactly 1; auto-rotation advanced 18° in 1.5 s at 12°/s and 60° in 1 s at 60°/s; it paused when the plot was off screen or Auto-rotate was off. **[N]**
 
 ---
 
@@ -330,12 +350,13 @@ Run during the build that added the Advanced models (headless browser plus a sep
 - The stochastic financial models reproduce their theoretical moments (Hawkes mean rate, GJR volatility, variance-gamma increment variance, Student-t volatility, Kou compensator, regime variance).
 - Every dial's default position reproduces its stated classic value.
 - All 29 advanced models returned 1,500 finite points; the five attractors added later (Chen, Aizawa, Chua, Halvorsen, Tinkerbell) were also checked across every dial position.
+- When the extra attractor dials and Core 4 were added, every dial of every model was run at 0 %, 50 % and 100 % in both its 2-D and 3-D form (all finite, 1,500 points), and every dial's default reproduced its classic value.
 
 **What this does *not* show:** that any citation is correct, that a published parameter set was recalled correctly, or that the models are suitable for any real-world purpose.
 
 ## Not yet included
 
-Candidates from the research pass that are **not** implemented (attractors still open: Lü, Burke–Shaw, Rabinovich–Fabrikant, Sprott's simplest flows, Clifford / de Jong, Lozi, Gingerbreadman, Duffing, double pendulum), usually because the equations or parameters were not verified against primary sources: rough volatility (rough Bergomi, rough Heston), fractional Brownian motion, multifractal random walk, SABR, Bates, local volatility, the Merton structural credit model, the Vasicek one-factor loan-loss model, Geltner / Getmansky–Lo–Makarov return smoothing, nested and vine copulas, Hüsler–Reiss and Galambos extreme-value copulas, Brock–Hommes heterogeneous-agent map, the 2-D sine-logistic and logistic-adjusted-sine maps, Poisson-disk sampling, xoshiro, Philox, and Owen-scrambled Sobol.
+Candidates from the research pass that are **not** implemented (attractors still open: Lü, Burke–Shaw, Rabinovich–Fabrikant, Sprott's simplest flows, Clifford / de Jong, Lozi, Gingerbreadman, Duffing, double pendulum; 3-D views for the 2-D maps and the copulas), usually because the equations or parameters were not verified against primary sources: rough volatility (rough Bergomi, rough Heston), fractional Brownian motion, multifractal random walk, SABR, Bates, local volatility, the Merton structural credit model, the Vasicek one-factor loan-loss model, Geltner / Getmansky–Lo–Makarov return smoothing, nested and vine copulas, Hüsler–Reiss and Galambos extreme-value copulas, Brock–Hommes heterogeneous-agent map, the 2-D sine-logistic and logistic-adjusted-sine maps, Poisson-disk sampling, xoshiro, Philox, and Owen-scrambled Sobol.
 
 ## Adding a model
 
