@@ -83,7 +83,7 @@ The site's own code and original text are released under the [PolyForm Noncommer
 
 Exceptions and limits:
 
-- `random/` carries its own MIT `LICENSE` and keeps it.
+- `random/` is covered by the same license and keeps its own copy of `LICENSE` so the folder is self-contained. It was previously MIT (code) and CC BY 4.0 (docs); copies already obtained under those terms keep them.
 - `wheel-lab/` builds on Matt Ford's MIT-licensed `bike-wheel-calc`; see `THIRD-PARTY-NOTICES.md`. Bundled libraries (React and others) keep their own notices inside the page.
 - Images, artwork, stickers and photographs (`images/`, `stickers/`, `textures/`, the hero art and Open Graph images) are **not** licensed by this file. They are reserved unless a file says otherwise. Textures adapted from expired design patents are public-domain source material.
 - Facts, figures and quotations taken from third-party studies and sources remain the property of their authors.
