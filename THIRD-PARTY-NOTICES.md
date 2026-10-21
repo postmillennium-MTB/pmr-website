@@ -2,7 +2,7 @@
 
 The Wheel Strength Lab page (`wheel-lab/`) follows Matthew Ford's published Mode Matrix method (PhD thesis, Northwestern University, 2018) and his reference implementation, `bike-wheel-calc` (https://github.com/dashdotrobot/bike-wheel-calc), which is MIT-licensed. Matthew Ford must be credited wherever this work is used.
 
-The PolyForm Noncommercial license in `LICENSE` applies to this repository's own code and text only. It does not relicense Matthew Ford's work. The MIT license text below is reproduced as it appears in the `wheel-physics-core` repository's `LICENSE`; confirm the copyright line against the upstream repository before relying on it.
+The PolyForm Noncommercial license in `LICENSE` applies to this repository's own code and text only. It does not relicense Matthew Ford's work. The MIT license text below is reproduced verbatim from the upstream repository's license file (https://github.com/dashdotrobot/bike-wheel-calc/blob/master/LICENSE).
 
 ---
 
