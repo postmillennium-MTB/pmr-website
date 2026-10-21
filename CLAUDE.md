@@ -27,24 +27,40 @@ This is the repository for `pmr-website` (Postmillennium MTB). Claude should pri
 
 ## Icons
 
-**When an icon is called for or requested, use Lucide** (https://lucide.dev/icons/).
-It is the icon set for every PMR tool and for this site. (The README describes the
-site's real stack, plain static HTML; this applies to every page and tool folder.)
+**When an icon is called for or requested, check Lucide first**
+(https://lucide.dev/icons/). Lucide is the default set for every PMR tool and for
+this site. **If Lucide has no suitable icon, look in Google's Material Symbols**
+(https://fonts.google.com/icons) before asking. (The README describes the site's real
+stack, plain static HTML; this applies to every page and tool folder.) Examples:
+Lucide has no skateboard, only a scooter; Material Symbols has "skateboarding".
 
-* **Inline SVG only.** Paste the icon's SVG into the page. No CDN script, icon font or
-  npm package, and no separate icon image file: pages stay self-contained.
-* **Copy the SVG from lucide.dev and keep its attributes**: `xmlns`,
+* **Inline SVG only, from either set.** Paste the icon's SVG into the page. No CDN
+  script, icon font or npm package, and no separate icon image file: pages stay
+  self-contained.
+* **Lucide: copy the SVG from lucide.dev and keep its attributes**: `xmlns`,
   `width="24" height="24" viewBox="0 0 24 24"`, `fill="none"`, `stroke="currentColor"`,
   `stroke-width="2"`, `stroke-linecap="round"`, `stroke-linejoin="round"`. Add
   `class="lucide lucide-<icon-name>"`, `aria-hidden="true"` and `focusable="false"`.
   Do not edit the path data.
-* **Color and size come from CSS.** The stroke is `currentColor`, so the icon follows
-  the text color and every theme (day, spring, autumn, winter, 2049) automatically.
+* **Material Symbols: download the SVG from fonts.google.com/icons** (Weight 400,
+  Fill off, 24px, unless Jon picks otherwise). It arrives with a fixed colour
+  (`fill="#e3e3e3"`) and `viewBox="0 -960 960 960"`. Keep the viewBox and the path
+  data. Change only: `fill` to `currentColor`, `height`/`width` from `24px` to
+  `24`, and add `class="material-symbol material-symbol-<icon-name>"`,
+  `aria-hidden="true"` and `focusable="false"`. Never leave the hard-coded colour:
+  it would ignore every theme. Material Symbols is Apache 2.0 licensed.
+* **Do not mix the two sets inside one row of controls.** Lucide is an outline
+  (stroked) set and Material Symbols is a filled shape set, so side by side they read
+  as two different icon families. Use a Material Symbol only where Lucide has no
+  match, and say in the handover which set each icon came from.
+* **Color and size come from CSS.** The icon is `currentColor`, so it follows the
+  text color and every theme (day, spring, autumn, winter, 2049) automatically.
 * **Accessibility:** the SVG is decorative; the button or link carries the name
   (`aria-label`), never the icon.
-* **Never hand-draw an icon or invent path data.** If Lucide has no suitable icon, say
-  so and ask Jon.
-* **No emoji as icons** in new UI; use Lucide.
+* **Never hand-draw an icon or invent path data.** If neither Lucide nor Material
+  Symbols has a suitable icon, say so and ask Jon.
+* **No emoji as icons** in new UI; use Lucide, or Material Symbols where Lucide has no
+  match.
 
 ## Git & PR Guidelines
 * Write concise, descriptive commit messages (e.g., `feat: add race registration form`, `fix: mobile menu toggle`).
