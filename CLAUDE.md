@@ -53,3 +53,7 @@ site's real stack, plain static HTML; this applies to every page and tool folder
 ## Error Handling
 * Wrap async operations in `try/catch` blocks.
 * Provide user-friendly fallback UI for data fetching errors (e.g., when failing to load schedule data).
+
+## License and notice (do not remove)
+
+The repo root is licensed under PolyForm Noncommercial 1.0.0 (`LICENSE`). Keep: the `Required Notice:` line at the top of `LICENSE`; the (c) / SPDX comment after the doctype of `index.html` and `wheel-lab/index.html`; the license line in the homepage footer (`.footer-license`) and the `.pmr-license` footer in `wheel-lab/index.html`. The tool wrapper pages are thin iframes and carry no footer: the tool inside shows its own notice. `random/` keeps its own MIT license; images, artwork and stickers are not licensed by this repo's `LICENSE`. Third-party material keeps its own license: never relicense it. Jon holds the copyright and decides any license change.
