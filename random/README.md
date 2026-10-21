@@ -490,4 +490,4 @@ All financial and asset-pricing models are purely theoretical simulations relyin
 
 ## License
 
-Code in this folder: [MIT License](LICENSE). This README and other documentation: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Copyright (c) 2026 Post Millennium Renaissance. The site name and branding are not licensed for reuse, and third-party material (for example the linked strange-attractors.jujiplay.com) is not covered. The disclaimer above applies to all uses.
+Code and documentation in this folder: [PolyForm Noncommercial License 1.0.0](LICENSE). Copyright (c) 2026 Post Millennium Renaissance. Free for noncommercial use; commercial use needs a separate license, asked through postmillenniumrenaissance.com. Earlier versions of this folder were published under the MIT License (code) and CC BY 4.0 (documentation); copies already obtained under those terms keep them. The site name and branding are not licensed for reuse, and third-party material (for example the linked strange-attractors.jujiplay.com) is not covered. The disclaimer above applies to all uses.

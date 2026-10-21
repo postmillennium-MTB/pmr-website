@@ -69,3 +69,7 @@ Lucide has no skateboard, only a scooter; Material Symbols has "skateboarding".
 ## Error Handling
 * Wrap async operations in `try/catch` blocks.
 * Provide user-friendly fallback UI for data fetching errors (e.g., when failing to load schedule data).
+
+## License and notice (do not remove)
+
+The repo root is licensed under PolyForm Noncommercial 1.0.0 (`LICENSE`). Keep: the `Required Notice:` line at the top of `LICENSE`; the (c) / SPDX comment after the doctype of `index.html` and `wheel-lab/index.html`; the license line in the homepage footer (`.footer-license`) and the `.pmr-license` footer in `wheel-lab/index.html`. The tool wrapper pages are thin iframes and carry no footer: the tool inside shows its own notice. `random/` keeps its own copy of the PolyForm `LICENSE` (it was MIT/CC BY 4.0 before; keep its license line in the page footer and README in step); images, artwork and stickers are not licensed by this repo's `LICENSE`. Third-party material keeps its own license: never relicense it. Jon holds the copyright and decides any license change.

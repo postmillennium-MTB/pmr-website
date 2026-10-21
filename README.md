@@ -74,3 +74,17 @@ python3 -m http.server 8000
 Push to the deployed branch; GitHub Pages serves the repo root directly
 using `CNAME` for the custom domain. No CI build step — what's committed is
 what ships.
+
+## License
+
+Copyright (c) 2026 Post Millennium Renaissance (https://www.postmillenniumrenaissance.com).
+
+The site's own code and original text are released under the [PolyForm Noncommercial License 1.0.0](LICENSE): free to use, copy, modify and share for any noncommercial purpose, including personal use, research, education, and use by charities, environmental-protection organizations and government institutions. Commercial use needs a separate license; ask through postmillenniumrenaissance.com. Copies must keep the `Required Notice:` line in `LICENSE`. The license text controls over this summary.
+
+Exceptions and limits:
+
+- `random/` is covered by the same license and keeps its own copy of `LICENSE` so the folder is self-contained. It was previously MIT (code) and CC BY 4.0 (docs); copies already obtained under those terms keep them.
+- `wheel-lab/` builds on Matt Ford's MIT-licensed `bike-wheel-calc`; see `THIRD-PARTY-NOTICES.md`. Bundled libraries (React and others) keep their own notices inside the page.
+- Images, artwork, stickers and photographs (`images/`, `stickers/`, `textures/`, the hero art and Open Graph images) are **not** licensed by this file. They are reserved unless a file says otherwise. Textures adapted from expired design patents are public-domain source material.
+- Facts, figures and quotations taken from third-party studies and sources remain the property of their authors.
+- The tool pages in the site's folders are thin wrappers around separately licensed tool repositories (see each tool's own `LICENSE`).
