@@ -1,4 +1,4 @@
-# Stochastic OS — model details
+# STOCHASTIC_OS V7 — model details
 
 Companion document for [`/random/`](https://www.postmillenniumrenaissance.com/random/), the
 Post Millennium Renaissance randomness lab. It records, for every model in the tool, **what it is,
