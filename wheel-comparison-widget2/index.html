@@ -31,6 +31,17 @@
     document.querySelectorAll('iframe[src*="postmillennium-mtb.github.io"]').forEach(f => {
       if (window.location.hash) f.src += window.location.hash;
     });
+    // The widget keeps its settings in its own URL hash, inside the iframe.
+    // It posts that hash here as it changes, so this page's address bar is
+    // always a link to the build on screen. Only the widget's origin is
+    // listened to, and only a plain hash string is accepted.
+    window.addEventListener('message', e => {
+      if (e.origin !== 'https://postmillennium-mtb.github.io') return;
+      const d = e.data;
+      if (!d || d.type !== 'pmr-build-hash' || typeof d.hash !== 'string') return;
+      if (!/^#[\w.=&%-]{0,600}$/.test(d.hash)) return;
+      try { history.replaceState(null, '', d.hash); } catch (err) {}
+    });
   </script>
 </body>
 </html>
