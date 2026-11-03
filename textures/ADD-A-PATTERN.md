@@ -121,22 +121,30 @@ wrong before it spreads; `crowe-1882-13108` became `fisher-1882-13108`.
 ## Procedural patterns (no patent)
 
 A generated pattern needs none of the three inputs above: no PDF, no Gemini tile, no
-link, no credit line. The topographic contours, guilloché rosettes and carbon twill were
-added this way.
+link, no credit line. The topographic contours, guilloché rosettes, carbon twill and
+switchback trail were added this way.
 
 1. **Make it periodic by construction**, so no edge repair is needed: integer wave
    vectors for noise, wrapped offsets for anything that crosses the edge, runs drawn
-   past the edge and clipped for a weave.
+   past the edge and clipped for a weave, a path that advances exactly one tile per
+   period for a trail. A dashed line needs its dash period chosen so a whole number of
+   dashes fits in one period, **and the dashes drawn one by one**: an SVG
+   `stroke-dasharray` on a path with arcs puts dashes where the renderer's own length
+   estimate says, which was about 1 px off per tile in Chromium and differs between
+   browsers.
 2. **Write the generator.** A WebP mask goes in `tools/make_procedural.py` (a new
    function writing `masks/<id>.webp`). A small vector tile goes in `masks/<name>.css` as
    a `--<name>-mask-<id>` variable that `build_studio.py` reads through `cssVar`
    (`graph-paper.css` and `carbon-twill.css` are the examples).
 3. **Check the seam**: view the tile shifted by half its width and height with
-   wraparound, and compare the step across the wrap with the interior steps. Measure
-   the ink coverage as mean alpha.
+   wraparound, and compare the step across the wrap with the interior steps. For a
+   path, the real test is to tile the mask 3 x 3 and compare it pixel by pixel with one
+   continuous drawing over several periods (tiling the same bitmap and comparing tile
+   with tile proves nothing). Measure the ink coverage as mean alpha.
 4. **Register it** in `patterns.json` with `kind: "procedural"`, `patent`, `inventor`,
    `granted`, `url` and `credit` all `null`. Set `snapSize: true` and `defaultSize` for
-   a small tile that only makes sense at one size, so the studio jumps to it when picked.
+   a tile that only makes sense at one size (a small weave, or a layer that must line up
+   with another pattern's tile), so the studio jumps to it when picked.
 5. Update the README counts, patent table and folder map, add a `PROVENANCE.md` row, and
    rebuild with `python3 tools/build_studio.py`.
 

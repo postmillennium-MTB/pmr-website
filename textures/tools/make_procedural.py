@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""Regenerate the three generated (procedural) patterns that are not plain SVG noise.
+"""Regenerate the generated (procedural) patterns that are not plain SVG noise.
 
-    python3 tools/make_procedural.py            # all three
-    python3 tools/make_procedural.py topo       # or: guilloche, twill
+    python3 tools/make_procedural.py            # all four
+    python3 tools/make_procedural.py topo       # or: guilloche, twill, trail
 
 Writes:
   masks/topo-contours.webp       topographic contour map, 800 px, tiles seamlessly
   masks/guilloche-rosettes.webp  guilloche rosette lattice, 800 px, tiles seamlessly
   masks/carbon-twill.css         the --twill-mask-carbon line (a 64 px vector SVG tile)
+  masks/switchback-trail.webp    two dashed switchback trails, 800 px, tiles seamlessly
 
 Each pattern is exactly periodic by construction, so no edge repair is needed:
   topo       a sum of cosines whose wave vectors are whole numbers of cycles per tile,
@@ -17,6 +18,11 @@ Each pattern is exactly periodic by construction, so no edge repair is needed:
              offsets, so a rosette that crosses the edge continues on the other side.
   twill      each tow is a run of two cells; runs that cross the tile edge are drawn
              extended past it (and clipped), so no rounded end shows at the seam.
+  trail      two dashed switchback trails, each a zigzag that advances exactly one tile
+             height per period and is drawn past both edges. The dash period is chosen
+             so a whole number of dashes fits in one period, and the dashes are drawn
+             one by one (not with an SVG dash array, whose phase depends on the browser),
+             so they line up across the seam. Made to sit on topo-contours at the same size.
 
 Alpha = ink, RGB = 0, like tools/make_mask.py, so CSS paints the ink in any color.
 Prints the mean alpha of each tile; that is the 'inkCoverage' in patterns.json.
@@ -152,7 +158,105 @@ def twill():
     print(f"{path.relative_to(ROOT)}: --twill-mask-carbon updated ({len(uri)} bytes as a data URI)")
 
 
-JOBS = {"topo": topo, "guilloche": guilloche, "twill": twill}
+# ---------------------------------------------------------------- switchback trail
+# Two dashed trails, each a zigzag that advances exactly one tile height (N px) per period. Per trail:
+# (left apex xs, right apex xs, apexes per tile (even), y of the first apex, hairpin radius). The x lists repeat, so a
+# trail is slightly uneven but exactly periodic. A is wide, B narrow, with different rhythms, in different columns.
+TRAILS = {
+    "A": ([128, 112, 140, 120, 150, 118], [386, 410, 372, 398, 380, 404], 12, 22.0, 15.0),
+    "B": ([566, 580, 560, 574, 568], [706, 722, 712, 730, 716], 10, 74.0, 13.0),
+}
+TRAIL_WIDTH, TRAIL_DASH, TRAIL_PERIOD = 4.2, 15.0, 24.0   # stroke px; visible dash px (round caps included); target period px
+
+
+def _trail_vertices(xl, xr, n_apex, y0, apex_r, bulge=9.0, mid_r=250.0):
+    """Zigzag vertices: an apex, then a midpoint bowed off the straight leg by `bulge` px, for apex k = -1 .. n_apex + 1
+    (one apex of margin past each tile edge, so every arc the tile can see is a full arc)."""
+    dy = N / n_apex
+
+    def apex_x(k):
+        j = k % n_apex
+        xs = xr if j % 2 == 0 else xl
+        return xs[(j // 2) % len(xs)]
+
+    pts, rad = [], []
+    for k in range(-1, n_apex + 2):
+        (x, y), (x2, y2) = (apex_x(k), y0 + k * dy), (apex_x(k + 1), y0 + (k + 1) * dy)
+        pts.append((x, y))
+        rad.append(apex_r)
+        L = np.hypot(x2 - x, y2 - y)
+        nx, ny = -(y2 - y) / L, (x2 - x) / L
+        sg = 1 if k % 2 == 0 else -1
+        pts.append(((x + x2) / 2 + sg * bulge * nx, (y + y2) / 2 + sg * bulge * ny))
+        rad.append(mid_r)
+    return pts, rad
+
+
+def _path_points(pts, radii, step=0.25):
+    """Dense polyline (about `step` px apart) of the zigzag with every interior vertex rounded by a tangent circular arc.
+    Returns (points, at) where at[i] is the index just after vertex i's arc (the end vertices have none)."""
+    P = [np.array(p, float) for p in pts]
+    n = len(P)
+    unit = lambda v: v / np.linalg.norm(v)
+    t, theta = [0.0] * n, [0.0] * n
+    for i in range(1, n - 1):
+        theta[i] = np.arccos(np.clip(np.dot(unit(P[i - 1] - P[i]), unit(P[i + 1] - P[i])), -1, 1))   # interior angle
+        t[i] = radii[i] / np.tan(theta[i] / 2)                  # how far back along each leg the arc starts
+    for i in range(n - 1):
+        if t[i] + t[i + 1] > np.linalg.norm(P[i + 1] - P[i]) - 1e-6:
+            raise SystemExit(f"trail: arcs overlap on segment {i}; lower a radius")
+
+    def line(a, b):
+        k = max(2, int(np.ceil(np.linalg.norm(b - a) / step)) + 1)
+        return list(np.linspace(a, b, k)[1:])
+
+    out, at, cur = [P[0]], [0] * n, P[0]
+    for i in range(1, n - 1):
+        u1, u2 = unit(P[i - 1] - P[i]), unit(P[i + 1] - P[i])
+        p1, p2 = P[i] + u1 * t[i], P[i] + u2 * t[i]
+        out += line(cur, p1)
+        c = P[i] + unit(u1 + u2) * radii[i] / np.sin(theta[i] / 2)   # arc center, on the bisector
+        a1, a2 = np.arctan2(*(p1 - c)[::-1]), np.arctan2(*(p2 - c)[::-1])
+        da = (a2 - a1 + np.pi) % (2 * np.pi) - np.pi                  # the short way round
+        m = max(2, int(np.ceil(radii[i] * abs(da) / step)) + 1)
+        out += [c + radii[i] * np.array([np.cos(a), np.sin(a)]) for a in a1 + da * np.linspace(0, 1, m)[1:]]
+        cur, at[i] = p2, len(out)
+    out += line(cur, P[-1])
+    return np.array(out), at
+
+
+def trail(S=4):
+    im = Image.new("L", (N * S, N * S), 0)
+    dr = ImageDraw.Draw(im)
+    w, info = TRAIL_WIDTH, {}
+    for name, (xl, xr, n, y0, ar) in TRAILS.items():
+        pts, rad = _trail_vertices(xl, xr, n, y0, ar)
+        path, at = _path_points(pts, rad)
+        s = np.concatenate([[0.0], np.cumsum(np.hypot(*np.diff(path, axis=0).T))])
+        length = s[at[2 + 2 * n]] - s[at[2]]                       # one period, apex 0 to apex n, measured on these samples
+        period = length / round(length / TRAIL_PERIOD)             # a whole number of dashes per period => same phase every tile
+        info[name] = (length, period)
+        # dashes are drawn explicitly (not with an SVG stroke-dasharray): where a renderer puts dashes along an arc depends
+        # on its own length estimate, which differs between browsers and by about 1 px per tile here; these positions do not
+        a = s[at[2]] - period * np.ceil((s[at[2]] - s[0]) / period)   # a dash start phase-aligned with the apex-0 arc end
+        starts = np.arange(a, s[-1], period)
+        on = TRAIL_DASH - w                                        # round caps add w/2 at each end
+        for s0 in starts:
+            lo, hi = max(s0, s[0]), min(s0 + on, s[-1])
+            if hi <= lo:
+                continue
+            seg = [np.array([np.interp(q, s, path[:, 0]), np.interp(q, s, path[:, 1])]) for q in (lo, hi)]
+            inside = path[(s > lo) & (s < hi)]
+            xy = [tuple(v * S) for v in [seg[0], *inside, seg[1]]]
+            dr.line(xy, fill=255, width=round(w * S), joint="curve")
+            for v in (seg[0], seg[1]):
+                dr.ellipse([v[0] * S - w * S / 2, v[1] * S - w * S / 2, v[0] * S + w * S / 2, v[1] * S + w * S / 2], fill=255)
+    ink = np.asarray(im.resize((N, N), Image.BOX)) / 255
+    save_mask(ink, ROOT / "masks" / "switchback-trail.webp")
+    print("  " + "; ".join(f"trail {k}: {v[0]:.1f} px per tile in {round(v[0] / v[1])} dashes of {v[1]:.3f} px" for k, v in info.items()))
+
+
+JOBS = {"topo": topo, "guilloche": guilloche, "twill": twill, "trail": trail}
 
 if __name__ == "__main__":
     want = sys.argv[1:] or list(JOBS)

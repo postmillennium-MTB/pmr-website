@@ -1,5 +1,5 @@
 {
-  "_readme": "Registry of the texture masks. 'kind' is 'patent-drawing' only when the mask comes straight from a patent's own drawing; 'adapted' means the drawing was redrawn by an AI image model and its edges repaired so it tiles. Never describe an 'adapted' pattern as the patent's drawing. 'url' is the Google Patents page (null if unknown; cite by number). 'credit' is the ready-to-paste attribution line shown in the studio. 'procedural' entries are generated, have no patent and need no credit: either an SVG tile read by tools/build_studio.py via 'cssVar' from masks/*.css (low-pile-carpet.css, graph-paper.css, carbon-twill.css), or a WebP 'mask' written by tools/make_procedural.py (topo-contours, guilloche-rosettes). 'defaultSize' is the tile width in CSS px (default 520). inventor/granted are null for procedural entries (no patent).",
+  "_readme": "Registry of the texture masks. 'kind' is 'patent-drawing' only when the mask comes straight from a patent's own drawing; 'adapted' means the drawing was redrawn by an AI image model and its edges repaired so it tiles. Never describe an 'adapted' pattern as the patent's drawing. 'url' is the Google Patents page (null if unknown; cite by number). 'credit' is the ready-to-paste attribution line shown in the studio. 'procedural' entries are generated, have no patent and need no credit: either an SVG tile read by tools/build_studio.py via 'cssVar' from masks/*.css (low-pile-carpet.css, graph-paper.css, carbon-twill.css), or a WebP 'mask' written by tools/make_procedural.py (topo-contours, guilloche-rosettes, switchback-trail). 'defaultSize' is the tile width in CSS px (default 520). inventor/granted are null for procedural entries (no patent).",
   "patterns": [
     {
       "id": "crowe-1884-14685",
@@ -280,6 +280,24 @@
       "defaultSize": 64,
       "snapSize": true,
       "note": "A 2/2 twill weave like carbon-fiber frames, bars and rims, from masks/carbon-twill.css: a 64 px vector tile (4 x 4 cells of 16 px). Vertical tows carry more ink than horizontal ones, so the diagonal rib reads in one ink color, and each tow shades from strong edges to a lighter middle. A vector tile, so it stays sharp at any size: 64-96 px reads as carbon cloth, 160 px and up as a coarse macro weave. About 46% ink, so use 5-7% strength. Regenerate with tools/make_procedural.py twill.",
+      "url": null,
+      "credit": null
+    },
+    {
+      "id": "switchback-trail",
+      "title": "Switchback trail (procedural)",
+      "kind": "procedural",
+      "patent": null,
+      "inventor": null,
+      "granted": null,
+      "assignee": null,
+      "mask": "masks/switchback-trail.webp",
+      "pixels": "800x800",
+      "inkCoverage": 0.015,
+      "defaultOpacity": 0.3,
+      "defaultSize": 520,
+      "snapSize": true,
+      "note": "Two dashed singletrack trails climbing a hillside in switchbacks (near-level legs joined by tight hairpins), drawn the way a trail map draws a trail. Made to sit on Topographic contours: pick the contours for layer 1, add a layer, pick this for layer 2, and keep both at the same size (520 px) so the tiles line up. It is thin dashed line art with only about 1.5% ink, so it takes about 3x the strength of the contours: 25-35% against 8-12%. It reads as a different line from a contour by its dashes and heavier stroke, not by color. Also works alone at 400 px or larger as a map accent. Exactly periodic by construction: each trail advances one tile height per period and its dashes are placed so they line up across the tile edge. Regenerate with tools/make_procedural.py trail.",
       "url": null,
       "credit": null
     }
