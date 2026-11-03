@@ -1,7 +1,7 @@
 # Lateral wheel-strength regression
 
 Full-factorial OLS regression against the app's own 30-hub catalogue
-(`HUBS_148` + `HUBS_157` from `src/data.js`), a 5-rim catalogue, and four
+(`HUBS_148` + `HUBS_157` from `src/data.js`, read live by `hubs.js`), a 5-rim catalogue, and four
 build-spec dimensions (spoke diameter, spoke count, build tension, wheel
 size), run through `wheel-physics-core`'s validated `calc()` engine
 directly -- the same numbers the COMPARE tab shows, not a re-derivation.
@@ -163,19 +163,27 @@ explorer does not (see the guardrail note above).
 
 ## Running it
 
-`dataset.json` and `wheel_strength_dataset.csv` are not checked into this
-repo -- at 2,400 rows they're a few hundred KB of numbers already fully
-derivable from `build_dataset.js`, so regenerate them rather than diffing
-a large data blob on every catalogue change. `explorer.html` carries its
-own embedded copy of the same 2,400 rows for the live page.
+**Hub dimensions are not stored here.** `hubs.js` reads `HUBS_148` and
+`HUBS_157` straight out of the app's `src/data.js` inside
+`wheel-lab-source.zip` (repo root), so there is one hub list for the whole
+repo. To change a hub, edit it in the archive; never in this folder.
+
+`explorer.html` carries an embedded copy of the 2,400 rows and the per-hub
+geometry lookup, because it has to run as a standalone page. Those two
+blocks sit between `BEGIN/END GENERATED` markers and are rewritten by
+`build_explorer.js` -- don't hand-edit them. After any hub change:
 
 ```bash
 npm install                 # pulls wheel-physics-core, pinned to the same
                              # commit as the main app's package.json
+node build_explorer.js      # regenerates explorer.html's DATA + HUB_GEOM
 node build_dataset.js > dataset.json
 pip install numpy pandas statsmodels
 python3 regression.py       # also writes wheel_strength_dataset.csv
 ```
+
+Requires `unzip` on the PATH (preinstalled on macOS, most Linux, and the
+CI runner).
 
 `regression.py` prints the raw-unit OLS summary (cluster-robust SEs by
 hub), standardized (z-scored) betas with p-values, VIF per predictor, and
@@ -183,50 +191,53 @@ partial R^2 per predictor, then writes `wheel_strength_dataset.csv`.
 
 ## Results (n=2,400)
 
-R^2 = 0.945, adj. R^2 = 0.945 (SEs clustered by hub).
+Y is `F_lat` from wheel-physics-core at commit 1e81384: first spoke slack in
+Ford's fully-discrete-spoke Mode Matrix (each spoke at its own rim angle,
+lateral and radial coupled). Before October 2026 the engine used a smeared
+shortcut for `F_lat`, and this section reported R^2 = 0.945 on it; the
+change and why are recorded in wheel-physics-core's
+`validation/strength/README.md`. All 2,400 rows are below the discrete
+buckling tension (highest 97.8%; 45 rows at 80% or more).
+
+R^2 = 0.927, adj. R^2 = 0.927 (SEs clustered by hub).
 
 | Beta | std beta | p (clustered) | VIF | partial R^2 |
 |---|---|---|---|---|
-| `rim_stiffness_index` | 0.579 | <0.001 | 1.00 | 0.335 |
-| `tension_ratio` | 0.420 | <0.001 | 1.73 | 0.101 |
-| `flange_width` | 0.400 | <0.001 | 3.22 | 0.050 |
-| `tension_kgf` | 0.377 | <0.001 | 1.00 | 0.142 |
-| `wheel_erd` | -0.306 | <0.001 | 1.00 | 0.093 |
-| `spoke_count` | 0.209 | <0.001 | 1.00 | 0.044 |
-| `pcd_mean` | 0.022 | 0.086 | 1.07 | 0.0004 |
-| `standard_157` | -0.022 | 0.199 | 4.01 | 0.0001 |
-| `spoke_diameter` | 0.005 | 0.345 | 1.00 | ~0.0000 |
+| `rim_stiffness_index` | 0.604 | <0.001 | 1.00 | 0.365 |
+| `flange_width` | 0.447 | <0.001 | 3.35 | 0.060 |
+| `tension_ratio` | 0.341 | <0.001 | 1.75 | 0.067 |
+| `tension_kgf` | 0.337 | <0.001 | 1.00 | 0.114 |
+| `wheel_erd` | -0.329 | <0.001 | 1.00 | 0.108 |
+| `spoke_count` | 0.204 | <0.001 | 1.00 | 0.042 |
+| `standard_157` | -0.034 | 0.071 | 4.17 | 0.0003 |
+| `spoke_diameter` | 0.029 | <0.001 | 1.00 | 0.0008 |
+| `pcd_mean` | 0.020 | 0.103 | 1.07 | 0.0004 |
 
 **Reading it, in order of what's actually driving strength:**
 
-1. **Rim stiffness still leads everything** (std beta 0.58, partial R²
-   0.34) -- consistent with the earlier hub&times;rim-only result.
-2. **Build tension is the second-biggest single lever** (std beta 0.38,
-   partial R² 0.14) and it's the *cheapest* one to act on -- unlike a hub,
+1. **Rim stiffness still leads everything** (std beta 0.60, partial R²
+   0.36) -- consistent with the earlier hub&times;rim-only result.
+2. **Build tension is the biggest single build-spec lever** (std beta 0.34,
+   partial R² 0.11) and it's the *cheapest* one to act on -- unlike a hub,
    rim, or spoke-count change, hitting the top of the recommended tension
    range costs nothing but a truing stand and a tension meter.
 3. **Wheel size matters more than expected, and works against you as it
-   grows** (std beta -0.31): a 29" wheel is measurably weaker, all else
+   grows** (std beta -0.33): a 29" wheel is measurably weaker, all else
    equal, than the same build in 27.5", because the larger radius shrinks
    the bracing angle -- exactly the mechanism this repo's README already
    flagged for the 27.5"-vs-29" tension-balance comparison, just showing
    up here with real force behind it once wheel size is actually varied
    rather than held fixed.
-4. **Tension symmetry and flange width** remain close behind and close to
-   each other, same story as before.
-5. **Spoke count has a real, moderate effect** (std beta 0.21) -- more
+4. **Flange width and tension symmetry** remain close behind. Under the
+   discrete model flange width moves ahead of tension symmetry (0.45 vs
+   0.34); under the earlier smeared formula the order was reversed.
+5. **Spoke count has a real, moderate effect** (std beta 0.20) -- more
    spokes meaningfully raise the first-slack threshold, as expected.
-6. **Spoke diameter is statistically indistinguishable from zero**
-   (std beta 0.005, p=0.35, partial R² ~0). This is the one genuinely
-   counterintuitive result: going from 15g to 14g doesn't reliably buy
-   more lateral strength margin in this model. The likely mechanism is a
-   cancellation inside Ford's linearized threshold -- a fatter spoke raises
-   both the axial stiffness that sets the slack-tension threshold *and*
-   the smeared stiffness term that raises `K_lat`, and those two move in
-   opposite directions for `F_lat`'s size. Worth treating as a real,
-   model-derived result to sanity-check against Ford's thesis rather than
-   a bug -- it did not disappear on a second run at different hub/rim
-   combinations.
+6. **Spoke diameter is statistically significant but small**
+   (std beta 0.03, partial R² ~0.001). Under the earlier smeared formula it
+   was indistinguishable from zero (std beta 0.005, p=0.35). Either way,
+   going from 15g to 14g buys little lateral first-slack strength in this
+   model.
 7. **`pcd_mean` and `standard_157` remain negligible**, as in every
    previous pass of this analysis.
 
