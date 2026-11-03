@@ -293,11 +293,11 @@
       "assignee": null,
       "mask": "masks/switchback-trail.webp",
       "pixels": "800x800",
-      "inkCoverage": 0.015,
-      "defaultOpacity": 0.3,
+      "inkCoverage": 0.008,
+      "defaultOpacity": 0.4,
       "defaultSize": 520,
       "snapSize": true,
-      "note": "Two dashed singletrack trails climbing a hillside in switchbacks (near-level legs joined by tight hairpins), drawn the way a trail map draws a trail. Made to sit on Topographic contours: pick the contours for layer 1, add a layer, pick this for layer 2, and keep both at the same size (520 px) so the tiles line up. It is thin dashed line art with only about 1.5% ink, so it takes about 3x the strength of the contours: 25-35% against 8-12%. It reads as a different line from a contour by its dashes and heavier stroke, not by color. Also works alone at 400 px or larger as a map accent. Exactly periodic by construction: each trail advances one tile height per period and its dashes are placed so they line up across the tile edge. Regenerate with tools/make_procedural.py trail.",
+      "note": "Three dashed trail loops routed over the same terrain as the Topographic contours, the way a deer or a trail builder would pick a line. Each loop climbs a steep, straight face by a route that may never exceed a maximum grade and is confined to a corridor, so it traverses along the contours and doubles back in switchbacks, then returns by an efficient, steeper line that contours around the hillside. About 55% of each climb runs within 30 degrees of the contour direction (random headings: 33%). Made to sit on the contours: pick the contours for layer 1, add a layer, pick this for layer 2, and keep both at the same size (520 px) so the trail lies on the hills it was routed over. Thin dashed line art with under 1% ink, so it takes about 3x the strength of the contours: 30-40% against 8-12%. It reads as a different line from a contour by its dashes, not by color. Alone it is just three dashed loops with no terrain under them; use it at 400 px or larger. Exactly periodic by construction (a loop that crosses a tile edge continues across it, and each loop's dashes close up). Regenerate with tools/make_procedural.py trail.",
       "url": null,
       "credit": null
     }

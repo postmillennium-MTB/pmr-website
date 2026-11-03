@@ -47,7 +47,7 @@ their names when they are used.
 | `topo-contours` | none (procedural) | n/a | n/a | Generated contour map (18 contour intervals, an index line every 5th), no credit needed |
 | `guilloche-rosettes` | none (procedural) | n/a | n/a | Generated guilloché rosette lattice, the banknote and stock-certificate style, no credit needed |
 | `carbon-twill` | none (procedural) | n/a | n/a | Generated 2/2 twill weave, a 64 px vector tile, no credit needed |
-| `switchback-trail` | none (procedural) | n/a | n/a | Generated dashed switchback trails, made to layer over `topo-contours`; no credit needed |
+| `switchback-trail` | none (procedural) | n/a | n/a | Generated dashed trail loops routed over the `topo-contours` terrain, made to layer over it; no credit needed |
 
 "Adapted" patterns were redrawn from the patent drawing with an AI image model
 (Google Gemini) and had their edges repaired so they tile; they are not the
@@ -115,7 +115,7 @@ self-contained form. That adds roughly 40-100 KB to `index.html` per pattern.
 - **Graph paper:** keep it at 80 px (or 160 px) so the 1 px lines stay sharp, and 3.5-6% strength. Put charts on opaque panels and halo any text that sits on it; `masks/graph-paper.css` has the details.
 - **Topographic contours and guilloché rosettes:** thin line art (10% and 16% ink), so they take more strength than the carpets: 8-12%. Show them at 400 px or larger, because the lines are 1.5-1.8 px in the 800 px mask and fade out when shrunk. Both are exactly periodic and need no seam repair.
 - **Carbon twill:** a 64 px vector tile that stays sharp at any size. 64-96 px reads as carbon cloth, 160 px and up as a coarse macro weave. About 46% ink, so 5-7%. The studio jumps the size to 64 px when you pick it.
-- **Switchback trail:** made to sit on the topographic contours. Pick the contours for layer 1, **Add a layer**, pick the trail for layer 2, and keep both at 520 px so the tiles line up (the studio sets the trail to 520 px when you pick it). It is dashed line art with only 1.5% ink, so give it about 3x the contours' strength: 25-35% against 8-12%. It stands out from a contour by its dashes and heavier stroke, not by color, so it holds up in one ink color. Alone, use it at 400 px or larger.
+- **Switchback trail:** three dashed trail loops routed over the same terrain as the topographic contours, so the pair must be used together: pick the contours for layer 1, **Add a layer**, pick the trail for layer 2, and keep both at 520 px so each loop lies on the hills it was routed over (the studio sets the trail to 520 px when you pick it). Each loop climbs a steep face in switchbacks that run along the contours and returns by an efficient line, the way a game trail or a trail builder's line goes. It is dashed line art with under 1% ink, so give it about 3-4x the contours' strength: 30-40% against 8-12%. It stands out from a contour by its dashes, not by color. Alone it is only three dashed loops with nothing under them; use it at 400 px or larger.
 - **Regenerating:** `python3 tools/make_procedural.py` rebuilds the contours, the guilloché, the twill tile and the trail; edit the numbers at the top of each function to change the design.
 - **Pattern size:** the PMR site uses 520 px. The fine-grid pattern (13,105)
   blurs when shown smaller than about 400 px.

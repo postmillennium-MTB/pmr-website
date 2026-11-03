@@ -122,13 +122,17 @@ wrong before it spreads; `crowe-1882-13108` became `fisher-1882-13108`.
 
 A generated pattern needs none of the three inputs above: no PDF, no Gemini tile, no
 link, no credit line. The topographic contours, guilloché rosettes, carbon twill and
-switchback trail were added this way.
+switchback trail were added this way. The trail is the one with real engineering in it (it
+routes trails over the contours' terrain); `make_procedural.py trail --find` lists the faces
+its climbs start from.
 
 1. **Make it periodic by construction**, so no edge repair is needed: integer wave
-   vectors for noise, wrapped offsets for anything that crosses the edge, runs drawn
-   past the edge and clipped for a weave, a path that advances exactly one tile per
-   period for a trail. A dashed line needs its dash period chosen so a whole number of
-   dashes fits in one period, **and the dashes drawn one by one**: an SVG
+   vectors for noise, wrapped offsets for anything that crosses the edge (a closed
+   loop is drawn at every whole-tile shift that can touch the tile), runs drawn past
+   the edge and clipped for a weave. A pattern meant to layer over another one (the
+   switchback trail over the contours) should be generated from the same function, so
+   they agree. A dashed line needs its dash period chosen so a whole number of
+   dashes fits in one period (or round a loop), **and the dashes drawn one by one**: an SVG
    `stroke-dasharray` on a path with arcs puts dashes where the renderer's own length
    estimate says, which was about 1 px off per tile in Chromium and differs between
    browsers.
