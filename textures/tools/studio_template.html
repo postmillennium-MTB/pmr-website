@@ -127,13 +127,13 @@ select{font:inherit;font-size:.9rem;padding:7px 9px;border:1px solid var(--rule)
     <h2 id="h-credits">Credits</h2>
     <p class="meta" style="margin-top:0">The patent patterns come from US design patents: six carpet patents by Eugene A. Crowe of Boston, two by Edwin Fisher of Boston and one by John Fisher of New York (all 1882-1884, expired more than a century ago), US Design Patent No. 74,141, a 1927 textile fabric design by Harry S. Day of Hawthorne, New Jersey (assigned to Pennsylvania Textile Mills, Inc.), and US Design Patent No. 268,339, the Tioga Comp III tire tread (Syoji Inae and Eiji Fukuchi, assigned to Mitsuboshi Belting Ltd., granted 1983, expired 1997). Drawing scans are US Patent Office drawings via Google Patents.</p>
     <ul id="creditList" class="meta" style="padding-left:20px;margin:8px 0"></ul>
-    <p class="meta">Patterns marked <span class="badge adapted">Adapted</span> are not the patent's own drawing: the drawing was redrawn with an AI image model (Google Gemini) and its edges repaired so it tiles. Only patterns marked <span class="badge real">Patent drawing</span> are the original drawing. Patterns marked <span class="badge proc">Procedural</span> are generated noise, not drawn from any patent, and need no credit.</p>
+    <p class="meta">Patterns marked <span class="badge adapted">Adapted</span> are not the patent's own drawing: the drawing was redrawn with an AI image model (Google Gemini) and its edges repaired so it tiles. Only patterns marked <span class="badge real">Patent drawing</span> are the original drawing. Patterns marked <span class="badge proc">Procedural</span> are generated (noise, or the ruled lines of the graph paper), not drawn from any patent, and need no credit.</p>
   </section>
 </div>
 <script>
 /* ===== DATA BLOCK ===== */
 /* Masks, embedded as data URIs by tools/build_studio.py from patterns.json. 'kind' is "patent-drawing",
-   "adapted" (AI-redrawn, edges repaired) or "procedural" (generated SVG noise, no patent): never describe
+   "adapted" (AI-redrawn, edges repaired) or "procedural" (generated SVG noise or ruled lines, no patent): never describe
    an adapted pattern as the patent's own drawing. */
 const PATTERNS = /*__PATTERNS__*/[];
 
@@ -240,7 +240,7 @@ function buildLayer(layer){
             hold:q("#hold"+n), holdv:q(".holdv"), floor:q("#floor"+n), floorv:q(".floorv"), fadeopts:q(".fadeopts"),
             own:q("#own"+n), ownrow:q(".owninkrow"), ownfield:q(".owninkfield"), lci:q("#lci"+n), lch:q("#lch"+n), prov:q(".prov")};
   const u=layer.ui;
-  u.pat.onchange=()=>{ layer.pat=byId(u.pat.value); sync(); };           /* only the pattern changes; strength, size, fade and ink are kept */
+  u.pat.onchange=()=>{ layer.pat=byId(u.pat.value); if(layer.pat.snapSize) layer.size=layer.pat.defaultSize; sync(); };  /* only the pattern changes; strength, size, fade and ink are kept, except that a pattern with snapSize (1 px line art such as the graph paper) jumps to its own size so its lines stay sharp */
   u.fade.onchange=()=>{ layer.fade=u.fade.value; sync(); };
   u.op.oninput=()=>{ layer.opacity=+u.op.value; sync(); };
   u.sz.oninput=()=>{ layer.size=+u.sz.value; sync(); };
@@ -383,7 +383,7 @@ function bind(){
 }
 function buildCredits(){
   $("creditList").innerHTML=PATTERNS.map(p=>{
-    if(p.kind==="procedural") return `<li>${p.title}: generated noise, no source patent</li>`;
+    if(p.kind==="procedural") return `<li>${p.title}: generated, no source patent</li>`;
     const label=p.patent.replace("US Design Patent ","US Design Patent No. ");
     const ref=p.url?`<a href="${p.url}" target="_blank" rel="noopener">${label}</a>`:label;
     const who=[p.inventor, p.granted?("granted "+p.granted):null].filter(Boolean).join(", ");

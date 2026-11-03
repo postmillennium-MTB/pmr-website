@@ -212,6 +212,25 @@
       "note": "Generated fine pile noise without the weave, from masks/low-pile-carpet.css. Paper or felt grain. Works best at 12-18% strength.",
       "url": null,
       "credit": null
+    },
+    {
+      "id": "graph-paper",
+      "title": "Graph paper (procedural)",
+      "kind": "procedural",
+      "patent": null,
+      "inventor": null,
+      "granted": null,
+      "assignee": null,
+      "mask": null,
+      "cssVar": "--grid-mask-graph-paper",
+      "pixels": "80x80",
+      "inkCoverage": 0.18,
+      "defaultOpacity": 0.05,
+      "defaultSize": 80,
+      "snapSize": true,
+      "note": "Engineering graph paper from masks/graph-paper.css: 1 px lines, minor every 8 px at 70% ink, major every 40 px. Keep the size at 80 px (or 160 px) so the lines stay sharp. Works best at 3.5-6% strength. The Wheel Strength Lab uses the gradient form in the same file. Keep charts on opaque panels and halo text that sits on the grid.",
+      "url": null,
+      "credit": null
     }
   ]
 }

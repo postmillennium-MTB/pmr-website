@@ -1,0 +1,65 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   GRAPH PAPER — a procedural texture (PMR)
+   ───────────────────────────────────────────────────────────────────────
+   Engineering graph paper: 1 px lines, a minor line every 8 px and a major
+   line every 40 px. First used as the Wheel Strength Lab's page background
+   (MTB-wheel-lab PR #20, Nov 2026). Generated, not drawn from a patent, so
+   no credit line is needed.
+
+   Two ways to use it.
+
+   1. AS A STUDIO MASK (one ink color, any theme)
+      --grid-mask-graph-paper is an 80 px seamless SVG tile (two major cells,
+      ten minor cells). Minor lines are 70% of the major lines' ink, so one
+      strength setting gives both weights. Keep the pattern size at 80 px
+      (or 160 px for a 16 / 80 grid): other sizes put the 1 px lines between
+      device pixels and they blur. Pick it in the Texture Studio as
+      "Graph paper (procedural)".
+
+   2. AS PLAIN CSS GRADIENTS (what the Wheel Lab ships)
+      No mask, no extra element: four gradients on <body>. Use this when a
+      tool already sets per-theme colors in JS or CSS variables. Set
+      --grid-minor and --grid-major per theme; the Lab draws them in the
+      theme's text color at these opacities:
+        dark themes   minor 3.5%  major 5%
+        light themes  minor 4.5%  major 6%
+      (a light ground needs a little more ink for the same visibility).
+
+   RULES THAT CAME FROM THE LAB
+   • Charts and cards keep an opaque fill, so plots never sit on the grid.
+   • Text that sits straight on the page background gets a halo in the
+     background color (.grid-halo below) so no line runs through a glyph.
+     That keeps WCAG contrast exactly where it was without the grid.
+   • If JS sets the page color, use body.style.backgroundColor, not
+     body.style.background: the shorthand resets background-image and wipes
+     the grid.
+   • An inner wrapper with its own background hides the grid; make it
+     transparent and put the color on <body>.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --grid-mask-graph-paper: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='80'%20height='80'%20shape-rendering='crispEdges'%3E%3Cpath%20d='M0%208.5H80M0%2016.5H80M0%2024.5H80M0%2032.5H80M0%2048.5H80M0%2056.5H80M0%2064.5H80M0%2072.5H80M8.5%200V80M16.5%200V80M24.5%200V80M32.5%200V80M48.5%200V80M56.5%200V80M64.5%200V80M72.5%200V80'%20stroke='rgb%28255,255,255%29'%20stroke-opacity='.7'%20stroke-width='1'%20fill='none'/%3E%3Cpath%20d='M0%20.5H80M0%2040.5H80M.5%200V80M40.5%200V80'%20stroke='rgb%28255,255,255%29'%20stroke-width='1'%20fill='none'/%3E%3C/svg%3E");
+  /* gradient form: per theme, text color + alpha (8-digit hex or rgb / a) */
+  --grid-minor: rgb(42 34 48 / 0.045);
+  --grid-major: rgb(42 34 48 / 0.06);
+  --grid-bg: #E8E6EA;
+}
+
+/* ── RECIPE: gradient graph paper on the page ──────────────────────────
+   Major lines line up with the edges of a centered column whose width is a
+   multiple of 40 px (the Lab's 720 px column). */
+body.graph-paper {
+  background-color: var(--grid-bg);
+  background-image:
+    linear-gradient(var(--grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
+    linear-gradient(var(--grid-minor) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px);
+  background-size: 40px 40px, 40px 40px, 8px 8px, 8px 8px;
+  background-position: calc(50% + 20px) 0, calc(50% + 20px) 0, calc(50% + 4px) 0, calc(50% + 4px) 0;
+}
+
+/* Text sitting directly on the grid (not inside a card). */
+.grid-halo {
+  text-shadow: 0 0 2px var(--grid-bg), 0 0 2px var(--grid-bg), 0 0 3px var(--grid-bg);
+}
