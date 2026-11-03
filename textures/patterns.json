@@ -1,5 +1,5 @@
 {
-  "_readme": "Registry of the texture masks. 'kind' is 'patent-drawing' only when the mask comes straight from a patent's own drawing; 'adapted' means the drawing was redrawn by an AI image model and its edges repaired so it tiles. Never describe an 'adapted' pattern as the patent's drawing. 'url' is the Google Patents page (null if unknown; cite by number). 'credit' is the ready-to-paste attribution line shown in the studio. 'procedural' entries are generated SVG-noise tiles from masks/low-pile-carpet.css (read by tools/build_studio.py via 'cssVar'); they have no patent and need no credit. 'defaultSize' is the tile width in CSS px (default 520). inventor/granted are null for procedural entries (no patent).",
+  "_readme": "Registry of the texture masks. 'kind' is 'patent-drawing' only when the mask comes straight from a patent's own drawing; 'adapted' means the drawing was redrawn by an AI image model and its edges repaired so it tiles. Never describe an 'adapted' pattern as the patent's drawing. 'url' is the Google Patents page (null if unknown; cite by number). 'credit' is the ready-to-paste attribution line shown in the studio. 'procedural' entries are generated, have no patent and need no credit: either an SVG tile read by tools/build_studio.py via 'cssVar' from masks/*.css (low-pile-carpet.css, graph-paper.css, carbon-twill.css), or a WebP 'mask' written by tools/make_procedural.py (topo-contours, guilloche-rosettes). 'defaultSize' is the tile width in CSS px (default 520). inventor/granted are null for procedural entries (no patent).",
   "patterns": [
     {
       "id": "crowe-1884-14685",
@@ -229,6 +229,57 @@
       "defaultSize": 80,
       "snapSize": true,
       "note": "Engineering graph paper from masks/graph-paper.css: 1 px lines, minor every 8 px at 70% ink, major every 40 px. Keep the size at 80 px (or 160 px) so the lines stay sharp. Works best at 3.5-6% strength. The Wheel Strength Lab uses the gradient form in the same file. Keep charts on opaque panels and halo text that sits on the grid.",
+      "url": null,
+      "credit": null
+    },
+    {
+      "id": "topo-contours",
+      "title": "Topographic contours (procedural)",
+      "kind": "procedural",
+      "patent": null,
+      "inventor": null,
+      "granted": null,
+      "assignee": null,
+      "mask": "masks/topo-contours.webp",
+      "pixels": "800x800",
+      "inkCoverage": 0.1,
+      "defaultOpacity": 0.1,
+      "note": "A generated contour map: a periodic terrain built from 12 cosine waves, one contour line per 1/18 of the relief, every 5th an index contour at about twice the weight. Exactly periodic by construction, so it needed no edge repair. Thin line art, about 10% ink: works best at 8-12% strength, at 400 px or larger so the 1.8 px lines (index 3.4 px, in the 800 px mask) stay visible. Reads as terrain, so it suits trail and map pages. Regenerate with tools/make_procedural.py topo.",
+      "url": null,
+      "credit": null
+    },
+    {
+      "id": "guilloche-rosettes",
+      "title": "Guilloché rosettes (procedural)",
+      "kind": "procedural",
+      "patent": null,
+      "inventor": null,
+      "granted": null,
+      "assignee": null,
+      "mask": "masks/guilloche-rosettes.webp",
+      "pixels": "800x800",
+      "inkCoverage": 0.16,
+      "defaultOpacity": 0.09,
+      "note": "Generated engraver's guilloche: a lattice of large rosettes (26 overlapping circles in a ring, hollow center holding a small 12-circle flower) with a small 16-circle rosette in each gap, the style of banknote and stock-certificate borders. Exactly periodic by construction (edge rosettes are drawn at all wrapped offsets), so it needed no edge repair. Thin line art, about 16% ink: works best at 8-10% strength at 400 px or larger. The fine crossings average to a soft gray at small sizes. Regenerate with tools/make_procedural.py guilloche.",
+      "url": null,
+      "credit": null
+    },
+    {
+      "id": "carbon-twill",
+      "title": "Carbon twill weave (procedural)",
+      "kind": "procedural",
+      "patent": null,
+      "inventor": null,
+      "granted": null,
+      "assignee": null,
+      "mask": null,
+      "cssVar": "--twill-mask-carbon",
+      "pixels": "64x64",
+      "inkCoverage": 0.46,
+      "defaultOpacity": 0.06,
+      "defaultSize": 64,
+      "snapSize": true,
+      "note": "A 2/2 twill weave like carbon-fiber frames, bars and rims, from masks/carbon-twill.css: a 64 px vector tile (4 x 4 cells of 16 px). Vertical tows carry more ink than horizontal ones, so the diagonal rib reads in one ink color, and each tow shades from strong edges to a lighter middle. A vector tile, so it stays sharp at any size: 64-96 px reads as carbon cloth, 160 px and up as a coarse macro weave. About 46% ink, so use 5-7% strength. Regenerate with tools/make_procedural.py twill.",
       "url": null,
       "credit": null
     }
