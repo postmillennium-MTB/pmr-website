@@ -4,11 +4,11 @@ Texture studio can be found here:
 
 https://www.postmillenniumrenaissance.com/textures/studio/
 
-Recolorable background patterns for Post Millennium Renaissance tools. Thirteen in
+Recolorable background patterns for Post Millennium Renaissance tools. Fourteen in
 all: nine redrawn or cropped from 1880s carpet design patents (six by Eugene A. Crowe,
 two by Edwin Fisher, one by John Fisher), one from a 1927 textile design patent
 (D 74,141, Harry S. Day), one cropped from the Tioga Comp III tire tread patent (US
-Design Patent 268,339), and two procedural pile/grain tiles. Each pattern is one alpha
+Design Patent 268,339), two procedural pile/grain tiles, and procedural graph paper. Each pattern is one alpha
 mask (ink opaque, paper transparent), so a single file serves every color scheme: CSS
 paints the ink in whatever color you choose.
 
@@ -22,7 +22,7 @@ Company** of Lowell, Massachusetts as assignee. **US D 74,141** is a 1927 textil
 design (not a carpet) by **Harry S. Day** of Hawthorne, New Jersey, assigned to
 **Pennsylvania Textile Mills, Inc.** of Clifton, New Jersey, granted Dec 27, 1927. **Comp III** is US D 268,339, the Tioga Comp III tire tread: inventors
 **Syoji Inae and Eiji Fukuchi**, assigned to **Mitsuboshi Belting Ltd.**, granted
-Mar 22, 1983, expired Mar 22, 1997. The pile and grain tiles are generated and need
+Mar 22, 1983, expired Mar 22, 1997. The pile, grain and graph-paper tiles are generated and need
 no credit. The patents have expired, and the drawing scans come from the US Patent
 Office via Google Patents. Permission is not required, but the designs should carry
 their names when they are used.
@@ -41,6 +41,7 @@ their names when they are used.
 | `day-1927-74141` | [US D 74,141](https://patents.google.com/patent/USD74141S/en) | **Harry S. Day** | Dec 27, 1927 | Adapted (textile fabric, not a carpet) |
 | `us-d268339` (Comp III) | [US D 268,339](https://patents.google.com/patent/USD268339S/en) | Syoji Inae, Eiji Fukuchi | Mar 22, 1983 | Patent drawing (cropped) |
 | `pile-carpet`, `pile-grain` | none (procedural) | n/a | n/a | Generated noise, no credit needed |
+| `graph-paper` | none (procedural) | n/a | n/a | Generated ruled lines (8 px minor, 40 px major), no credit needed |
 
 "Adapted" patterns were redrawn from the patent drawing with an AI image model
 (Google Gemini) and had their edges repaired so they tile; they are not the
@@ -82,7 +83,7 @@ block to paste for each theme.
 | Form | Use when | Why |
 |---|---|---|
 | Self-contained (data URI) | The tool is a single file that must work when double-clicked, or is embedded in an iframe | Browsers do not load a mask image from a local file. Tested: a relative `mask-image: url(m.webp)` renders nothing from `file://`; the same mask as a data URI renders. |
-| Short (file link, the studio default) | The page is served from the web | About 1-2 KB of CSS per layer. The masks load from `https://www.postmillenniumrenaissance.com/textures/masks/<id>.webp`; GitHub Pages sends the CORS header mask images need, so any web page can use them. Tested against a local server sending the same CORS header (the short CSS painted on a page from a different origin); not yet tested against the live site. A new pattern only loads once it is on the live site (after the branch is merged). The procedural pile and grain stay embedded (about 1 KB each). |
+| Short (file link, the studio default) | The page is served from the web | About 1-2 KB of CSS per layer. The masks load from `https://www.postmillenniumrenaissance.com/textures/masks/<id>.webp`; GitHub Pages sends the CORS header mask images need, so any web page can use them. Tested against a local server sending the same CORS header (the short CSS painted on a page from a different origin); not yet tested against the live site. A new pattern only loads once it is on the live site (after the branch is merged). The procedural pile, grain and graph paper stay embedded (about 1 KB each). |
 
 The Patent Atlas must keep working when double-clicked, so it should use the
 self-contained form. That adds roughly 40-100 KB to `index.html` per pattern.
@@ -105,6 +106,7 @@ self-contained form. That adds roughly 40-100 KB to `index.html` per pattern.
   embeds clip fixed layers).
 - **Background color goes on `<body>` or `<html>`.** If it is only on an inner
   wrapper, the layer (z-index -1) ends up hidden behind it.
+- **Graph paper:** keep it at 80 px (or 160 px) so the 1 px lines stay sharp, and 3.5-6% strength. Put charts on opaque panels and halo any text that sits on it; `masks/graph-paper.css` has the details.
 - **Pattern size:** the PMR site uses 520 px. The fine-grid pattern (13,105)
   blurs when shown smaller than about 400 px.
 
@@ -122,6 +124,7 @@ patent's drawing.** See `PROVENANCE.md`.
 |---|---|
 | `masks/*.webp` | The recolorable masks (lossless WebP with alpha, 800 px) |
 | `masks/low-pile-carpet.css` | The two procedural SVG tiles (carpet, grain); the studio reads them from here |
+| `masks/graph-paper.css` | Procedural graph paper: the studio's 80 px mask tile, plus the plain-gradient recipe and per-theme rules the Wheel Strength Lab uses |
 | `masks/USD268339S.png` | Source scan for `us-d268339` (not served by the studio; kept to regenerate the mask) |
 | `patterns.json` | The registry: id, patent, status, ink coverage, default strength |
 | `studio/index.html` | The recolor-and-copy-CSS page (built; masks embedded) with layers, fades and a random-color button |
