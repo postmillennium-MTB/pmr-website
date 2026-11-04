@@ -4,13 +4,13 @@ Texture studio can be found here:
 
 https://www.postmillenniumrenaissance.com/textures/studio/
 
-Recolorable background patterns for Post Millennium Renaissance tools. Seventeen in
+Recolorable background patterns for Post Millennium Renaissance tools. Eighteen in
 all: nine redrawn or cropped from 1880s carpet design patents (six by Eugene A. Crowe,
 two by Edwin Fisher, one by John Fisher), one from a 1927 textile design patent
 (D 74,141, Harry S. Day), one cropped from the Tioga Comp III tire tread patent (US
 Design Patent 268,339), two procedural pile/grain tiles, procedural graph paper, and
-three more generated patterns: topographic contours, guilloché rosettes and a carbon
-twill weave. Each pattern is one alpha
+four more generated patterns: topographic contours, guilloché rosettes, a carbon
+twill weave and a switchback trail line. Each pattern is one alpha
 mask (ink opaque, paper transparent), so a single file serves every color scheme: CSS
 paints the ink in whatever color you choose.
 
@@ -24,7 +24,7 @@ Company** of Lowell, Massachusetts as assignee. **US D 74,141** is a 1927 textil
 design (not a carpet) by **Harry S. Day** of Hawthorne, New Jersey, assigned to
 **Pennsylvania Textile Mills, Inc.** of Clifton, New Jersey, granted Dec 27, 1927. **Comp III** is US D 268,339, the Tioga Comp III tire tread: inventors
 **Syoji Inae and Eiji Fukuchi**, assigned to **Mitsuboshi Belting Ltd.**, granted
-Mar 22, 1983, expired Mar 22, 1997. The pile, grain, graph-paper, topographic-contour, guilloché and carbon-twill tiles are generated and need
+Mar 22, 1983, expired Mar 22, 1997. The pile, grain, graph-paper, topographic-contour, guilloché, carbon-twill and switchback-trail tiles are generated and need
 no credit. The patents have expired, and the drawing scans come from the US Patent
 Office via Google Patents. Permission is not required, but the designs should carry
 their names when they are used.
@@ -47,6 +47,7 @@ their names when they are used.
 | `topo-contours` | none (procedural) | n/a | n/a | Generated contour map (18 contour intervals, an index line every 5th), no credit needed |
 | `guilloche-rosettes` | none (procedural) | n/a | n/a | Generated guilloché rosette lattice, the banknote and stock-certificate style, no credit needed |
 | `carbon-twill` | none (procedural) | n/a | n/a | Generated 2/2 twill weave, a 64 px vector tile, no credit needed |
+| `switchback-trail` | none (procedural) | n/a | n/a | Generated dashed trail loops routed over the `topo-contours` terrain, made to layer over it; no credit needed |
 
 "Adapted" patterns were redrawn from the patent drawing with an AI image model
 (Google Gemini) and had their edges repaired so they tile; they are not the
@@ -88,7 +89,7 @@ block to paste for each theme.
 | Form | Use when | Why |
 |---|---|---|
 | Self-contained (data URI) | The tool is a single file that must work when double-clicked, or is embedded in an iframe | Browsers do not load a mask image from a local file. Tested: a relative `mask-image: url(m.webp)` renders nothing from `file://`; the same mask as a data URI renders. |
-| Short (file link, the studio default) | The page is served from the web | About 1-2 KB of CSS per layer. The masks load from `https://www.postmillenniumrenaissance.com/textures/masks/<id>.webp`; GitHub Pages sends the CORS header mask images need, so any web page can use them. Tested against a local server sending the same CORS header (the short CSS painted on a page from a different origin); not yet tested against the live site. A new pattern only loads once it is on the live site (after the branch is merged). The procedural pile, grain, graph paper and carbon twill stay embedded (about 1-3 KB each); the topographic contour and guilloché masks are files, so they load from the live site like the patent patterns. |
+| Short (file link, the studio default) | The page is served from the web | About 1-2 KB of CSS per layer. The masks load from `https://www.postmillenniumrenaissance.com/textures/masks/<id>.webp`; GitHub Pages sends the CORS header mask images need, so any web page can use them. Tested against a local server sending the same CORS header (the short CSS painted on a page from a different origin); not yet tested against the live site. A new pattern only loads once it is on the live site (after the branch is merged). The procedural pile, grain, graph paper and carbon twill stay embedded (about 1-3 KB each); the topographic contour, guilloché and switchback trail masks are files, so they load from the live site like the patent patterns. |
 
 The Patent Atlas must keep working when double-clicked, so it should use the
 self-contained form. That adds roughly 40-100 KB to `index.html` per pattern.
@@ -114,7 +115,8 @@ self-contained form. That adds roughly 40-100 KB to `index.html` per pattern.
 - **Graph paper:** keep it at 80 px (or 160 px) so the 1 px lines stay sharp, and 3.5-6% strength. Put charts on opaque panels and halo any text that sits on it; `masks/graph-paper.css` has the details.
 - **Topographic contours and guilloché rosettes:** thin line art (10% and 16% ink), so they take more strength than the carpets: 8-12%. Show them at 400 px or larger, because the lines are 1.5-1.8 px in the 800 px mask and fade out when shrunk. Both are exactly periodic and need no seam repair.
 - **Carbon twill:** a 64 px vector tile that stays sharp at any size. 64-96 px reads as carbon cloth, 160 px and up as a coarse macro weave. About 46% ink, so 5-7%. The studio jumps the size to 64 px when you pick it.
-- **Regenerating:** `python3 tools/make_procedural.py` rebuilds the contours, the guilloché and the twill tile; edit the numbers at the top of each function to change the design.
+- **Switchback trail:** three dashed trail loops routed over the same terrain as the topographic contours, so the pair must be used together: pick the contours for layer 1, **Add a layer**, pick the trail for layer 2, and keep both at 520 px so each loop lies on the hills it was routed over (the studio sets the trail to 520 px when you pick it). Each loop climbs a steep face in switchbacks that run along the contours and returns by an efficient line, the way a game trail or a trail builder's line goes. It is dashed line art with under 1% ink, so give it about 3-4x the contours' strength: 30-40% against 8-12%. It stands out from a contour by its dashes, not by color. Alone it is only three dashed loops with nothing under them; use it at 400 px or larger.
+- **Regenerating:** `python3 tools/make_procedural.py` rebuilds the contours, the guilloché, the twill tile and the trail; edit the numbers at the top of each function to change the design.
 - **Pattern size:** the PMR site uses 520 px. The fine-grid pattern (13,105)
   blurs when shown smaller than about 400 px.
 
@@ -134,8 +136,8 @@ patent's drawing.** See `PROVENANCE.md`.
 | `masks/low-pile-carpet.css` | The two procedural SVG tiles (carpet, grain); the studio reads them from here |
 | `masks/graph-paper.css` | Procedural graph paper: the studio's 80 px mask tile, plus the plain-gradient recipe and per-theme rules the Wheel Strength Lab uses |
 | `masks/carbon-twill.css` | The carbon twill's 64 px SVG mask tile (written by `tools/make_procedural.py twill`) |
-| `masks/topo-contours.webp`, `masks/guilloche-rosettes.webp` | Generated masks (800 px) written by `tools/make_procedural.py`; no patent, no credit |
-| `tools/make_procedural.py` | Regenerates the topographic contours, the guilloché rosettes and the carbon twill tile (all exactly periodic, so no edge repair) |
+| `masks/topo-contours.webp`, `masks/guilloche-rosettes.webp`, `masks/switchback-trail.webp` | Generated masks (800 px) written by `tools/make_procedural.py`; no patent, no credit |
+| `tools/make_procedural.py` | Regenerates the topographic contours, the guilloché rosettes, the carbon twill tile and the switchback trail (all exactly periodic, so no edge repair) |
 | `masks/USD268339S.png` | Source scan for `us-d268339` (not served by the studio; kept to regenerate the mask) |
 | `patterns.json` | The registry: id, patent, status, ink coverage, default strength |
 | `studio/index.html` | The recolor-and-copy-CSS page (built; masks embedded) with layers, fades and a random-color button |
