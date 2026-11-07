@@ -19,6 +19,12 @@ it has no runtime dependency on `wheel-physics-core`.
 
 Notes worth knowing before you start clicking:
 
+- On page load the explorer starts with six betas switched on: tension
+  split, flange width, mean PCD, axle standard, spoke count and wheel size.
+  Rim stiffness is off by default because `rim_stiffness_index` is an
+  estimate (see "Rim catalogue and the stiffness estimate" below), while
+  spoke count and wheel size are verified build specs. Rim stiffness is
+  still available as a chip.
 - `pm` (mean PCD) and the `pds`/`pnds` DS/NDS pair are mutually exclusive
   -- `pm` is exactly their average, so having all three selected at once
   makes the design matrix exactly singular, not just correlated.
