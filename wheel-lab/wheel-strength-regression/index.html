@@ -331,7 +331,7 @@
       build choices affect a wheel's lateral strength &mdash; the sideways force it can take before
       a spoke loses tension. It's built on 30 real hub designs across a range of rim and build
       combinations, but <strong>the rim stiffness numbers used here are this tool's own estimates,
-      not measured data</strong>. Toggle the factors below and watch the fit update live.
+      not measured data</strong>, so rim stiffness starts switched off. Toggle the factors below and watch the fit update live.
     </p>
   </header>
 
@@ -2840,7 +2840,11 @@
     { id: "wheel_erd",      label: "Wheel size",     sub: "27.5\" (559) / 29\" (600) ERD", unit: "mm", section: "build", tier: "ver" },
   ];
 
-  let selected = new Set(["tension_ratio", "flange_width", "pcd_mean", "standard_157", "rim_stiffness_index"]);
+  // Default betas on page load. Rim stiffness is left off by default because
+  // rim_stiffness_index is this tool's own estimate, not measured data; wheel
+  // size and spoke count are verified build specs. Rim stiffness is still a
+  // chip the reader can turn on.
+  let selected = new Set(["tension_ratio", "flange_width", "pcd_mean", "standard_157", "spoke_count", "wheel_erd"]);
 
   // ---------------------------------------------------------------------
   // Carbon rim stiffness assumption -- adjustable, not baked in.
