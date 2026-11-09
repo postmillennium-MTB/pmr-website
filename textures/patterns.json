@@ -1,5 +1,5 @@
 {
-  "_readme": "Registry of the texture masks. 'kind' is 'patent-drawing' only when the mask comes straight from a patent's own drawing; 'adapted' means the drawing was redrawn by an AI image model and its edges repaired so it tiles. Never describe an 'adapted' pattern as the patent's drawing. 'url' is the Google Patents page (null if unknown; cite by number). 'credit' is the ready-to-paste attribution line shown in the studio. 'procedural' entries are generated, have no patent and need no credit: either an SVG tile read by tools/build_studio.py via 'cssVar' from masks/*.css (low-pile-carpet.css, graph-paper.css, carbon-twill.css), or a WebP 'mask' written by tools/make_procedural.py (topo-contours, guilloche-rosettes, switchback-trail). 'defaultSize' is the tile width in CSS px (default 520). inventor/granted are null for procedural entries (no patent).",
+  "_readme": "Registry of the texture masks. 'kind' is 'patent-drawing' only when the mask comes straight from a patent's own drawing; 'adapted' means the drawing was redrawn by an AI image model and its edges repaired so it tiles. Never describe an 'adapted' pattern as the patent's drawing. 'url' is the Google Patents page (null if unknown; cite by number). 'credit' is the ready-to-paste attribution line shown in the studio. 'artwork' is a picture the site already uses, converted to a mask (see ADD-A-PATTERN.md, \"Artwork\"); it has no patent and no credit line. An entry may carry an 'accent' (label, mask, pixels, inkCoverage, defaultInk, defaultOpacity): a second mask of the picture's one accent color, which the studio offers as a setting on that pattern's layer and writes as an extra layer above it. 'procedural' entries are generated, have no patent and need no credit: either an SVG tile read by tools/build_studio.py via 'cssVar' from masks/*.css (low-pile-carpet.css, graph-paper.css, carbon-twill.css), or a WebP 'mask' written by tools/make_procedural.py (topo-contours, guilloche-rosettes, switchback-trail). 'defaultSize' is the tile width in CSS px (default 520). inventor/granted are null for procedural entries (no patent).",
   "patterns": [
     {
       "id": "crowe-1884-14685",
@@ -298,6 +298,31 @@
       "defaultSize": 520,
       "snapSize": true,
       "note": "Three dashed trail loops routed over the same terrain as the Topographic contours, the way a deer or a trail builder would pick a line. Each loop climbs a steep, straight face by a route that may never exceed a maximum grade and is confined to a corridor, so it traverses along the contours and doubles back in switchbacks, then returns by an efficient, steeper line that contours around the hillside. About 55% of each climb runs within 30 degrees of the contour direction (random headings: 33%). Made to sit on the contours: pick the contours for layer 1, add a layer, pick this for layer 2, and keep both at the same size (520 px) so the trail lies on the hills it was routed over. Thin dashed line art with under 1% ink, so it takes about 3x the strength of the contours: 30-40% against 8-12%. It reads as a different line from a contour by its dashes, not by color. Alone it is just three dashed loops with no terrain under them; use it at 400 px or larger. Exactly periodic by construction (a loop that crosses a tile edge continues across it, and each loop's dashes close up). Regenerate with tools/make_procedural.py trail.",
+      "url": null,
+      "credit": null
+    },
+    {
+      "id": "moose-skulls",
+      "title": "Moose skulls and ferns (site artwork)",
+      "kind": "artwork",
+      "patent": null,
+      "inventor": null,
+      "granted": null,
+      "assignee": null,
+      "mask": "masks/moose-skulls.webp",
+      "pixels": "800x705",
+      "inkCoverage": 0.21,
+      "defaultOpacity": 0.08,
+      "defaultSize": 520,
+      "accent": {
+        "label": "pink accents",
+        "mask": "masks/moose-skulls-accent.webp",
+        "pixels": "800x705",
+        "inkCoverage": 0.01,
+        "defaultInk": "#FA6DAF",
+        "defaultOpacity": 0.45
+      },
+      "note": "The artwork behind the US Lift-Served Bike Parks guide's header (its moose-pattern-tile.jpg), made by the site owner with Google Gemini's Nano Banana image model: a symmetrical surface pattern of moose skulls, sloths, ferns, succulents and mountains, with the postmillenniumrenaissance.com mark worked into the picture (it repeats with the tile). Light motifs on a dark ground, so the light parts are the ink and the dark ground is the paper: a pale ink on a dark paper reads like the original. A continuous-tone mask, not a two-level one: the antlers are full ink and the mid-grey ferns, mountains and sloths about 60%, so a single ink color keeps the depth of the picture. The original's pink accents are a second mask, offered as a setting on the layer: tick \"Add the pink accents as their own ink\" and the studio writes them as a layer of their own just above this one, at the same size and fade, with their own ink color and strength. The accents are thin (1% mean ink), so they take far more strength than the pattern: the default is 45% against the pattern's 8%. The source tile already wrapped left to right but not top to bottom, so only the vertical axis was repaired (176 px band, with the cut steered through bare ground); one small ornament in the middle is split in two at the join. 21% mean ink but the antlers reach 100%, so keep the pattern's own strength at 6-10% behind text. Detailed figurative art: use it at 400 px or larger. Artwork, not a patent: no credit line is needed, and like the site's other images it is not licensed by the repo's LICENSE.",
       "url": null,
       "credit": null
     }

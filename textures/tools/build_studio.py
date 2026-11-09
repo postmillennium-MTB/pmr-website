@@ -4,7 +4,7 @@
     python3 tools/build_studio.py
 
 Reads patterns.json, writes studio/index.html. A pattern's mask comes from its
-'mask' file (embedded as a WebP data URI) or, for procedural patterns, from the
+'mask' file (embedded as a WebP data URI; so is its optional 'accent' mask) or, for procedural patterns, from the
 CSS variable named in 'cssVar' inside one of the masks/*.css files (an SVG data URI:
 low-pile-carpet.css holds the pile and grain, graph-paper.css the graph paper).
 Re-run after adding or changing a pattern.
@@ -18,6 +18,9 @@ for p in reg["patterns"]:
     if p.get("mask"):
         raw = (root / p["mask"]).read_bytes()
         p["data"] = "data:image/webp;base64," + base64.b64encode(raw).decode()
+        if p.get("accent"):          # a second mask of the picture's accent color, offered as a setting on the layer
+            raw = (root / p["accent"]["mask"]).read_bytes()
+            p["accent"]["data"] = "data:image/webp;base64," + base64.b64encode(raw).decode()
     else:
         m = re.search(re.escape(p["cssVar"]) + r'\s*:\s*url\("([^"]+)"\)', proc_css)
         if not m:
