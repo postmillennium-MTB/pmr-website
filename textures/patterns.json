@@ -1,5 +1,5 @@
 {
-  "_readme": "Registry of the texture masks. 'kind' is 'patent-drawing' only when the mask comes straight from a patent's own drawing; 'adapted' means the drawing was redrawn by an AI image model and its edges repaired so it tiles. Never describe an 'adapted' pattern as the patent's drawing. 'url' is the Google Patents page (null if unknown; cite by number). 'credit' is the ready-to-paste attribution line shown in the studio. 'artwork' is a picture the site already uses, converted to a mask (see ADD-A-PATTERN.md, \"Artwork\"); it has no patent and no credit line. An entry may carry an 'accent' (label, mask, pixels, inkCoverage, defaultInk, defaultOpacity): a second mask of the picture's one accent color, which the studio offers as a setting on that pattern's layer and writes as an extra layer above it. 'procedural' entries are generated, have no patent and need no credit: either an SVG tile read by tools/build_studio.py via 'cssVar' from masks/*.css (low-pile-carpet.css, graph-paper.css, carbon-twill.css), or a WebP 'mask' written by tools/make_procedural.py (topo-contours, guilloche-rosettes, switchback-trail). 'defaultSize' is the tile width in CSS px (default 520). inventor/granted are null for procedural entries (no patent).",
+  "_readme": "Registry of the texture masks. 'kind' is 'patent-drawing' only when the mask comes straight from a patent's own drawing; 'adapted' means the drawing was redrawn by an AI image model and its edges repaired so it tiles. Never describe an 'adapted' pattern as the patent's drawing. 'url' is the Google Patents page (null if unknown; cite by number). 'credit' is the ready-to-paste attribution line shown in the studio. 'artwork' is a picture made for the site (a guide header, a pattern the owner drew), converted to a mask (see ADD-A-PATTERN.md, \"Artwork\"); it has no patent and no credit line. An entry may carry an 'accent' (label, mask, pixels, inkCoverage, defaultInk, defaultOpacity): a second mask of the picture's one accent color, which the studio offers as a setting on that pattern's layer and writes as an extra layer above it. 'procedural' entries are generated, have no patent and need no credit: either an SVG tile read by tools/build_studio.py via 'cssVar' from masks/*.css (low-pile-carpet.css, graph-paper.css, carbon-twill.css), or a WebP 'mask' written by tools/make_procedural.py (topo-contours, guilloche-rosettes, switchback-trail). 'defaultSize' is the tile width in CSS px (default 520). inventor/granted are null for procedural entries (no patent).",
   "patterns": [
     {
       "id": "crowe-1884-14685",
@@ -323,6 +323,23 @@
         "defaultOpacity": 0.45
       },
       "note": "The artwork behind the US Lift-Served Bike Parks guide's header (its moose-pattern-tile.jpg), made by the site owner with Google Gemini's Nano Banana image model: a symmetrical surface pattern of moose skulls, sloths, ferns, succulents and mountains, with the postmillenniumrenaissance.com mark worked into the picture (it repeats with the tile). Light motifs on a dark ground, so the light parts are the ink and the dark ground is the paper: a pale ink on a dark paper reads like the original. A continuous-tone mask, not a two-level one: the antlers are full ink and the mid-grey ferns, mountains and sloths about 60%, so a single ink color keeps the depth of the picture. The original's pink accents are a second mask, offered as a setting on the layer: tick \"Add the pink accents as their own ink\" and the studio writes them as a layer of their own just above this one, at the same size and fade, with their own ink color and strength. The accents are thin (1% mean ink), so they take far more strength than the pattern: the default is 45% against the pattern's 8%. The source tile already wrapped left to right but not top to bottom, so only the vertical axis was repaired (176 px band, with the cut steered through bare ground); one small ornament in the middle is split in two at the join. 21% mean ink but the antlers reach 100%, so keep the pattern's own strength at 6-10% behind text. Detailed figurative art: use it at 400 px or larger. Artwork, not a patent: no credit line is needed, and like the site's other images it is not licensed by the repo's LICENSE.",
+      "url": null,
+      "credit": null
+    },
+    {
+      "id": "moose-train-glove-tree",
+      "title": "Moose, trains, gloves and trees (site artwork)",
+      "kind": "artwork",
+      "patent": null,
+      "inventor": null,
+      "granted": null,
+      "assignee": null,
+      "mask": "masks/moose-train-glove-tree.webp",
+      "pixels": "760x800",
+      "inkCoverage": 0.38,
+      "defaultOpacity": 0.08,
+      "defaultSize": 520,
+      "note": "A cream-ground pattern made by the site owner: moose skulls, Christmas trees, baseball gloves, sunflowers, picnic baskets, acorns, pinecones, a length of model railway track and a steam train whose cars read \"Millennium\" and \"Post\". The original is in color (green trees, brown gloves, gold sunflowers, a red check on the baskets). The mask is one ink, so the colors become tones of it, like an engraving: the dark linework is full ink, the green and brown fills about 80%, the grey skulls and antlers about 60% and the gold petals about 35%. Dark ink on a light paper reads like the original; it also works as a light ink on a dark paper. The source picture (textures/moose-train-glove-tree.jpg, 2816 x 1536 px) is two near-identical repeats side by side, and two different bands stacked, each ending in a train row. This tile is one repeat (1406 px wide) with both bands (1480 px tall). It needed no edge repair and no redraw: the sides wrap, and the top and bottom are cut inside the bare cream gaps between a train row and the next band's antlers, so nothing is sliced. 38% mean ink but the linework is 100%, so keep strength at 6-10% behind text. Detailed illustration: use it at 400 px or larger. Artwork, not a patent: no credit line is needed, and like the site's other images it is not licensed by the repo's LICENSE.",
       "url": null,
       "credit": null
     }
