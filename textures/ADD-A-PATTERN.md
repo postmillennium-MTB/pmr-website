@@ -163,14 +163,17 @@ not licensed by `LICENSE`. No PDF, no Gemini run, no patent link, no credit line
    on one axis only (the moose tile wrapped left to right, 0.94, and not top to bottom, 0.36).
 2. **Repair only the axis that fails.** For a picture of things (animals, plants, lettering)
    rather than an ornament, steer the cut through bare ground and keep the grey levels:
-   `python3 tools/make_tileable.py src.jpg /tmp/wrapped.png <band> --axes=y --avoid-ink=1 --ground=<ground grey> --keep-tone`
-   (`--ground` is the grey level of the empty background; take it from a histogram of the tile).
+   `python3 tools/make_tileable.py src.jpg /tmp/wrapped.png <band> --axes=y --avoid-ink=1 --ground=<ground grey> --color`
+   (`--ground` is the grey level of the empty background; take it from a histogram of the tile.
+   `--color` finds the cut on the grey image and applies it to all three channels, so the repaired
+   picture stays in colour. If the picture has no accent color, use `--keep-tone` instead and get a grey PNG.)
    **Judge the bands by eye, not by the printed correlation**: a min-error cut scores well at its
    own line whatever it cuts through. Scan bands, roll each result half its height so the join
    sits in the middle, and look for slivers of a motif floating in the ground. Measure the share
    of the cut that runs through a motif as well. Wider bands discard more of the picture.
 3. **Make a tonal mask**, so the picture keeps its depth in one ink color:
-   `python3 tools/make_mask.py /tmp/wrapped.png masks/<id>.webp 800 --tone=<ground>,<ink>`.
+   `python3 tools/make_mask.py /tmp/wrapped.png masks/<id>.webp 800 --tone=<ground>,<ink>`
+   (this works on the colour PNG too: it uses the grey).
    Alpha is 0 at the `<ground>` grey and 1 at the `<ink>` grey (light ink on a dark ground is
    `--tone=56,235`; the order sets the polarity). Put `<ground>` just above the top of the
    ground's grey range, so the paper is exactly transparent and the paper's own shading does not
@@ -189,9 +192,23 @@ not licensed by `LICENSE`. No PDF, no Gemini run, no patent link, no credit line
 7. Update the README counts, table row, rules of thumb and folder map, and rebuild the studio
    (`python3 tools/build_studio.py`).
 
-A second ink color (the moose's pink accents, say) is a separate mask from the same tile, made
-by thresholding saturation instead of grey, and used as a second layer at the same size with its
-own ink, the way the switchback trail sits on the contours. Not built yet.
+**An accent ink** (the moose's pink) is a second mask cut from the same repaired colour tile, so it
+lines up with the first exactly. It is a **setting on the layer in the studio, not a pattern of its
+own**, so it never turns up in the pattern list on its own and cannot be used at the wrong size.
+Only worth doing when the picture has one accent color on neutral greys:
+1. Measure first: the hue spread of the colorful pixels (chroma above about 60) should be a narrow
+   band, and most pixels should be grey. If there are several colors, an accent mask would not
+   separate them.
+2. `python3 tools/make_mask.py /tmp/wrapped.png masks/<id>-accent.webp 800 --accent=<from>,<to>`:
+   alpha is colorfulness (largest of R, G, B minus smallest), 0 at `<from>` and 1 at `<to>`. Compare
+   a few settings by eye on the places the accent lives (edges, small shapes); `30,110` for the moose.
+3. Add to the pattern's registry entry an `accent` object: `label` (used in the checkbox text:
+   "Add the <label> as their own ink"), `mask`, `pixels`, `inkCoverage` (mean alpha), `defaultInk` (the
+   saturated peak of the accent hue) and `defaultOpacity`. Accents are thin, so their default is far
+   higher than the pattern's: `moose-skulls` is 0.45 against 0.08. `tools/build_studio.py` embeds the
+   accent mask with the pattern.
+4. In the studio the accent is written as its own layer directly above the pattern, at the same size
+   and fade, and counts as one of the three layers.
 
 ## Doing it without Claude
 
