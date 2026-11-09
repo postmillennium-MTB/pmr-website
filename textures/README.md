@@ -52,7 +52,7 @@ their names when they are used.
 | `carbon-twill` | none (procedural) | n/a | n/a | Generated 2/2 twill weave, a 64 px vector tile, no credit needed |
 | `switchback-trail` | none (procedural) | n/a | n/a | Generated dashed trail loops routed over the `topo-contours` terrain, made to layer over it; no credit needed |
 | `moose-skulls` | none (site artwork) | n/a | n/a | Artwork: the US guide's header tile (moose skulls, sloths, ferns), converted to a continuous-tone mask; no patent credit. Made by the site owner with Google Gemini's Nano Banana image model (see `PROVENANCE.md`) |
-| `moose-train-glove-tree` | none (site artwork) | n/a | n/a | Artwork: a pattern made by the site owner (moose skulls, trains, gloves, Christmas trees on cream), cropped to one repeat that wraps both ways and converted to a continuous-tone mask; no patent credit. The tool used is not recorded (see `PROVENANCE.md`) |
+| `moose-train-glove-tree` | none (site artwork) | n/a | n/a | Artwork: a pattern made by the site owner (moose skulls, trains, gloves, Christmas trees on cream), cropped to one repeat that wraps both ways and converted to a continuous-tone mask; no patent credit. Made by the site owner with Google Gemini's Nano Banana image model (see `PROVENANCE.md`) |
 
 "Adapted" patterns were redrawn from the patent drawing with an AI image model
 (Google Gemini) and had their edges repaired so they tile; they are not the
