@@ -152,13 +152,24 @@ its climbs start from.
 5. Update the README counts, patent table and folder map, add a `PROVENANCE.md` row, and
    rebuild with `python3 tools/build_studio.py`.
 
-## Artwork (a picture the site already uses)
+## Artwork (a picture made for the site)
 
-A header or hero image can become a pattern (`moose-skulls`, from the US guide's header, was the
-first). It needs one input: **the tile image** (the file the page already uses), and the site
-owner's word on who made the picture, because the README says images and artwork are reserved,
+A header, hero image or pattern the owner drew can become a pattern (`moose-skulls`, from the US
+guide's header, was the first; `moose-train-glove-tree` the second). It needs one input: **the
+image** (the file the page uses, or the original upload at full size), and the site
+owner's word on who made the picture and with what, because the README says images and artwork are reserved,
 not licensed by `LICENSE`. No PDF, no Gemini run, no patent link, no credit line.
 
+0. **Look for a crop before any repair.** Image generators often return a banner that is two or
+   more near-identical repeats side by side, and several different bands stacked. If so, one repeat
+   already wraps and no repair is needed. Scan every width near half (or a third of) the image and
+   every start column for the smallest seam step (mean absolute difference across the join, divided
+   by the interior average); a join can run straight through a motif and be invisible if the repeat
+   is genuine. For the other axis, list the rows that are bare ground (under 1% motif pixels) and
+   cut **inside** them, so nothing is sliced, leaving about the same gap at the join as the picture
+   has between its bands. `moose-train-glove-tree` needed nothing else (crop 1406 x 1480 from
+   2816 x 1536; step 0.56x and 0.08x). Do not trust the edge correlation of two blank rows: it is
+   noise, so use the step. Only if no crop wraps, go on to the repair below.
 1. **Measure each axis separately**, as in step 3 above. Artwork cut from a banner often wraps
    on one axis only (the moose tile wrapped left to right, 0.94, and not top to bottom, 0.36).
 2. **Repair only the axis that fails.** For a picture of things (animals, plants, lettering)
@@ -186,7 +197,7 @@ not licensed by `LICENSE`. No PDF, no Gemini run, no patent link, no credit line
    it prints at. (`moose-skulls` is 8%, a mean tone of about 1.7% against the carpets' 2.5-3%;
    matching the carpets' mean would have needed 13% and made the antlers too strong.) Say in the
    `note` what is not carried over (a second ink color, for example).
-6. **Keep the source tile** in `masks/` (not served by the studio; it regenerates the mask), and
+6. **Keep the source** in the repo (a tile in `masks/`; or leave the owner's upload where they put it and name it in the README folder map; it is not served by the studio and it regenerates the mask), and
    write the PROVENANCE row with the wrap numbers, the band you chose, why, and any remaining flaw.
    **Do not write who made the picture unless the site owner has said.**
 7. Update the README counts, table row, rules of thumb and folder map, and rebuild the studio

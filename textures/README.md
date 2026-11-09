@@ -4,15 +4,16 @@ Texture studio can be found here:
 
 https://www.postmillenniumrenaissance.com/textures/studio/
 
-Recolorable background patterns for Post Millennium Renaissance tools. Nineteen in
+Recolorable background patterns for Post Millennium Renaissance tools. Twenty in
 all: nine redrawn or cropped from 1880s carpet design patents (six by Eugene A. Crowe,
 two by Edwin Fisher, one by John Fisher), one from a 1927 textile design patent
 (D 74,141, Harry S. Day), one cropped from the Tioga Comp III tire tread patent (US
 Design Patent 268,339), two procedural pile/grain tiles, procedural graph paper, and
 four more generated patterns: topographic contours, guilloché rosettes, a carbon
-twill weave and a switchback trail line, plus one piece of the site's own artwork
-(`moose-skulls`, the header tile of the bike-park guides, converted to a continuous-tone
-mask, with its pink accents as a setting in the studio). Each pattern is one alpha
+twill weave and a switchback trail line, plus two pieces of the site's own artwork,
+converted to continuous-tone masks: `moose-skulls` (the header tile of the bike-park guides,
+with its pink accents as a setting in the studio) and `moose-train-glove-tree` (a cream-ground
+pattern of moose skulls, trains, baseball gloves and Christmas trees). Each pattern is one alpha
 mask (ink opaque, paper transparent), so a single file serves every color scheme: CSS
 paints the ink in whatever color you choose.
 
@@ -27,7 +28,7 @@ design (not a carpet) by **Harry S. Day** of Hawthorne, New Jersey, assigned to
 **Pennsylvania Textile Mills, Inc.** of Clifton, New Jersey, granted Dec 27, 1927. **Comp III** is US D 268,339, the Tioga Comp III tire tread: inventors
 **Syoji Inae and Eiji Fukuchi**, assigned to **Mitsuboshi Belting Ltd.**, granted
 Mar 22, 1983, expired Mar 22, 1997. The pile, grain, graph-paper, topographic-contour, guilloché, carbon-twill and switchback-trail tiles are generated and need
-no credit. The moose-skulls tile is the site's own artwork, not a patent, so it needs no patent credit. The patents have expired, and the drawing scans come from the US Patent
+no credit. The two artwork tiles (moose-skulls, moose-train-glove-tree) are the site's own artwork, not patents, so they need no patent credit. The patents have expired, and the drawing scans come from the US Patent
 Office via Google Patents. Permission is not required, but the designs should carry
 their names when they are used.
 
@@ -51,6 +52,7 @@ their names when they are used.
 | `carbon-twill` | none (procedural) | n/a | n/a | Generated 2/2 twill weave, a 64 px vector tile, no credit needed |
 | `switchback-trail` | none (procedural) | n/a | n/a | Generated dashed trail loops routed over the `topo-contours` terrain, made to layer over it; no credit needed |
 | `moose-skulls` | none (site artwork) | n/a | n/a | Artwork: the US guide's header tile (moose skulls, sloths, ferns), converted to a continuous-tone mask; no patent credit. Made by the site owner with Google Gemini's Nano Banana image model (see `PROVENANCE.md`) |
+| `moose-train-glove-tree` | none (site artwork) | n/a | n/a | Artwork: a pattern made by the site owner (moose skulls, trains, gloves, Christmas trees on cream), cropped to one repeat that wraps both ways and converted to a continuous-tone mask; no patent credit. Made by the site owner with Google Gemini's Nano Banana image model (see `PROVENANCE.md`) |
 
 "Adapted" patterns were redrawn from the patent drawing with an AI image model
 (Google Gemini) and had their edges repaired so they tile; they are not the
@@ -121,6 +123,7 @@ self-contained form. That adds roughly 40-100 KB to `index.html` per pattern.
 - **Carbon twill:** a 64 px vector tile that stays sharp at any size. 64-96 px reads as carbon cloth, 160 px and up as a coarse macro weave. About 46% ink, so 5-7%. The studio jumps the size to 64 px when you pick it.
 - **Switchback trail:** three dashed trail loops routed over the same terrain as the topographic contours, so the pair must be used together: pick the contours for layer 1, **Add a layer**, pick the trail for layer 2, and keep both at 520 px so each loop lies on the hills it was routed over (the studio sets the trail to 520 px when you pick it). Each loop climbs a steep face in switchbacks that run along the contours and returns by an efficient line, the way a game trail or a trail builder's line goes. It is dashed line art with under 1% ink, so give it about 3-4x the contours' strength: 30-40% against 8-12%. It stands out from a contour by its dashes, not by color. Alone it is only three dashed loops with nothing under them; use it at 400 px or larger.
 - **Moose skulls (site artwork):** a continuous-tone mask (the antlers are full ink, the mid-grey ferns, mountains and sloths about 60%), so one ink color keeps the depth of the picture. Mean ink is 21% but the antlers reach 100%, so 6-10% strength (the studio's default is 8%). It is figurative: 400 px or larger (default 520). The original is light motifs on a dark ground, so a pale ink on a dark paper looks like it; on a light theme the antlers print darkest. The `postmillenniumrenaissance.com` mark is part of the picture and repeats with the tile. **Pink accents:** tick "Add the pink accents as their own ink" on its layer. They are a second mask (1% mean ink), written as a layer of their own just above it at the same size and fade, with their own ink color and strength (default `#FA6DAF` at 45%; the accents are thin, so they take far more strength than the pattern). It counts as one of the three layers.
+- **Moose, trains, gloves and trees (site artwork):** a continuous-tone mask of a color illustration, so its colors become tones of one ink (linework full ink, green and brown about 80%, grey skulls and antlers about 60%, gold petals about 35%), 38% mean ink. Dark ink on a light paper reads like the original (the Day preset is close to its own cream and brown). 6-10% strength (the studio's default is 8%), 400 px or larger (default 520). No accent ink: it has four colors, not one.
 - **Regenerating:** `python3 tools/make_procedural.py` rebuilds the contours, the guilloché, the twill tile and the trail; edit the numbers at the top of each function to change the design.
 - **Pattern size:** the PMR site uses 520 px. The fine-grid pattern (13,105)
   blurs when shown smaller than about 400 px.
@@ -144,6 +147,7 @@ patent's drawing.** See `PROVENANCE.md`.
 | `masks/topo-contours.webp`, `masks/guilloche-rosettes.webp`, `masks/switchback-trail.webp` | Generated masks (800 px) written by `tools/make_procedural.py`; no patent, no credit |
 | `tools/make_procedural.py` | Regenerates the topographic contours, the guilloché rosettes, the carbon twill tile and the switchback trail (all exactly periodic, so no edge repair) |
 | `masks/moose-skulls-accent.webp` | The pink accent mask of `moose-skulls` (a registry `accent`, not a pattern of its own; the studio offers it as a setting on that layer) |
+| `moose-train-glove-tree.jpg` (in `textures/`, not `masks/`) | Source picture for `moose-train-glove-tree`, 2816 x 1536 px as uploaded by the site owner (not served by the studio; kept to regenerate the mask) |
 | `masks/moose-pattern-tile.jpg` | Source tile for `moose-skulls`: a copy of the US guide's `moose-pattern-tile.jpg` (not served by the studio; kept to regenerate the mask) |
 | `masks/USD268339S.png` | Source scan for `us-d268339` (not served by the studio; kept to regenerate the mask) |
 | `patterns.json` | The registry: id, patent, status, ink coverage, default strength |
