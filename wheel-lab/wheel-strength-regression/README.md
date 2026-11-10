@@ -86,31 +86,43 @@ material_factor = 1.35 for carbon, 1.00 for alloy               # rule of thumb,
 rim_stiffness_index = geometry_factor * material_factor
 ```
 
-applied uniformly to all four of Ford's constants (EIL, EIR, GJ, EA_rim).
+applied uniformly to all four of Ford's constants (EIL, EIR, GJ, EA_rim) of
+a measured base rim. Index 1.00 is the **DT Swiss TK540 as measured by
+Matthew Ford** (Ford, Peng and Balogun 2018; Ford's
+[rim stiffness library](https://bicyclewheel.info/rim-stiffness/)): EI_lat
+260, EI_rad 211, GJ 75 N&middot;m&sup2;, EA 7.2 MN from its 550 g mass. It is
+the same rim the Lab itself uses for every build. Until November 2026 the
+base was an unsourced 50 / 150 / 22 N&middot;m&sup2; and 11.5 MN, softer
+laterally than any rim Ford measured; see "Results" for what changed.
 See the code comments in `build_dataset.js` for the full reasoning and its
 limits. Treat it as a labeled estimate for exploring sensitivity, not a
 claim about exactly how much stiffer an ENVE M730 is than a Stan's Flow S2.
 
 ### Real measured rim stiffness data exists -- just not for these rims
 
-`wheel-physics-core`'s own repo carries no rim database, only one generic
-validation fixture (EIL=50, EIR=150, GJ=22 N&middot;m&sup2;, arbitrary
-units, used to check the JS port against Ford's Python reference across
-hubs, not tied to any real product). But Matthew Ford's own tooling does
-have real numbers -- they just live in a repo this project hadn't looked at
-yet: [`dashdotrobot/wheel-app`](https://github.com/dashdotrobot/wheel-app),
-a Bokeh GUI with a hardcoded rim-preset table
-(`wheel-app/helpers.py`):
+Matthew Ford measured eleven rims with the acoustic method in Ford, Peng and
+Balogun (2018) and publishes them in his
+[rim stiffness library](https://bicyclewheel.info/rim-stiffness/). Seven of
+them are also the rim presets in his wheel-app
+([`dashdotrobot/wheel-app`](https://github.com/dashdotrobot/wheel-app),
+`wheel-app/helpers.py`):
 
 | Rim | Size | Mass | EI_rad (N&middot;m&sup2;) | EI_lat (N&middot;m&sup2;) | GJ (N&middot;m&sup2;) |
 |---|---|---|---|---|---|
 | Alex ALX-295 | 700C | 480g | 310 | 210 | 85 |
-| DT Swiss R460 | 700C | 460g | 280 | 230 | 100 |
-| Sun-Ringle CR18 700C, 36h | 700C | 540g | 110 | 220 | 25 |
-| Sun-Ringle CR18 20" | 20" | 380g | 100 | 150 | 25 |
 | Alex X404 27" | 27" | 595g | 130 | 150 | 15 |
 | Alex Y2000 26" | 26" | 460g | 110 | 130 | 15 |
 | Alex Y2000 700C | 700C | 550g | 125 | 160 | 20 |
+| DT Swiss R460 | 700C | 460g | 280 | 230 | 100 |
+| **DT Swiss TK540** (this analysis's base rim) | 700C | 550g | 211 | 260 | 75 |
+| H Plus Son TB14 | 700C | 490g* | 89 | 224 | 32 |
+| Mavic A119 32h | 700C | 540g | 140 | 232 | 44 |
+| Stan's Grail MK3 24h | 700C | 440g* | 330 | 230 | 190 |
+| Sun-Ringle CR18 20" | 20" | 380g | 100 | 150 | 25 |
+| Sun-Ringle CR18 700C, 36h | 700C | 540g | 110 | 220 | 25 |
+
+\* Maker's mass, not independently measured; Ford notes the true stiffness
+would be correspondingly higher if the true mass is.
 
 One of these, the Sun-Ringle CR18 700C, is also his actual physical test
 article: his `phd-thesis` repo (`data/lateral_stiffness_tension/wheel_info.csv`,
@@ -121,19 +133,13 @@ in his `rim-testing` repo. That's the one number in this entire analysis
 traceable to an actual physical bending test rather than a spec sheet or a
 rule of thumb.
 
-**Why none of this replaces `rim_stiffness_index` above**: every rim in
-that table is a narrow alloy rim-brake road/hybrid rim (700C/26"/27",
-~2015-2018 era) -- not a modern wide tubeless MTB rim like any of the 5 in
-this catalogue. Mixing them into the regression would confound "narrow road
-rim" with "wide MTB rim" in a beta that's supposed to isolate stiffness
-alone, so they're listed here for reference and future calibration work
-only, not joined into `build_dataset.js`. Kept for two reasons: (1) it's
-the closest thing to ground truth this analysis has touched, useful for
-sanity-checking whether `rim_stiffness_index`'s geometry-times-material
-formula is in a believable range at all, and (2) Matthew Ford has
-described a phone-microphone acoustic method for measuring a rim's own
-EI/GJ directly (a paper, not yet reviewed here) -- if that method gets
-applied to one of this catalogue's actual 5 rims, this is where that
+**Why none of this replaces `rim_stiffness_index` above**: none of the
+eleven is a modern wide tubeless MTB rim like the 5 in this catalogue (the
+closest are the Stan's Grail MK3, a tubeless gravel rim, and the TK540, a
+current DT Swiss trekking rim). Only the TK540 is used, as the base the
+index scales; the five catalogue rims are still estimates relative to it.
+If Ford's acoustic method (the paper is in wheel-physics-core's `papers/`)
+is applied to one of this catalogue's actual 5 rims, this is where that
 measured value would replace the corresponding estimated row above.
 
 ## Build-spec betas 1-4, and why each level was chosen
@@ -199,62 +205,61 @@ partial R^2 per predictor, then writes `wheel_strength_dataset.csv`.
 
 Y is `F_lat` from wheel-physics-core at commit 1e81384: first spoke slack in
 Ford's fully-discrete-spoke Mode Matrix (each spoke at its own rim angle,
-lateral and radial coupled). Before October 2026 the engine used a smeared
-shortcut for `F_lat`, and this section reported R^2 = 0.945 on it; the
-change and why are recorded in wheel-physics-core's
-`validation/strength/README.md`. All 2,400 rows are below the discrete
-buckling tension (highest 97.8%; 45 rows at 80% or more).
+lateral and radial coupled), on rims scaled from the measured DT Swiss
+TK540 (see the rim catalogue above). Every one of the 2,400 builds is at or
+below 49% of its discrete buckling tension.
 
-R^2 = 0.927, adj. R^2 = 0.927 (SEs clustered by hub).
+R^2 = 0.982, adj. R^2 = 0.982 (SEs clustered by hub).
 
 | Beta | std beta | p (clustered) | VIF | partial R^2 |
 |---|---|---|---|---|
-| `rim_stiffness_index` | 0.604 | <0.001 | 1.00 | 0.365 |
-| `flange_width` | 0.447 | <0.001 | 3.35 | 0.060 |
-| `tension_ratio` | 0.341 | <0.001 | 1.75 | 0.067 |
-| `tension_kgf` | 0.337 | <0.001 | 1.00 | 0.114 |
-| `wheel_erd` | -0.329 | <0.001 | 1.00 | 0.108 |
-| `spoke_count` | 0.204 | <0.001 | 1.00 | 0.042 |
-| `standard_157` | -0.034 | 0.071 | 4.17 | 0.0003 |
-| `spoke_diameter` | 0.029 | <0.001 | 1.00 | 0.0008 |
-| `pcd_mean` | 0.020 | 0.103 | 1.07 | 0.0004 |
+| `tension_kgf` | 0.645 | <0.001 | 1.00 | 0.416 |
+| `tension_ratio` | 0.471 | <0.001 | 1.75 | 0.127 |
+| `rim_stiffness_index` | 0.368 | <0.001 | 1.00 | 0.135 |
+| `flange_width` | 0.291 | <0.001 | 3.35 | 0.025 |
+| `spoke_count` | 0.269 | <0.001 | 1.00 | 0.072 |
+| `wheel_erd` | -0.210 | <0.001 | 1.00 | 0.044 |
+| `spoke_diameter` | -0.073 | <0.001 | 1.00 | 0.005 |
+| `standard_157` | -0.012 | 0.154 | 4.17 | <0.0001 |
+| `pcd_mean` | 0.009 | 0.077 | 1.07 | 0.0001 |
 
 **Reading it, in order of what's actually driving strength:**
 
-1. **Rim stiffness still leads everything** (std beta 0.60, partial R²
-   0.36) -- consistent with the earlier hub&times;rim-only result.
-2. **Build tension is the biggest single build-spec lever** (std beta 0.34,
-   partial R² 0.11) and it's the *cheapest* one to act on -- unlike a hub,
-   rim, or spoke-count change, hitting the top of the recommended tension
-   range costs nothing but a truing stand and a tension meter.
-3. **Wheel size matters more than expected, and works against you as it
-   grows** (std beta -0.33): a 29" wheel is measurably weaker, all else
-   equal, than the same build in 27.5", because the larger radius shrinks
-   the bracing angle -- exactly the mechanism this repo's README already
-   flagged for the 27.5"-vs-29" tension-balance comparison, just showing
-   up here with real force behind it once wheel size is actually varied
-   rather than held fixed.
-4. **Flange width and tension symmetry** remain close behind. Under the
-   discrete model flange width moves ahead of tension symmetry (0.45 vs
-   0.34); under the earlier smeared formula the order was reversed.
-5. **Spoke count has a real, moderate effect** (std beta 0.20) -- more
-   spokes meaningfully raise the first-slack threshold, as expected.
-6. **Spoke diameter is statistically significant but small**
-   (std beta 0.03, partial R² ~0.001). Under the earlier smeared formula it
-   was indistinguishable from zero (std beta 0.005, p=0.35). Either way,
-   going from 15g to 14g buys little lateral first-slack strength in this
-   model.
-7. **`pcd_mean` and `standard_157` remain negligible**, as in every
-   previous pass of this analysis.
+1. **Build tension leads** (std beta 0.64, partial R² 0.42). With the
+   measured rim no build is near buckling, so more tension means more
+   lateral strength in every one of them.
+2. **Tension symmetry is second** (std beta 0.47), ahead of flange width
+   (0.29).
+3. **Rim stiffness is third** (std beta 0.37, partial R² 0.14). It led
+   everything on the earlier soft base rim (std beta 0.60), because that
+   rim put many builds close to buckling, where rim stiffness matters most.
+4. **Spoke count has a real, moderate effect** (std beta 0.27).
+5. **Wheel size works against you as it grows** (std beta -0.21): the
+   larger radius shrinks the bracing angle.
+6. **Thicker spokes slightly lower lateral first-slack strength**
+   (std beta -0.07): at the same tension a stiffer spoke sheds its tension
+   with less rim movement.
+7. **`pcd_mean` and `standard_157` remain negligible** once flange width
+   and symmetry are in the model, as in every previous pass.
 
 VIF for every build-spec beta is exactly 1.00 -- they're orthogonal to
 everything else and to each other by construction (a balanced factorial
 design). `flange_width` and `standard_157` still carry the same ~3-4 VIF
 from 157mm hubs mechanically running wider flanges.
 
+**What changed with the measured rim (November 2026).** On the earlier
+50 / 150 / 22 N&middot;m&sup2; base the same model gave R^2 = 0.927 with rim
+stiffness first (std beta 0.60), tension fourth (0.34), and 45 builds at
+80% or more of buckling (highest 97.8%). The near-buckling builds were where
+the linear fit broke down and where extra tension or thinner spokes could
+make a wheel weaker. On the measured rim those builds no longer exist, so
+the fit is tighter and the effects are more uniform. Lateral strength
+averages 42 kgf across the dataset, against 25 kgf before.
+
 ## What the wheel strength regressor actually tells you
 
 Plain-language takeaways for wheel builders and buyers, written 2026-11-03
+and re-run 2026-11-10 on the measured base rim,
 from the 2,400-row dataset above. All numbers come from Matthew Ford's Mode
 Matrix model (PhD thesis, Northwestern, 2018) as implemented in
 `wheel-physics-core`. They are model outputs, not lab tests.
@@ -262,8 +267,8 @@ Matrix model (PhD thesis, Northwestern, 2018) as implemented in
 **What "strength" means here.** Y is the load at which the first spoke goes
 slack in Ford's discrete-spoke model: sideways for lateral (`F_lat`),
 vertical for radial (`F_rad`). It measures how much spoke tension is left
-in reserve, not a breaking load. Lateral averages about 25 kgf and radial
-about 200 kgf across the dataset. Read the numbers relative to each other
+in reserve, not a breaking load. Lateral averages about 42 kgf and radial
+about 195 kgf across the dataset. Read the numbers relative to each other
 ("this build is 20% stronger than that one"), not as how hard a wheel can be
 cornered before it fails.
 
@@ -275,7 +280,8 @@ they are included because the two directions reward different things.
 example 28 to 32 spokes) there are hundreds of twin builds that differ only
 in that one thing. The percentages below are medians across those twins,
 with ranges where they matter. This is more direct than reading the
-regression betas, and collinearity does not affect it.
+regression betas, and collinearity does not affect it. Figures re-run
+2026-11-10 on the measured TK540 base rim.
 
 ### What we can say for sure (within Ford's model)
 
@@ -284,12 +290,12 @@ Ford's model matches real wheels, not the statistics.
 
 | Change, everything else held fixed | Lateral strength | Radial strength | How consistent |
 |---|---|---|---|
-| Same brand, 148 hub &rarr; 157 hub (14 pairs) | +21% (range +18 to +27%) | +5% (+2 to +15%) | All 14 pairs gain, on both axes |
-| Best hub vs worst hub, same build | 1.5&times; | 1.3&times; | Every build |
-| Tension 90 &rarr; 120 kgf | +17% median | +38% | Radial always up; lateral down in 6% of builds (see below) |
-| 29" &rarr; 27.5" | +14% | +2% | Lateral always up |
-| 28 &rarr; 32 spokes | +9% | +7% | 99% of builds |
-| 15g (1.8 mm) &rarr; 14g (2.0 mm) spokes | +0.4% (flat) | &minus;5% | Radial down in every build |
+| Same brand, 148 hub &rarr; 157 hub (14 pairs) | +18% (range +15 to +27%) | +6% (+3 to +18%) | All 14 pairs gain, on both axes |
+| Best hub vs worst hub, same build | 1.5&times; | 1.4&times; | Every build |
+| Tension 90 &rarr; 120 kgf | +29% (+22 to +31%) | +34% | Every build, both axes |
+| 29" &rarr; 27.5" | +9% | +3% | Every build, both axes |
+| 28 &rarr; 32 spokes | +11% | +8% | Every build, both axes |
+| 15g (1.8 mm) &rarr; 14g (2.0 mm) spokes | &minus;3% | &minus;5% | Down in every build, both axes |
 
 What each row means on the bike:
 
@@ -297,60 +303,57 @@ What each row means on the bike:
    laterally are the DMR Zone 148 and e*thirteen Sidekick 148, about 21%
    below average. Both have a 21 mm drive-side flange offset, so the drive
    side carries most of the tension. The strongest are the Spank Hex J-Type
-   157, Erase IS 157 and I9 Hydra 6-bolt 157, 17 to 21% above average.
-2. **Tension helps until the rim nears buckling.** In 75 of 1,200 twin
-   pairs, going to 120 kgf made the wheel weaker sideways, by up to 72%.
-   Every one used an alloy rim, almost all were 29", most had 15g spokes,
-   and most used the narrow-flange hubs (KOM Xeno 148, Project 321 G3).
-   Those builds sit at 90 to 98% of Ford's buckling tension, where extra
-   tension softens the rim laterally. On a stiff rim the same tension bump
-   adds 22 to 23% lateral; on the Stan's Flow S2 it adds only 10%.
-3. **The 29" penalty is sideways only.** A larger wheel gives the spokes a
-   shallower angle to the hub. That hurts lateral support and leaves
-   vertical support almost unchanged.
+   157, KOM Xeno 157 and Project 321 G3 157, 17 to 19% above average; all
+   three have unusually even tension.
+2. **Tension is the biggest lever, and on this rim it never backfires.**
+   Going from 90 to 120 kgf adds 22 to 31% lateral strength in every
+   build, a little more on the stiffer (carbon) rims. On the earlier soft
+   base rim 75 builds sat at 90 to 98% of buckling and got weaker with
+   more tension; no build here comes within 49% of buckling.
+3. **The 29" penalty is mostly sideways.** A larger wheel gives the spokes
+   a shallower angle to the hub. That costs 8 to 12% lateral and about 3%
+   radial.
 4. **Spoke count is the most predictable lever.** Four more spokes add
-   about 9% lateral, with almost no spread across hubs and rims.
+   about 11% lateral, with almost no spread across hubs and rims.
 5. **Thicker spokes don't raise the first-slack threshold.** At the same
    tension, a stiffer spoke loses its tension with less rim movement, so it
-   reaches slack slightly sooner under a vertical load. The exception is
-   the near-buckling builds in point 2, where 14g raises lateral strength a
-   lot (up to +185%) by stiffening the wheel against buckling.
+   reaches slack slightly sooner, sideways and vertically.
 
 ### What we can reasonably infer
 
 These go one step past the data, so each says what it rests on.
 
 1. **For a 29er rear wheel, choose flange spacing first.** The 29" size
-   costs about 14% lateral strength, and a 157 hub or a wide-flange 148 hub
-   is the one choice that wins most of it back. *Rests on:* the hub and
-   wheel-size rows above, which add up roughly independently in this data.
-2. **"Tension it to the max" is good advice on a stiff rim and risky on a
-   soft one.** On a carbon or deep alloy rim, 120 kgf is close to free
-   strength. On a light, shallow alloy 29" rim with 15g spokes, mid-range
-   tension may give the stronger wheel. *Rests on:* the 75 builds where
-   tension hurt. Real rim limits also involve eyelet cracking and fatigue,
-   which this model does not cover, so the rim maker's maximum still
-   applies.
+   costs about 9% lateral strength, and a 157 hub or a wide-flange 148 hub
+   wins more than that back. *Rests on:* the hub and wheel-size rows
+   above, which add up roughly independently in this data.
+2. **Tensioning to the rim maker's maximum buys strength.** In this model
+   it does so for every build here. *Rests on:* the tension row, on a rim
+   with measured stiffness. Real rim limits also involve eyelet cracking
+   and fatigue, which this model does not cover, so the rim maker's
+   maximum still applies; and a rim much softer than the TK540 would
+   bring back the near-buckling cases.
 3. **14g spokes are a durability and buckling-margin choice, not a
    strength-number choice.** At the same tension a 2.0 mm spoke runs about
    19% lower stress than a 1.8 mm spoke. In this data it also lowers the
-   wheel's tension-to-buckling ratio by about 9%. Fatigue life is not part
+   wheel's tension-to-buckling ratio by about 12%. Fatigue life is not part
    of Ford's static model, so the durability half of this point is general
    engineering, not a result of this tool.
 4. **Lateral and radial reward different hub traits.** Lateral strength
-   tracks total flange width; radial tracks how evenly tension is split
-   between the two sides. The KOM Xeno and Project 321 157 hubs are the
-   best radially (11 to 16% above average) because their tension is very
-   even. The narrow KOM Xeno 148, though, is middling laterally and is the
-   hub most likely to reach buckling on a soft rim. A hub that does well on
-   one axis does not automatically do well on the other.
+   tracks total flange width and tension symmetry; radial tracks mostly
+   symmetry. The Project 321 G3 157 and KOM Xeno 157 are the best radially
+   (16 to 18% above average) because their tension is very even. The
+   narrow KOM Xeno 148 is the best 148 radially (+12%) but only middling
+   laterally (+3%). A hub that does well on one axis does not
+   automatically do well on the other.
 5. **The rim result is the least trustworthy big number.** Carbon rims come
-   out 20 to 25% stronger laterally, but most of that comes from this
-   tool's own 1.35&times; carbon stiffness guess. Set the carbon chip to 1.0
-   and the edge shrinks to +7% (We Are One Convert) and +12% (ENVE M730);
-   at 0.75 both carbon rims come out at or below the XM 481. The gaps
-   between alloy rims (Stan's Flow S2 about 7% below the XM 481) come only
-   from rim depth in the estimate, not from measured stiffness.
+   out 12 to 15% stronger laterally than the XM 481, but most of that comes
+   from this tool's own 1.35&times; carbon stiffness guess. Set the carbon
+   chip to 1.0 and the edge shrinks to +4% (We Are One Convert) and +7%
+   (ENVE M730); at 0.75 both carbon rims come out slightly below the XM
+   481. The gaps between alloy rims (Stan's Flow S2 about 4% below the XM
+   481) come only from rim depth in the estimate, not from measured
+   stiffness.
 
 ### Limits
 
@@ -362,8 +365,8 @@ These go one step past the data, so each says what it rests on.
   tension balance tend to come together across the 30 hubs (157 vs flange
   width correlation 0.76, 157 vs balance 0.45). The regression splits their
   shared effect among them somewhat arbitrarily. Fit lateral strength on
-  the 157 flag alone and it is worth +5.0 kgf. Add flange width, balance
-  and the build specs and its coefficient drops to &minus;0.4 kgf. The 157
+  the 157 flag alone and it is worth +7.0 kgf. Add flange width, balance
+  and the build specs and its coefficient drops to &minus;0.2 kgf. The 157
   bar near zero in the explorer does not mean axle width doesn't matter.
   Its benefit shows up through the wider flanges and more even tension it
   brings, as the same-brand pairs show.
@@ -374,11 +377,13 @@ These go one step past the data, so each says what it rests on.
   betas are exact by design, because each is perfectly balanced against
   everything else.
 - **Linear fit, nonlinear wheel.** The regression assumes each factor adds
-  a fixed amount. It misses the near-buckling builds and the way tension
-  pays off more on stiffer rims. That is why the twin-build comparisons
-  above are the safer read.
+  a fixed amount. With the measured base rim no build is near buckling and
+  the fit is tight (R^2 0.98), but a softer rim would bring back the
+  near-buckling builds where the linear fit fails. The twin-build
+  comparisons above are the safer read.
 - **Rim stiffness is estimated.** No modern MTB rim in the catalogue has a
-  measured bending or torsional stiffness, so the rim row is an informed
+  measured bending or torsional stiffness. The base rim is measured (Ford's
+  DT Swiss TK540), but each catalogue rim is scaled from it by an informed
   guess (see "Rim catalogue and the stiffness estimate" above).
 - **A narrow range of builds.** Rear wheels only, two levels per build spec,
   the same spoke gauge on both sides, 3-cross lacing only, no 36h, no
