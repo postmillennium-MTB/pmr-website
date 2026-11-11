@@ -57,7 +57,7 @@ Y (F_lat, kgf) = b0 + b1*tension_ratio + b2*flange_width + b3*pcd_mean
 | `spoke_diameter` | spoke gauge, mm (1.8 = 15g, 2.0 = 14g, same both sides) | verified | SWG gauge-to-mm conversion |
 | `spoke_count` | spokes per wheel (28h or 32h) | verified | catalogue spec |
 | `tension_kgf` | drive-side build tension setpoint (90 or 120 kgf) | verified working range | Stan's low-end guidance (~90kgf) and DT Swiss's stated max (120kgf) |
-| `wheel_erd` | effective rim diameter, mm (559 = 27.5″, 600 = 29″) | verified | app's own `RIM_ERD_BY_SIZE` table |
+| `wheel_erd` | effective rim diameter, mm (567 = 27.5″, 605 = 29″) | verified | app's own `RIM_ERD_BY_SIZE` table; Tenet Coven AL spec page |
 
 `pcd_ds` / `pcd_nds` are also in the dataset, mutually exclusive with
 `pcd_mean` in the explorer as noted above.
@@ -160,7 +160,7 @@ an in-browser tool can still hold entirely in memory:
   published numbers -- Stan's recommends roughly 85-100kgf on their modern
   rims, DT Swiss states 120kgf as a stated maximum -- rather than picking
   round numbers arbitrarily.
-- **Wheel size** (27.5″ / 29″, ERD 559mm / 600mm): this hub/rim catalogue
+- **Wheel size** (27.5″ / 29″, ERD 567mm / 605mm): this hub/rim catalogue
   is trail/enduro-oriented, so 26″ and 32″ fat-bike sizes aren't realistic
   options for it. ERD values are the app's own `RIM_ERD_BY_SIZE` constants.
 
@@ -207,20 +207,20 @@ Y is `F_lat` from wheel-physics-core at commit 1e81384: first spoke slack in
 Ford's fully-discrete-spoke Mode Matrix (each spoke at its own rim angle,
 lateral and radial coupled), on rims scaled from the measured DT Swiss
 TK540 (see the rim catalogue above). Every one of the 2,400 builds is at or
-below 49% of its discrete buckling tension.
+below 50% of its discrete buckling tension.
 
 R^2 = 0.982, adj. R^2 = 0.982 (SEs clustered by hub).
 
 | Beta | std beta | p (clustered) | VIF | partial R^2 |
 |---|---|---|---|---|
 | `tension_kgf` | 0.645 | <0.001 | 1.00 | 0.416 |
-| `tension_ratio` | 0.471 | <0.001 | 1.75 | 0.127 |
-| `rim_stiffness_index` | 0.368 | <0.001 | 1.00 | 0.135 |
-| `flange_width` | 0.291 | <0.001 | 3.35 | 0.025 |
+| `tension_ratio` | 0.472 | <0.001 | 1.75 | 0.127 |
+| `rim_stiffness_index` | 0.373 | <0.001 | 1.00 | 0.139 |
+| `flange_width` | 0.294 | <0.001 | 3.35 | 0.026 |
 | `spoke_count` | 0.269 | <0.001 | 1.00 | 0.072 |
-| `wheel_erd` | -0.210 | <0.001 | 1.00 | 0.044 |
-| `spoke_diameter` | -0.073 | <0.001 | 1.00 | 0.005 |
-| `standard_157` | -0.012 | 0.154 | 4.17 | <0.0001 |
+| `wheel_erd` | -0.195 | <0.001 | 1.00 | 0.038 |
+| `spoke_diameter` | -0.072 | <0.001 | 1.00 | 0.005 |
+| `standard_157` | -0.013 | 0.150 | 4.17 | <0.0001 |
 | `pcd_mean` | 0.009 | 0.077 | 1.07 | 0.0001 |
 
 **Reading it, in order of what's actually driving strength:**
@@ -234,7 +234,7 @@ R^2 = 0.982, adj. R^2 = 0.982 (SEs clustered by hub).
    everything on the earlier soft base rim (std beta 0.60), because that
    rim put many builds close to buckling, where rim stiffness matters most.
 4. **Spoke count has a real, moderate effect** (std beta 0.27).
-5. **Wheel size works against you as it grows** (std beta -0.21): the
+5. **Wheel size works against you as it grows** (std beta -0.20): the
    larger radius shrinks the bracing angle.
 6. **Thicker spokes slightly lower lateral first-slack strength**
    (std beta -0.07): at the same tension a stiffer spoke sheds its tension
@@ -259,7 +259,7 @@ averages 42 kgf across the dataset, against 25 kgf before.
 ## What the wheel strength regressor actually tells you
 
 Plain-language takeaways for wheel builders and buyers, written 2026-11-03
-and re-run 2026-11-10 on the measured base rim,
+and re-run 2026-11-11 on the measured base rim with the sourced ERDs,
 from the 2,400-row dataset above. All numbers come from Matthew Ford's Mode
 Matrix model (PhD thesis, Northwestern, 2018) as implemented in
 `wheel-physics-core`. They are model outputs, not lab tests.
@@ -281,7 +281,7 @@ example 28 to 32 spokes) there are hundreds of twin builds that differ only
 in that one thing. The percentages below are medians across those twins,
 with ranges where they matter. This is more direct than reading the
 regression betas, and collinearity does not affect it. Figures re-run
-2026-11-10 on the measured TK540 base rim.
+2026-11-11 on the measured TK540 base rim with the sourced ERDs (hub-pair rows: from 2026-11-10; the best and worst hubs and their percentages came out the same after the ERD change).
 
 ### What we can say for sure (within Ford's model)
 
@@ -293,7 +293,7 @@ Ford's model matches real wheels, not the statistics.
 | Same brand, 148 hub &rarr; 157 hub (14 pairs) | +18% (range +15 to +27%) | +6% (+3 to +18%) | All 14 pairs gain, on both axes |
 | Best hub vs worst hub, same build | 1.5&times; | 1.4&times; | Every build |
 | Tension 90 &rarr; 120 kgf | +29% (+22 to +31%) | +34% | Every build, both axes |
-| 29" &rarr; 27.5" | +9% | +3% | Every build, both axes |
+| 29" &rarr; 27.5" | +8% | +3% | Every build, both axes |
 | 28 &rarr; 32 spokes | +11% | +8% | Every build, both axes |
 | 15g (1.8 mm) &rarr; 14g (2.0 mm) spokes | &minus;3% | &minus;5% | Down in every build, both axes |
 
@@ -309,9 +309,9 @@ What each row means on the bike:
    Going from 90 to 120 kgf adds 22 to 31% lateral strength in every
    build, a little more on the stiffer (carbon) rims. On the earlier soft
    base rim 75 builds sat at 90 to 98% of buckling and got weaker with
-   more tension; no build here comes within 49% of buckling.
+   more tension; no build here comes within 50% of buckling.
 3. **The 29" penalty is mostly sideways.** A larger wheel gives the spokes
-   a shallower angle to the hub. That costs 8 to 12% lateral and about 3%
+   a shallower angle to the hub. That costs 7 to 12% lateral and about 3%
    radial.
 4. **Spoke count is the most predictable lever.** Four more spokes add
    about 11% lateral, with almost no spread across hubs and rims.
@@ -324,7 +324,7 @@ What each row means on the bike:
 These go one step past the data, so each says what it rests on.
 
 1. **For a 29er rear wheel, choose flange spacing first.** The 29" size
-   costs about 9% lateral strength, and a 157 hub or a wide-flange 148 hub
+   costs about 8% lateral strength, and a 157 hub or a wide-flange 148 hub
    wins more than that back. *Rests on:* the hub and wheel-size rows
    above, which add up roughly independently in this data.
 2. **Tensioning to the rim maker's maximum buys strength.** In this model
