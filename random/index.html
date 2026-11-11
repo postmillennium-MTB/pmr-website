@@ -2,7 +2,7 @@
 <!-- (c) 2026 Post Millennium Renaissance (https://www.postmillenniumrenaissance.com/). SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0. See LICENSE. -->
 <!--
 ==================================================================================
-  STOCHASTIC_OS V7  —  Tri-Core randomness & stochastic-process visualizer
+  STOCHASTIC_OS V7  —  five-core randomness & stochastic-process visualizer
   The name stays "STOCHASTIC_OS V7" across all later revisions; do not bump the number.
   single-file, zero-dependency tool
   Post Millennium Renaissance  ·  postmillenniumrenaissance.com/random/
@@ -19,7 +19,8 @@
     · CORE 1 .................... model toggles + isolated render
     · CORE 2 .................... formula blender (crossfade between two models)
     · CORE 3 .................... algorithmic forge (LCG + xorshift parameter lab)
-    · CORE 4 .................... 3-D attractor viewer (rotation, tilt, zoom, perspective, model dials)
+    · CORE 4 .................... 3-D attractor viewer (rotation, tilt, zoom, perspective, model dials; drag to turn)
+    · CORE 5 .................... convergence race (estimate π with pseudo-random vs Halton vs Sobol darts)
 
   <script> #1  ENGINE ............. math helpers + the four stateful generators
   <script> #2
@@ -29,11 +30,16 @@
     · FORGE_PARAMS ............... the three Core 3 sliders
     · VIEW3D_PARAMS .............. the Core 4 view sliders (azimuth, elevation, speed, zoom, perspective, size)
     · FIN_TERMS .................. the disclaimer points a visitor must accept before Financial models appear
-    · ICON_PATHS ................. the Lucide icons used (toggle, play, chevron, power-off, lock)
+    · ICON_PATHS ................. the Lucide icons used (toggle, play, chevron, power-off, lock, origami)
     · MS_MODES ................... the Middle-Square collapse switch (reseed / report / pure)
+    · CORES ...................... the five panels: jump links, plain-English subtitles, share buttons
+    · VIEW_MODES ................. the Core 1 layouts (side by side / overlay)
+    · MARKERS .................... dot shapes that tell Overlay layers apart without color
+    · RACE_METHODS ............... the point sets that race in Core 5
     ==== END OF DATA ====
     · tuning constants ........... point counts, sizes, load factor
-    · renderers .................. renderStandard / renderBlender / renderForge
+    · renderers .................. renderStandard / renderBlender / renderForge / render3D / renderRace
+    · share links ................ buildShareURL / applyShareState (the page state travels in the URL #fragment)
     · init() ..................... builds the UI from the registries
 
   TO ADD A MODEL:  write its generator, add ONE entry to MODELS (adv:true puts it in the collapsed
@@ -71,9 +77,9 @@
    Decorative chrome only. Plot colors are user-pickable per model and carry
    the meaning of each layer; these tokens never encode a result. */
 :root{
-  --pink:#ff00ff; --cyan:#00ffff; --yellow:#fcee0a; --green:#00ff88;
+  --pink:#ff00ff; --cyan:#00ffff; --yellow:#fcee0a; --green:#00ff88; --orange:#ff9f1c;
   --bg:#090014; --ink:#e6fbff; --ink-dim:#8fd9e6;
-  --preview-max-h:34vh;   /* height cap of the pinned mobile preview; raise for a bigger plot, lower for more room for controls */
+  --preview-max-h:28vh;   /* height cap of the pinned mobile preview; raise for a bigger plot, lower for more room for controls */
   --mono:"Share Tech Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;
 }
 
@@ -103,7 +109,15 @@ h1{font-size:1.6rem; letter-spacing:.15em; color:var(--pink)}
 h2{font-size:1.1rem; text-transform:uppercase}
 h3{margin:.5rem 0 .25rem; font-size:.8rem; text-transform:uppercase}
 .sub{margin:.25rem 0 0; font-size:.8rem; letter-spacing:.15em; text-transform:uppercase; color:var(--ink-dim)}
-.pmr-link{display:inline-block; margin-top:.5rem; color:var(--ink-dim); font-size:.8rem}
+.pmr-link{display:inline-block; padding:.9rem .5rem; color:var(--ink-dim); font-size:.8rem}
+.intro{max-width:44rem; margin:.6rem auto 0; font-size:.85rem; line-height:1.45; color:var(--ink)}
+/* Jump links to the five panels (built from CORES). */
+.jump{display:flex; flex-wrap:wrap; justify-content:center; gap:.4rem; margin-top:.25rem}
+.jump a{display:inline-flex; align-items:center; min-height:44px; padding:0 .75rem; font-size:.75rem; color:var(--ink);
+  text-decoration:none; border:1px solid rgba(0,255,255,.35); border-radius:4px}
+.jump a:hover{background:rgba(0,255,255,.12)}
+/* Plain-English line under each panel title (built from CORES). */
+.core-sub{margin:0 0 .75rem; font-size:.8rem; line-height:1.45; color:var(--ink)}
 .flicker{animation:flicker .15s infinite}
 @keyframes flicker{0%{opacity:.95}100%{opacity:1}}
 @media (prefers-reduced-motion:reduce){.flicker{animation:none}}
@@ -114,6 +128,7 @@ h3{margin:.5rem 0 .25rem; font-size:.8rem; text-transform:uppercase}
 .panel-2{border-color:var(--yellow); box-shadow:0 0 10px rgba(252,238,10,.1)}
 .panel-3{border-color:var(--green);  box-shadow:0 0 10px rgba(0,255,136,.1)}
 .panel-4{border-color:var(--pink);   box-shadow:0 0 10px rgba(255,0,255,.1)}
+.panel-5{border-color:var(--orange); box-shadow:0 0 10px rgba(255,159,28,.1)}
 .panel-head{display:flex; justify-content:space-between; align-items:center; gap:.5rem; flex-wrap:wrap;
   border-bottom:1px solid currentColor; padding-bottom:.5rem; margin-bottom:.75rem}
 .tag{font-size:.75rem; opacity:.8}
@@ -121,33 +136,90 @@ h3{margin:.5rem 0 .25rem; font-size:.8rem; text-transform:uppercase}
 .core1{display:flex; flex-direction:column; gap:1.5rem}
 .col{display:flex; flex-direction:column; gap:1rem}
 .stage{position:relative}
-.stage canvas{display:block; width:100%; height:auto; border:2px solid; border-radius:4px;
+.stage > canvas{display:block; width:100%; height:auto; border:2px solid; border-radius:4px;
   background:linear-gradient(180deg,#05000a 0%,#1a002a 100%)}
 #cv-std{border-color:var(--cyan);   box-shadow:0 0 20px rgba(0,255,255,.2);  aspect-ratio:3/2}
 #cv-blend{border-color:var(--yellow); box-shadow:0 0 20px rgba(252,238,10,.2); aspect-ratio:8/3}
 #cv-forge{border-color:var(--green);  box-shadow:0 0 20px rgba(0,255,136,.2);  aspect-ratio:2/1}
-#cv-3d{border-color:var(--pink);      box-shadow:0 0 20px rgba(255,0,255,.2);   aspect-ratio:12/7}
+#cv-3d{border-color:var(--pink);      box-shadow:0 0 20px rgba(255,0,255,.2);   aspect-ratio:12/7;
+  cursor:grab; touch-action:pan-y}   /* pan-y: a sideways drag turns the model, an up/down swipe still scrolls the page */
+#cv-3d.dragging{cursor:grabbing}
+#cv-std.clickable{cursor:pointer}
+#cv-darts{border-color:var(--orange); box-shadow:0 0 20px rgba(255,159,28,.2); aspect-ratio:20/7}
+#cv-race{border-color:var(--orange);  box-shadow:0 0 20px rgba(255,159,28,.2); aspect-ratio:12/7; margin-top:.75rem; cursor:crosshair; touch-action:pan-y}
 /* Chart labels sit in a bar ABOVE the canvas (not overlaid on it) so they never cover plotted points. */
 .stage-head{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:.25rem .75rem; margin-bottom:.35rem}
 .badge{font-size:.7rem; font-weight:bold; letter-spacing:.1em; padding:.15rem .5rem; border:1px solid currentColor}
 .stage-head-left{justify-content:flex-start}
 /* Small icon button beside the Core 1 badge. Bigger touch target on touch screens. */
-.play-btn{display:inline-flex; align-items:center; justify-content:center; width:32px; height:26px; padding:0; cursor:pointer;
+.play-btn{display:inline-flex; align-items:center; justify-content:center; width:36px; height:32px; padding:0; cursor:pointer;
   color:var(--cyan); background:rgba(0,255,255,.08); border:1px solid var(--cyan); border-radius:3px; transition:background .2s,color .2s}
-.play-btn svg{width:14px; height:14px}
+.play-btn svg{width:16px; height:16px}
 .play-btn:hover{background:var(--cyan); color:#000}
 .play-btn-pink{color:var(--pink); background:rgba(255,0,255,.08); border-color:var(--pink)}
 .play-btn-pink:hover{background:var(--pink)}
-@media (pointer:coarse){ .play-btn{width:44px; height:36px} .play-btn svg{width:18px; height:18px} }
+.play-btn-yellow{color:var(--yellow); background:rgba(252,238,10,.08); border-color:var(--yellow)}
+.play-btn-yellow:hover{background:var(--yellow)}
+.play-btn-green{color:var(--green); background:rgba(0,255,136,.08); border-color:var(--green)}
+.play-btn-green:hover{background:var(--green)}
+.play-btn-orange{color:var(--orange); background:rgba(255,159,28,.08); border-color:var(--orange)}
+.play-btn-orange:hover{background:var(--orange)}
+@media (pointer:coarse){ .play-btn{width:44px; height:44px} .play-btn svg{width:20px; height:20px} }
+.stage-hint{font-size:.7rem; color:var(--ink-dim); line-height:1.3}
+/* Phones: the pinned Core 1 preview has to stay short, so its badge is dropped and the buttons share one row. */
+@media (max-width:559px){ .sticky-preview .badge{display:none} .sticky-preview .plot-note{font-size:.7rem; line-height:1.35} }
+
+/* Core 1 layout switch (Side by side / Overlay), built from VIEW_MODES. */
+.view-seg{display:inline-flex; margin-left:auto}
+.view-seg button{min-height:32px; padding:0 .6rem; cursor:pointer; font-family:var(--mono); font-size:.7rem; color:var(--cyan);
+  background:transparent; border:1px solid var(--cyan)}
+.view-seg button + button{border-left:0}
+.view-seg button:first-child{border-radius:3px 0 0 3px}
+.view-seg button:last-child{border-radius:0 3px 3px 0}
+.view-seg button[aria-pressed="true"]{background:var(--cyan); color:#000; font-weight:bold}
+@media (pointer:coarse){ .view-seg button{min-height:44px} }
+/* Legend: one chip per plotted model (mark + name). Tapping a chip singles that model out. One scrolling row on phones. */
+.legend{display:flex; gap:.35rem; margin-bottom:.35rem; overflow-x:auto; scrollbar-width:thin}
+.legend:empty{display:none}
+.chip{display:inline-flex; align-items:center; gap:.35rem; flex:none; min-height:32px; padding:0 .55rem 0 .4rem; cursor:pointer;
+  font-family:var(--mono); font-size:.7rem; color:var(--ink); background:rgba(0,0,0,.45); border:1px solid rgba(230,251,255,.35); border-radius:999px}
+.chip canvas{width:14px; height:14px; flex:none}
+.chip[aria-pressed="true"]{border-color:var(--ink); background:rgba(230,251,255,.16); font-weight:bold}
+@media (pointer:coarse){ .chip{min-height:40px} }
+/* "What am I looking at" line under the Core 1 plot: the ticked or tapped model's `note`. */
+.plot-note{margin:.4rem 0 0; font-size:.75rem; line-height:1.4; color:var(--ink)}
+.plot-note b{color:#fff}
+.plot-note .dim{color:var(--ink-dim)}
+
+/* Share-link confirmation: a small bar pinned to the bottom of the window. */
+.share-status{position:fixed; left:50%; bottom:.75rem; transform:translateX(-50%); z-index:60; width:min(34rem,calc(100vw - 1.5rem));
+  display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; padding:.6rem .75rem; font-size:.75rem; line-height:1.4; color:var(--ink);
+  background:#0a0019; border:1px solid var(--cyan); border-radius:4px; box-shadow:0 0 24px rgba(0,255,255,.3)}
+.share-status[hidden]{display:none}
+.share-status span{flex:1 1 100%}
+.share-status input{flex:1 1 12rem; min-width:0; min-height:36px; padding:0 .4rem; font-family:var(--mono); font-size:.7rem; color:var(--ink);
+  background:#000; border:1px solid rgba(0,255,255,.4)}
+.share-status button{min-height:36px; padding:0 .75rem; cursor:pointer; font-family:var(--mono); font-size:.75rem; color:var(--cyan);
+  background:transparent; border:1px solid var(--cyan); border-radius:3px}
+
+/* Core 5 scoreboard: the same numbers as the chart, as a table. */
+.race-table{width:100%; table-layout:fixed; margin-top:.75rem; border-collapse:collapse; font-size:.75rem; color:var(--ink)}
+.race-table caption{caption-side:top; text-align:left; padding-bottom:.35rem; color:var(--ink)}
+.race-table th,.race-table td{padding:.4rem .35rem; text-align:right; border-bottom:1px solid rgba(255,159,28,.25)}
+.race-table th:first-child{text-align:left; width:40%}
+.race-table thead th{font-weight:normal; color:var(--ink-dim)}
+.race-table tbody th{font-weight:normal}
+.race-table canvas{width:30px; height:10px; margin-right:.4rem; vertical-align:middle}
+.race-take{margin:.6rem 0 0; font-size:.8rem; line-height:1.45; color:var(--ink)}
 .formula{font-size:.65rem; letter-spacing:.05em; color:rgba(0,255,136,.8); line-height:1.3}
 
 /* Phones/tablets: Core 1's plot is pinned to the top of the viewport and listed first, so toggling a model
    shows its effect without scrolling. max-height keeps it a "mini screen" (aspect ratio is preserved). */
 .sticky-preview{position:sticky; top:0; z-index:20; order:-1; background:var(--bg); padding:.35rem 0 .5rem;
   box-shadow:0 10px 12px -8px #000}
-.sticky-preview canvas{width:auto; max-width:100%; max-height:var(--preview-max-h); margin:0 auto}
+.sticky-preview > canvas{width:auto; max-width:100%; max-height:var(--preview-max-h); margin:0 auto}
 
-.model-row{display:flex; align-items:center; justify-content:space-between; gap:.5rem; min-height:40px;
+.model-row{display:flex; align-items:center; justify-content:space-between; gap:.5rem; min-height:44px;
   padding:.1rem .5rem; border-bottom:1px solid rgba(0,255,255,.1)}
 .model-row:hover{background:rgba(0,255,255,.1)}
 .model-row label{display:flex; align-items:center; gap:.5rem; flex:1; cursor:pointer; font-size:.8rem; color:var(--ink)}
@@ -158,7 +230,7 @@ h3{margin:.5rem 0 .25rem; font-size:.8rem; text-transform:uppercase}
 /* One-line notice between Core 1 and Core 2. */
 .notice{margin:0; padding:.5rem .75rem; text-align:center; font-size:.75rem; line-height:1.4; color:var(--ink-dim);
   border-top:1px solid rgba(0,255,255,.18); border-bottom:1px solid rgba(0,255,255,.18)}
-.notice a{color:var(--ink); text-decoration:underline}
+.notice a{color:var(--ink); text-decoration:underline; display:inline-block; padding:.6rem .25rem}
 
 /* Financial-model gate: a button under the Advanced menu, and the disclaimer dialog it opens. */
 .fin-gate{margin-top:1.5rem; border-top:1px solid rgba(0,255,255,.25); padding-top:.6rem}
@@ -204,13 +276,13 @@ h3{margin:.5rem 0 .25rem; font-size:.8rem; text-transform:uppercase}
 #adv-chev svg{width:18px; height:18px; display:block; transition:transform .2s}
 .adv[open] #adv-chev svg{transform:rotate(180deg)}
 .adv-box h4, #adv-box h4{margin:.6rem 0 .1rem; font-size:.75rem; text-transform:uppercase}
-.adv-row{display:flex; align-items:center; gap:.6rem; width:100%; min-height:40px; padding:.15rem .5rem; background:none; border:0;
+.adv-row{display:flex; align-items:center; gap:.6rem; width:100%; min-height:44px; padding:.15rem .5rem; background:none; border:0;
   border-bottom:1px solid rgba(0,255,255,.1); color:var(--ink-dim); font-family:var(--mono); font-size:.8rem; text-align:left; cursor:pointer}
 .adv-row:hover{background:rgba(0,255,255,.1)}
 .adv-ico svg{width:28px; height:28px; display:block}
 .adv-row[aria-checked="true"]{color:var(--ink)}
 .adv-row[aria-checked="true"] .adv-ico{color:var(--cyan); filter:drop-shadow(0 0 4px var(--cyan))}
-.adv-link{display:inline-block; margin:.6rem .5rem .25rem; font-size:.75rem; color:var(--ink-dim)}
+.adv-link{display:inline-block; margin:.25rem .5rem 0; padding:.75rem 0; font-size:.75rem; color:var(--ink-dim)}
 .btn-row{display:grid; grid-template-columns:1fr; gap:.5rem; margin-top:.5rem}
 .btn-row .btn{margin-top:0}
 .btn svg{width:18px; height:18px; vertical-align:-3px; margin-right:.45rem}
@@ -248,6 +320,9 @@ h3{margin:.5rem 0 .25rem; font-size:.8rem; text-transform:uppercase}
 .ctl-grid.y{border-color:rgba(252,238,10,.3); color:var(--yellow)}
 .ctl-grid.g{border-color:rgba(0,255,136,.3);  color:var(--green)}
 .ctl-grid.p{border-color:rgba(255,0,255,.3);  color:var(--pink)}
+.ctl-grid.o{border-color:rgba(255,159,28,.3); color:var(--orange)}
+.ctl-grid.o .help{color:#ffd9a3}
+.ctl-grid.y .help{color:#f3ec9a}
 .ctl-grid.p .help{color:#e0a8e0}
 .ctl-grid.p select{color:var(--pink); border-color:var(--pink)}
 .ctl-grid.p .adv-row{color:var(--ink)}
@@ -266,18 +341,24 @@ input[type=checkbox]{-webkit-appearance:none; appearance:none; width:1.25rem; he
   border:1px solid var(--cyan); background:transparent; cursor:pointer; position:relative; box-shadow:0 0 5px rgba(0,255,255,.3)}
 input[type=checkbox]:checked{background:var(--cyan)}
 input[type=checkbox]:checked::after{content:"✓"; position:absolute; color:#000; font-weight:bold; left:3px; top:-2px}
-input[type=color]{-webkit-appearance:none; appearance:none; flex:none; width:2rem; height:1.75rem; padding:0;
+input[type=color]{-webkit-appearance:none; appearance:none; flex:none; width:2.75rem; height:2.75rem; padding:0;
   border:1px solid currentColor; background:transparent; cursor:pointer}
 input[type=color]::-webkit-color-swatch-wrapper{padding:0}
 input[type=color]::-webkit-color-swatch{border:none}
 input[type=color]::-moz-color-swatch{border:none}
-input[type=range]{-webkit-appearance:none; appearance:none; width:100%; height:28px; background:transparent; color:inherit; margin:0}
+input[type=range]{-webkit-appearance:none; appearance:none; width:100%; height:36px; background:transparent; color:inherit; margin:0}
 input[type=range]::-webkit-slider-runnable-track{height:4px; border-radius:2px; background:rgba(255,255,255,.25)}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:18px; height:18px; margin-top:-7px; border-radius:50%;
   background:currentColor; box-shadow:0 0 10px currentColor}
 input[type=range]::-moz-range-track{height:4px; border-radius:2px; background:rgba(255,255,255,.25)}
 input[type=range]::-moz-range-thumb{width:18px; height:18px; border:0; border-radius:50%; background:currentColor}
-select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow); padding:.5rem .25rem; min-height:40px;
+/* Touch screens: taller slider rows and a bigger thumb, so a finger can grab them. */
+@media (pointer:coarse){
+  input[type=range]{height:44px}
+  input[type=range]::-webkit-slider-thumb{width:24px; height:24px; margin-top:-10px}
+  input[type=range]::-moz-range-thumb{width:24px; height:24px}
+}
+select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow); padding:.5rem .25rem; min-height:44px;
   font-family:var(--mono); font-size:.8rem; width:100%}
 .btn{display:block; width:100%; min-height:44px; margin-top:.5rem; border-radius:4px; cursor:pointer;
   font-family:var(--mono); font-weight:bold; letter-spacing:.1em; text-transform:uppercase; transition:all .2s}
@@ -285,6 +366,9 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
 .btn-pink:hover{background:var(--pink); color:#000}
 .btn-yellow{background:rgba(252,238,10,.1); color:var(--yellow); border:2px solid var(--yellow); box-shadow:0 0 10px rgba(252,238,10,.3)}
 .btn-yellow:hover{background:var(--yellow); color:#000}
+.btn-orange{background:rgba(255,159,28,.1); color:var(--orange); border:2px solid var(--orange); box-shadow:0 0 10px rgba(255,159,28,.3)}
+.btn-orange:hover{background:var(--orange); color:#000}
+.ctl-grid .btn{margin-top:0}
 ::-webkit-scrollbar{width:6px}
 ::-webkit-scrollbar-track{background:#000}
 ::-webkit-scrollbar-thumb{background:var(--cyan)}
@@ -294,6 +378,7 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
   .ctl-grid.y{grid-template-columns:1fr 1fr}
   .ctl-grid.g{grid-template-columns:1fr 1fr 1fr; gap:2rem}
   .ctl-grid.p{grid-template-columns:1fr 1fr; gap:1.25rem 2rem}
+  .ctl-grid.o{grid-template-columns:2fr 1fr 1fr; align-items:end}
   .c4-dials{grid-template-columns:1fr 1fr}
 }
 @media (min-width:960px){
@@ -302,8 +387,8 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
   .core1 .col{flex:1 1 33%}
   .core1 .stage{flex:2 1 66%}
   .sticky-preview{position:static; order:0; padding:0; box-shadow:none}
-  .sticky-preview canvas{width:100%; max-height:none}
-  .ctl-grid.y{grid-template-columns:repeat(5,1fr)}
+  .sticky-preview > canvas{width:100%; max-height:none}
+  .ctl-grid.y{grid-template-columns:1fr 1fr 1.4fr 1.4fr auto auto}
 }
 </style>
 </head>
@@ -312,8 +397,11 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
 
   <header>
     <h1 class="flicker">STOCHASTIC_OS V7</h1>
-    <p class="sub">[ Tri-Core Architecture Online ]</p>
+    <p class="sub">[ Five-Core Architecture Online ]</p>
+    <p class="intro">A randomness lab. Compare random-number generators, chaos and copulas side by side, and see where each one breaks.</p>
     <a class="pmr-link" href="https://www.postmillenniumrenaissance.com/" target="_top">← Post Millennium Renaissance</a>
+    <!-- Jump links: BUILT FROM the `CORES` registry by init(). -->
+    <nav class="jump" id="jump" aria-label="Jump to a panel"></nav>
   </header>
 
   <!-- CORE 1: the model rows below are BUILT FROM the `MODELS` registry. -->
@@ -342,7 +430,7 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
         </div>
         <p class="opt-help">Maps the Student-t and Clayton copulas to standard-normal margins and puts all copulas on one shared axis range, so their dependence and tail shape are directly comparable. Also applies to Core 2.</p>
         <!-- Middle-Square collapse switch: radios BUILT FROM the `MS_MODES` registry in the script below. -->
-        <fieldset class="seg-set">
+        <fieldset class="seg-set" id="ms-set">
           <legend>Middle-Square collapse</legend>
           <div class="seg" id="ms-seg"></div>
           <p class="opt-help" id="ms-help"></p>
@@ -355,8 +443,14 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
     </div>
     <div class="stage sticky-preview">
       <!-- The play button repeats "Re-roll Sequences" right beside the display; its icon is added by init() from ICON_PATHS. -->
-      <div class="stage-head stage-head-left"><span class="badge" style="color:var(--cyan)">CORE 1 // ISOLATED RENDER</span><button type="button" class="play-btn" id="btn-run-plot" aria-label="Re-roll sequences" title="Re-roll sequences"></button></div>
-      <canvas id="cv-std" width="1200" height="800" role="img" aria-label="Scatter and line plot of the selected models"></canvas>
+      <div class="stage-head stage-head-left"><span class="badge" style="color:var(--cyan)">CORE 1 // PLOT</span><button type="button" class="play-btn" id="btn-run-plot" aria-label="Re-roll sequences" title="Re-roll sequences"></button>
+        <!-- Layout switch: BUILT FROM the `VIEW_MODES` registry. The share button is added by init() from `CORES`. -->
+        <div class="view-seg" id="view-seg" role="group" aria-label="Plot layout"></div></div>
+      <!-- Legend chips: rebuilt by renderLegend() from the ticked models. -->
+      <div class="legend" id="legend-std" role="group" aria-label="Plotted models. Press one to single it out."></div>
+      <canvas id="cv-std" width="1200" height="800" role="img" aria-label="Plot of the selected models"></canvas>
+      <!-- What the picture shows: the ticked or tapped model's `note` from the MODELS registry. -->
+      <p class="plot-note" id="note-std" aria-live="polite"></p>
     </div>
   </section>
 
@@ -367,27 +461,29 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
   <section class="panel panel-2" aria-labelledby="h-core2">
     <div class="panel-head" style="color:var(--yellow)"><h2 id="h-core2" class="flicker">Core 2: Formula Blender</h2><span class="tag">CROSSFADE ENGINE</span></div>
     <div class="stage">
-      <div class="stage-head"><span class="badge" style="color:var(--yellow)">CORE 2 // INTERPOLATION</span></div>
+      <div class="stage-head stage-head-left"><span class="badge" style="color:var(--yellow)">CORE 2 // CROSSFADE</span></div>
       <canvas id="cv-blend" width="1600" height="600" role="img" aria-label="Crossfade plot between two selected models"></canvas>
     </div>
     <div class="ctl-grid y">
-      <div class="ctl"><label for="blend-a">FORMULA A (left base)</label><select id="blend-a"></select></div>
-      <div class="ctl"><label for="blend-b">FORMULA B (right target)</label><select id="blend-b"></select></div>
+      <div class="ctl"><label for="blend-a">Model A (start of the sequence)</label><select id="blend-a"></select></div>
+      <div class="ctl"><label for="blend-b">Model B (end of the sequence)</label><select id="blend-b"></select></div>
       <div class="ctl">
-        <div class="row"><label for="blend-pos">Fade bar (center)</label><span class="val" id="pos-val">0</span></div>
+        <div class="row"><label for="blend-pos">Handover point</label><span class="val" id="pos-val"></span></div>
+        <p class="help">Where along the 1,500 points the picture switches from A to B. Right = more A, left = more B.</p>
         <input type="range" id="blend-pos" min="-100" max="100" step="1" value="0">
       </div>
       <div class="ctl">
-        <div class="row"><label for="blend-smooth">Blend smoothness</label><span class="val" id="smooth-val">30</span></div>
+        <div class="row"><label for="blend-smooth">Blend smoothness</label><span class="val" id="smooth-val"></span></div>
+        <p class="help">0 = a hard switch. Higher = a wider band where each point is an average of A and B.</p>
         <input type="range" id="blend-smooth" min="0" max="100" step="1" value="30">
       </div>
-      <div class="ctl"><label for="blend-color-a">Color A (left base)</label><input type="color" id="blend-color-a" value="#fcee0a"></div>
-      <div class="ctl"><label for="blend-color-b">Color B (right target)</label><input type="color" id="blend-color-b" value="#fcee0a"></div>
+      <div class="ctl"><label for="blend-color-a">Color A</label><input type="color" id="blend-color-a" value="#fcee0a"></div>
+      <div class="ctl"><label for="blend-color-b">Color B</label><input type="color" id="blend-color-b" value="#fcee0a"></div>
     </div>
     <!-- Re-roll draws fresh samples for the two selected sequences; Surprise also picks new models. The play icon is added by init() from ICON_PATHS. -->
     <div class="btn-row">
       <button type="button" class="btn btn-yellow" id="btn-reroll-blend">Re-roll A &amp; B</button>
-      <button type="button" class="btn btn-yellow" id="btn-surprise">Surprise Me! [ RNG Overload ]</button>
+      <button type="button" class="btn btn-yellow" id="btn-surprise">Surprise me: random pair</button>
     </div>
   </section>
 
@@ -395,13 +491,13 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
   <section class="panel panel-3" aria-labelledby="h-core3">
     <div class="panel-head" style="color:var(--green)">
       <h2 id="h-core3" class="flicker">Core 3: Algorithmic Forge</h2>
-      <span class="metric">RENDER: <b id="forge-time">0.00</b> ms</span>
-      <span class="metric">WORK: <b id="forge-work">0</b> sqrt/pt · <b id="forge-rounds">0</b> hash rounds</span>
+      <span class="metric">Draw time: <b id="forge-time">0.00</b> ms</span>
+      <span class="metric">Busywork: <b id="forge-work">0</b> loops per point · <b id="forge-rounds">0</b> extra scramble rounds</span>
       <span class="tag">LCG + XORSHIFT PARAMETERIZATION</span>
     </div>
     <div class="stage">
       <div class="stage-head">
-        <span class="badge" style="color:var(--green)">CORE 3 // GENERATIVE VISUALIZATION</span>
+        <span class="badge" style="color:var(--green)">CORE 3 // PAIRS OF OUTPUTS</span>
         <span class="formula">X<sub>n+1</sub> = (a·X<sub>n</sub> + c) mod 2<sup>b</sup> · mix: X ^= X&lt;&lt;13; X ^= X&gt;&gt;17; X ^= X&lt;&lt;5</span>
       </div>
       <canvas id="cv-forge" width="1200" height="600" role="img" aria-label="Pair-correlation plot of the forged generator"></canvas>
@@ -419,6 +515,7 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
       <div class="stage-head stage-head-left">
         <span class="badge" style="color:var(--pink)">CORE 4 // 3-D VIEW</span>
         <button type="button" class="play-btn play-btn-pink" id="btn-run-3d" aria-label="Re-roll the 3-D orbit" title="Re-roll the 3-D orbit"></button>
+        <span class="stage-hint">Drag to turn · pinch or Ctrl + scroll to zoom</span>
       </div>
       <canvas id="cv-3d" width="1200" height="700" role="img" aria-label="Rotating 3-D plot of the selected attractor"></canvas>
     </div>
@@ -426,12 +523,52 @@ select{background:var(--bg); color:var(--yellow); border:1px solid var(--yellow)
       <div class="ctl"><label for="c4-model">3-D model</label><select id="c4-model"></select></div>
       <div class="ctl">
         <button type="button" class="adv-row" id="c4-auto" role="switch" aria-checked="true"><span class="adv-ico"></span><span class="adv-name">Auto-rotate</span></button>
-        <p class="help">On: the model turns by itself at the speed below. Off: it holds still and you steer with Azimuth and Elevation.</p>
+        <p class="help">On: the model turns by itself at the speed below. Off: it holds still. Either way you can drag the picture to turn it (on a touch screen drag sideways; up and down scrolls the page).</p>
       </div>
     </div>
     <div class="ctl-grid p" id="c4-view"></div>
     <div id="c4-dials" class="c4-dials" aria-label="Dials for the selected 3-D model"></div>
   </section>
+
+  <!-- CORE 5: the π race. Boards, chart lines and table rows are BUILT FROM the `RACE_METHODS` registry. -->
+  <section class="panel panel-5" aria-labelledby="h-core5">
+    <div class="panel-head" style="color:var(--orange)">
+      <h2 id="h-core5" class="flicker">Core 5: Convergence Race</h2>
+      <span class="tag">MONTE CARLO VS QUASI-MONTE CARLO</span>
+    </div>
+    <div class="stage">
+      <div class="stage-head stage-head-left">
+        <span class="badge" style="color:var(--orange)">CORE 5 // DARTS</span>
+        <button type="button" class="play-btn play-btn-orange" id="btn-race-play" aria-label="Run the race" title="Run the race"></button>
+        <span class="stage-hint">A dart inside the curve counts as a hit. Hits ÷ darts × 4 ≈ π.</span>
+      </div>
+      <canvas id="cv-darts" width="1200" height="420" role="img" aria-label="Three dart boards, one per method, showing the darts thrown so far"></canvas>
+      <canvas id="cv-race" width="1200" height="700" role="img" aria-label="Line chart: typical error of the pi estimate against darts thrown, one line per method. The table below holds the same numbers."></canvas>
+    </div>
+    <div class="ctl-grid o">
+      <div class="ctl">
+        <div class="row"><label for="race-n">Darts thrown</label><span class="val" id="race-n-val"></span></div>
+        <p class="help">Slide to throw more darts, or press play. You can also drag across the chart.</p>
+        <input type="range" id="race-n" min="3" max="14" step="0.25" value="8">
+      </div>
+      <button type="button" class="btn btn-orange" id="btn-race-run">Run the race</button>
+      <button type="button" class="btn btn-orange" id="btn-race-reroll">Re-roll darts</button>
+    </div>
+    <table class="race-table">
+      <caption id="race-cap"></caption>
+      <thead><tr><th scope="col">Method</th><th scope="col">π estimate</th><th scope="col">Off by</th><th scope="col">Typical error</th></tr></thead>
+      <tbody id="race-rows"></tbody>
+    </table>
+    <p class="race-take" id="race-take" aria-live="polite"></p>
+    <p class="opt-help" style="margin-left:0">“Typical error” is the root-mean-square error over <span id="race-runs"></span> separate runs. Halton and Sobol are fixed sequences, so each run slides the whole pattern by a random offset. The grey line is the textbook error for truly random darts, 1.64 ÷ √N. One run can beat or miss the typical figure by luck. A quarter circle is a friendly test: the gap between methods depends on the problem.</p>
+  </section>
+
+  <!-- Share-link confirmation bar (filled by shareSetup()). -->
+  <div class="share-status" id="share-status" role="status" aria-live="polite" hidden>
+    <span id="share-msg"></span>
+    <input type="text" id="share-url" readonly aria-label="Shareable link">
+    <button type="button" id="share-close">Close</button>
+  </div>
 
   <!-- Financial stochastic models are OFF by default. This button (bottom of the page) opens the disclaimer dialog below; the models are only added after the box is ticked. -->
   <div class="fin-gate">
@@ -667,8 +804,9 @@ function pcgSeed(initState,initSeq){
 }
 
 // Sobol sequence, dimensions 1 and 2 (Sobol 1967; direction numbers per Joe & Kuo 2008 — dimension 2
-// is the primitive polynomial x+1 with m1=1). Index -> point via the Gray code. 12 bits = 4096 points.
-const SOBOL_BITS=12;
+// is the primitive polynomial x+1 with m1=1). Index -> point via the Gray code. 14 bits = 16,384 points
+// (Core 5 needs that many; the first 4,096 points are identical to the old 12-bit build).
+const SOBOL_BITS=14;
 const SOBOL_V1=[], SOBOL_V2=[];
 (function(){ let m=1;
   for(let j=0;j<SOBOL_BITS;j++){
@@ -809,7 +947,9 @@ const SPAN_DIAL={id:"span", label:"Orbit length", weak:0.25, strong:4, classic:1
      name   display label
      type   "scatter" or "line" (line models draw as a connected path)
      color  default plot color (user can change per model in Core 1)
-     on     checked by default in Core 1
+     note   one plain-English sentence: what the picture shows and why it matters. Printed under the Core 1
+            plot when the model is ticked or tapped. Keep the detail and the sources in README.md
+     on     checked by default in Core 1 (keep this to one or two models: a busy first view teaches nothing)
      defA / defB   default selection in the Core 2 A / B dropdown (must not be a Financial model: those start hidden)
      adv    true = an ADVANCED model: hidden from the Core 1 list and the Core 2 dropdowns until its
             switch is turned on in the "Advanced models" menu
@@ -828,23 +968,23 @@ const SPAN_DIAL={id:"span", label:"Orbit length", weak:0.25, strong:4, classic:1
      only2d on a dial: hide it in Core 4 (it only makes sense for the 2-D view)
      gen    function returning the points                                   */
 const MODELS=[
-  {id:"prng",     cat:"seq", name:"Math.random (browser PRNG)", type:"scatter", color:"#00ffff", gen:()=>scatterFrom(Math.random)},
-  {id:"lcg",      cat:"seq", name:"Linear Congruential (LCG)",  type:"scatter", color:"#ff00aa", gen:()=>scatterFrom(nextLCG)},
-  {id:"midsq",    cat:"seq", name:"Middle-Square (Von Neumann)",type:"scatter", color:"#ff7700",
+  {id:"prng",     cat:"seq", name:"Math.random (browser PRNG)", note:"The browser's built-in generator. This is what good pseudo-random points look like: no pattern, but some clumps and gaps by pure chance.", type:"scatter", color:"#00ffff", on:true, gen:()=>scatterFrom(Math.random)},
+  {id:"lcg",      cat:"seq", name:"Linear Congruential (LCG)", note:"A classic one-line generator. At this size it looks like static; its hidden stripe pattern only shows when the generator is made small (try Core 3).",  type:"scatter", color:"#ff00aa", gen:()=>scatterFrom(nextLCG)},
+  {id:"midsq",    cat:"seq", name:"Middle-Square (Von Neumann)", note:"The first computer random-number method (1946). It keeps collapsing onto repeating values, so points pile up instead of spreading out.",type:"scatter", color:"#ff7700",
    gen:()=>{ msCollapses=0;
       if(msMode==="pure") msState=MS_SEED; else if(!msSeen.size) msReseed();
       const pts=scatterFrom(nextMiddleSquare);
       if(msMode==="report") logTerminal("MIDDLE-SQUARE: "+msCollapses+" COLLAPSES IN "+(NUM_POINTS*2)+" DRAWS, RESEEDED EACH TIME","#ff7700");
       return pts; }},
-  {id:"xor",      cat:"seq", name:"Xorshift Engine",            type:"scatter", color:"#aaff00", gen:()=>scatterFrom(nextXorShift)},
-  {id:"logistic", cat:"seq", name:"Logistic Map (Chaos)",       type:"scatter", color:"#ff0055", on:true, defA:true,
+  {id:"xor",      cat:"seq", name:"Xorshift Engine", note:"Three bit-shifts and nothing else. Fast, and to the eye it looks like static.",            type:"scatter", color:"#aaff00", gen:()=>scatterFrom(nextXorShift)},
+  {id:"logistic", cat:"seq", name:"Logistic Map (Chaos)", note:"One simple equation with no randomness in it, yet the output never settles. Each dot is the next value in the sequence, read left to right.",       type:"scatter", color:"#ff0055", defA:true,
    gen:()=>{ const pts=[]; for(let i=0;i<NUM_POINTS;i++) pts.push({x:i/NUM_POINTS,y:nextLogistic()}); return pts; }},
-  {id:"halton",   cat:"seq", name:"Halton Sequence (Low-Disc.)",type:"scatter", color:"#fcee0a", on:true,
+  {id:"halton",   cat:"seq", name:"Halton Sequence (Low-Disc.)", note:"Not random, on purpose: points are placed to fill the gaps evenly, so there are no clumps and no bare patches.",type:"scatter", color:"#fcee0a", on:true,
    gen:()=>{ const pts=[]; for(let i=1;i<=NUM_POINTS;i++) pts.push({x:halton(i,2),y:halton(i,3)}); return pts; }},
   // Hénon map (b=0.3): a 2-D strange attractor. The Attraction dial sets b, the area-contraction factor per step:
   // smaller b = stronger pull (the attractor thins toward a curve). Dial a walks the period-doubling route to chaos.
   // Start near the origin, discard the transient, then record the orbit.
-  {id:"henon",    cat:"att", name:"Hénon Map (Strange Attractor)", type:"scatter", color:"#4dffd2",
+  {id:"henon",    cat:"att", name:"Hénon Map (Strange Attractor)", note:"A two-line equation whose points fall on a folded, banana-shaped curve with layers inside layers (a fractal).", type:"scatter", color:"#4dffd2",
    dials:[{id:"pull", label:"Attraction", weak:0.31, strong:0.02, classic:0.30, fmt:b=>"b = "+b.toFixed(3),
      help:"Sets the contraction factor b: more attraction = smaller b, so the orbit is squeezed onto a thinner curve. Classic is b = 0.30. Weaker than b ≈ 0.31 the attractor dies and orbits escape to infinity, so the dial stops there."},
     {id:"a", label:"Parameter a", weak:0.8, strong:1.42, classic:1.4, fmt:a=>"a = "+a.toFixed(3),
@@ -860,7 +1000,7 @@ const MODELS=[
   // so the lobes read as one orbit. Dial "Attraction" sets beta, which (with sigma) is the volume-contraction rate
   // sigma+1+beta: more attraction = larger beta. Beyond beta ≈ 3.2 the chaos dies and the orbit spirals into a
   // fixed point. Dial rho is the other classic control: below ≈ 24.7 the orbit is pulled into a fixed point too.
-  {id:"lorenz",   cat:"att", name:"Lorenz Attractor (x–z)",     type:"line", color:"#ff8c66", proj:["x","z"], defB:true,
+  {id:"lorenz",   cat:"att", name:"Lorenz Attractor (x–z)", note:"The butterfly: a simplified model of rising warm air whose path loops around two lobes and never repeats.",     type:"line", color:"#ff8c66", proj:["x","z"], defB:true,
    dials:[{id:"pull", label:"Attraction", weak:0.5, strong:6, classic:8/3, fmt:b=>"β = "+b.toFixed(2),
      help:"Sets β, the dissipation: more attraction = larger β. Classic is β = 8/3. Weak: a looser, larger butterfly. Strong (β above about 3.2): the chaos dies and the orbit spirals into a single point."},
     {id:"rho", label:"Heating ρ (Rayleigh number)", weak:10, strong:45, classic:28, fmt:r=>"ρ = "+r.toFixed(1),
@@ -868,32 +1008,32 @@ const MODELS=[
    gen3:()=>{ const beta=dialParam("lorenz","pull"), rho=dialParam("lorenz","rho"), f=([x,y,z])=>[LORENZ_SIGMA*(y-x),x*(rho-z)-y,x*y-beta*z];
       return integrateFlow(f,[1+LORENZ_START_SPAN*attractorStart[2],1,1],LORENZ_DT,spanSteps(LORENZ_STEPS_PER_POINT,"lorenz"),0,NUM_POINTS); }},
 
-  {id:"gauss",    cat:"cop", name:"Gaussian Copula (ρ=0.8)",    type:"scatter", color:"#aa00ff", on:true, copula:true,
+  {id:"gauss",    cat:"cop", name:"Gaussian Copula (ρ=0.8)", note:"Two linked quantities with a bell-curve link: they move together in the middle, but their extremes are only loosely tied.",    type:"scatter", color:"#aa00ff", copula:true,
    gen:()=>{ const pts=[]; for(let i=0;i<NUM_POINTS;i++){ const z1=randn_bm(),z2=randn_bm();
       pts.push({x:z1,y:COPULA_RHO*z1+Math.sqrt(1-COPULA_RHO*COPULA_RHO)*z2}); } return pts; }},
   // Student-t via normal / sqrt(chi-square/nu). Chi-square(4) is exactly the sum
   // of four squared standard normals, so nu=4 needs no approximation.
-  {id:"tcopula",  cat:"cop", name:"Student-t Copula (ν=4)",     type:"scatter", color:"#0055ff", on:true, copula:true,
+  {id:"tcopula",  cat:"cop", name:"Student-t Copula (ν=4)", note:"The same overall link as the Gaussian, but extremes arrive together: look for points stretching into both far corners.",     type:"scatter", color:"#0055ff", copula:true,
    toNormal:x=>probit(tCdf4(x)),
    gen:()=>{ const pts=[]; for(let i=0;i<NUM_POINTS;i++){
       const z1=randn_bm(),z2=randn_bm();
       const w=randn_bm()**2+randn_bm()**2+randn_bm()**2+randn_bm()**2;
       const s=Math.sqrt(T_NU/w);
       pts.push({x:z1*s, y:(COPULA_RHO*z1+Math.sqrt(1-COPULA_RHO*COPULA_RHO)*z2)*s}); } return pts; }},
-  {id:"gbm",      cat:"fin", name:"Geometric Brownian (GBM)",   type:"line", color:"#00ff88",
+  {id:"gbm",      cat:"fin", name:"Geometric Brownian (GBM)", note:"A simulated path whose percentage moves are random with constant volatility: the textbook starting point. Hypothetical, not a forecast.",   type:"line", color:"#00ff88",
    gen:()=>{ const pts=[{x:0,y:100}], dt=1/NUM_POINTS; let S=100;       // mu=5%, sigma=20%
       for(let i=1;i<NUM_POINTS;i++){ S*=Math.exp((0.05-0.5*0.04)*dt+0.2*randn_bm()*Math.sqrt(dt)); pts.push({x:i,y:S}); } return pts; }},
-  {id:"vasicek",  cat:"fin", name:"Vasicek (Mean Reverting)",   type:"line", color:"#ffaa00",
+  {id:"vasicek",  cat:"fin", name:"Vasicek (Mean Reverting)", note:"A simulated rate that is pulled back toward a long-run level: it drifts, but keeps returning. Hypothetical, not a forecast.",   type:"line", color:"#ffaa00",
    gen:()=>{ const pts=[{x:0,y:0.05}], dt=1/NUM_POINTS; let r=0.05;     // kappa=0.1, theta=5%, sigma=2%
       for(let i=1;i<NUM_POINTS;i++){ r+=0.1*(0.05-r)*dt+0.02*randn_bm()*Math.sqrt(dt); pts.push({x:i,y:r}); } return pts; }},
-  {id:"jump",     cat:"fin", name:"Jump-Diffusion Model",       type:"line", color:"#ffffff",
+  {id:"jump",     cat:"fin", name:"Jump-Diffusion Model", note:"A simulated random walk with occasional sudden jumps on top of the usual small moves. Hypothetical, not a forecast.",       type:"line", color:"#ffffff",
    gen:()=>{ const pts=[{x:0,y:100}], dt=1/NUM_POINTS; let S=100;       // lambda=8/yr, jump ~ N(-15%,10%)
       for(let i=1;i<NUM_POINTS;i++){ const j=(Math.random()<8*dt)?-0.15+0.1*randn_bm():0;
         S*=Math.exp((0.05-0.5*0.0225)*dt+0.15*randn_bm()*Math.sqrt(dt)+j); pts.push({x:i,y:S}); } return pts; }},
   // Heston: variance v is itself a mean-reverting random process, correlated (rho<0) with
   // the price shock, so calm and violent stretches cluster — which GBM cannot do.
   // Euler with full truncation (v+ = max(v,0)) keeps the square roots real.
-  {id:"heston",   cat:"fin", name:"Heston Stochastic Volatility", type:"line", color:"#ff66b3",
+  {id:"heston",   cat:"fin", name:"Heston Stochastic Volatility", note:"A simulated path whose volatility is itself random, so calm and stormy stretches alternate. Hypothetical, not a forecast.", type:"line", color:"#ff66b3",
    gen:()=>{ const dt=HESTON_YEARS/NUM_POINTS, rc=Math.sqrt(1-HESTON_RHO*HESTON_RHO);
       let S=100, v=HESTON_V0; const pts=[{x:0,y:S}];
       for(let i=1;i<NUM_POINTS;i++){
@@ -906,7 +1046,7 @@ const MODELS=[
   // Lower-tail dependent: joint crashes cluster in the bottom-left corner. Plotted on
   // UNIFORM margins natively; the "Normal margins" setting maps them to N(0,1) via probit
   // so the tail shape is comparable with the Gaussian and Student-t copulas.
-  {id:"clayton",  cat:"cop", name:"Clayton Copula (θ=2)", type:"scatter", color:"#7cff4d", on:true, copula:true,
+  {id:"clayton",  cat:"cop", name:"Clayton Copula (θ=2)", note:"Linked mostly on the low side: points bunch tightly in the bottom-left corner and fan out toward the top right.", type:"scatter", color:"#7cff4d", copula:true,
    toNormal:probit,
    gen:()=>{ const pts=[], inv=-1/CLAYTON_THETA;
       for(let i=0;i<NUM_POINTS;i++){
@@ -919,7 +1059,7 @@ const MODELS=[
      a SEEDED stream (makeRng(simSeed)) so a dial drag changes only the parameter, not the dice. -------- */
 
   // ---- Randomness & chaos: generators and low-discrepancy sequences ----
-  {id:"randu", adv:true, cat:"seq", name:"RANDU (IBM, 15 planes)", type:"scatter", color:"#ff4d4d",
+  {id:"randu", adv:true, cat:"seq", name:"RANDU (IBM, 15 planes)", note:"IBM's notorious 1960s generator. Turn its viewing-angle dial toward 0° and the 'random' points collapse onto 15 stripes.", type:"scatter", color:"#ff4d4d",
    dials:[{id:"view", only2d:true, label:"Viewing angle", weak:90, strong:0, classic:0, fmt:a=>a.toFixed(0)+"° from edge-on",
      help:"Consecutive RANDU triples (x, y, z) lie on only 15 parallel planes, 9x − 6y + z = k. At 0° we look along the planes, so they show as 15 vertical lines; rotate toward 90° and the structure disappears into apparent noise."}],
    gen:()=>randuView(dialParam("randu","view"),NUM_POINTS),
@@ -927,23 +1067,23 @@ const MODELS=[
    gen3:()=>{ randuState=1; let a=nextRandu(), b=nextRandu(); const pts=[];
       for(let k=0;k<NUM_POINTS;k++){ const z=nextRandu(); pts.push({x:a-0.5,y:b-0.5,z:z-0.5}); a=b; b=z; }
       return pts; }},
-  {id:"sobol", adv:true, cat:"seq", name:"Sobol Sequence (2-D)", type:"scatter", color:"#9dff4d",
+  {id:"sobol", adv:true, cat:"seq", name:"Sobol Sequence (2-D)", note:"A low-discrepancy sequence built in base 2: very even coverage, with a visible woven texture.", type:"scatter", color:"#9dff4d",
    gen:()=>{ const pts=[]; for(let n=1;n<=NUM_POINTS;n++) pts.push(sobolPoint(n)); return pts; }},
-  {id:"r2", adv:true, cat:"seq", name:"R2 Sequence (golden-ratio lattice)", type:"scatter", color:"#4dd2ff",
+  {id:"r2", adv:true, cat:"seq", name:"R2 Sequence (golden-ratio lattice)", note:"Each point steps by a fixed irrational amount (a 2-D cousin of the golden ratio), which spreads points evenly with no grid lines.", type:"scatter", color:"#4dd2ff",
    gen:()=>{ const pts=[]; for(let n=1;n<=NUM_POINTS;n++) pts.push({x:(R2_SEED+n*R2_A1)%1, y:(R2_SEED+n*R2_A2)%1}); return pts; }},
-  {id:"fiblat", adv:true, cat:"seq", name:"Fibonacci Lattice", type:"scatter", color:"#ffd24d",
+  {id:"fiblat", adv:true, cat:"seq", name:"Fibonacci Lattice", note:"A perfectly regular lattice built from two Fibonacci numbers: very even coverage, and obviously not random.", type:"scatter", color:"#ffd24d",
    gen:()=>{ const pts=[]; for(let i=0;i<NUM_POINTS;i++) pts.push({x:(i+0.5)/FIB_N, y:(i*FIB_PREV/FIB_N)%1}); return pts; }},
-  {id:"wh", adv:true, cat:"seq", name:"Wichmann–Hill (3 combined LCGs)", type:"scatter", color:"#c0c0ff",
+  {id:"wh", adv:true, cat:"seq", name:"Wichmann–Hill (3 combined LCGs)", note:"Three small generators added together to hide each one's flaws. Looks like static.", type:"scatter", color:"#c0c0ff",
    gen:()=>scatterFrom(nextWichmannHill)},
-  {id:"mt", adv:true, cat:"seq", name:"Mersenne Twister (MT19937)", type:"scatter", color:"#80ffe0",
+  {id:"mt", adv:true, cat:"seq", name:"Mersenne Twister (MT19937)", note:"A long-time default generator in languages such as Python and R. It looks like static, which is the lesson: looking random is not a test.", type:"scatter", color:"#80ffe0",
    gen:()=>scatterFrom(()=>mtNext()/4294967296)},
-  {id:"pcg", adv:true, cat:"seq", name:"PCG32 (permuted LCG)", type:"scatter", color:"#ffa0d0",
+  {id:"pcg", adv:true, cat:"seq", name:"PCG32 (permuted LCG)", note:"A modern small generator: a one-line generator whose output is scrambled before use. Looks like static.", type:"scatter", color:"#ffa0d0",
    gen:()=>{ if(!pcgSeeded) pcgSeed(42,54); return scatterFrom(()=>pcgNext()/4294967296); }},
 
   // ---- Randomness & chaos: chaotic maps and flows ----
   // Rössler: x'=-y-z, y'=x+ay, z'=b+z(x-c), b=0.2. Main dial c: ~3 period-2, ~4 period-4, 5.7 chaos. Dial a sets the
   // spiral tightness: with c = 5.7, a >= 0.2 is chaotic and a near 0.1–0.15 settles to a regular loop (checked numerically).
-  {id:"rossler", adv:true, cat:"att", name:"Rössler Attractor (x–y)", type:"scatter", color:"#ff9d4d", proj:["x","y"],
+  {id:"rossler", adv:true, cat:"att", name:"Rössler Attractor (x–y)", note:"A single band that spirals outward and folds back onto itself: one of the simplest chaotic flows.", type:"scatter", color:"#ff9d4d", proj:["x","y"],
    dials:[{id:"c", label:"Control parameter c", weak:2.5, strong:9, classic:5.7, fmt:c=>"c = "+c.toFixed(2),
      help:"Walk c upward to watch order break down: a single loop, then period-doubling (2, 4, 8 loops) into chaos near the classic c = 5.7, then wider bands."},
     {id:"a", label:"Spiral parameter a", weak:0.1, strong:0.35, classic:0.2, fmt:a=>"a = "+a.toFixed(3),
@@ -952,13 +1092,13 @@ const MODELS=[
       return integrateFlow(f,[1+attractorStart[0],1,attractorStart[1]],ROSSLER_DT,spanSteps(ROSSLER_STEPS_PER_POINT,"rossler"),ROSSLER_BURN_IN,NUM_POINTS); }},
   // Thomas' cyclically symmetric attractor: x'=sin y - b x (and cyclic). b is damping: large b = sink/cycle,
   // chaos below b ≈ 0.208, b = 0 is conservative (the orbit wanders ergodically).
-  {id:"thomas", adv:true, cat:"att", name:"Thomas Attractor (x–y)", type:"scatter", color:"#d24dff", proj:["x","y"],
+  {id:"thomas", adv:true, cat:"att", name:"Thomas Attractor (x–y)", note:"A highly symmetric tangle of looping paths, drawn here as a cloud of points.", type:"scatter", color:"#d24dff", proj:["x","y"],
    dials:[{id:"b", label:"Damping b", weak:0.35, strong:0.02, classic:0.19, fmt:b=>"b = "+b.toFixed(3),
      help:"Less damping (right) takes the orbit from a limit cycle through chaos (onset b ≈ 0.208) toward a labyrinth that fills space as b → 0."}, SPAN_DIAL],
    gen3:()=>{ const b=dialParam("thomas","b"), f=([x,y,z])=>[Math.sin(y)-b*x, Math.sin(z)-b*y, Math.sin(x)-b*z];
       return integrateFlow(f,[0.1+attractorStart[0],0,0.1*attractorStart[1]],THOMAS_DT,spanSteps(THOMAS_STEPS_PER_POINT,"thomas"),THOMAS_BURN_IN,NUM_POINTS); }},
   // Chirikov standard map: p' = p + K sin θ, θ' = θ + p' (both mod 2π). Several orbits from spread-out starts.
-  {id:"chirikov", adv:true, cat:"seq", name:"Chirikov Standard Map", type:"scatter", color:"#4dff9d",
+  {id:"chirikov", adv:true, cat:"seq", name:"Chirikov Standard Map", note:"A kicked rotor: smooth curves are regular motion, speckled areas are chaos, and the kick-strength dial trades one for the other.", type:"scatter", color:"#4dff9d",
    dials:[{id:"K", label:"Kick strength K", weak:0.2, strong:5, classic:1, fmt:k=>"K = "+k.toFixed(2),
      help:"Small K: smooth, regular curves (KAM tori). Near K ≈ 0.97 the last barrier breaks; above that orbits wander through a chaotic sea."}],
    gen:()=>{ const K=dialParam("chirikov","K"), TAU=2*Math.PI, pts=[], per=Math.floor(NUM_POINTS/CHIRIKOV_ORBITS);
@@ -967,7 +1107,7 @@ const MODELS=[
         for(let i=0;i<per;i++){ p=(p+K*Math.sin(th))%TAU; if(p<0)p+=TAU; th=(th+p)%TAU; pts.push({x:th,y:p}); } }
       return pts; }},
   // Ikeda map (laser in a ring cavity): z' = 1 + u z exp(i(0.4 - 6/(1+|z|²))). u is the dissipation.
-  {id:"ikeda", adv:true, cat:"att", name:"Ikeda Map (spiral attractor)", type:"scatter", color:"#ff4dc4",
+  {id:"ikeda", adv:true, cat:"att", name:"Ikeda Map (spiral attractor)", note:"A model of light circulating in a laser cavity: the points wind into a spiral with fractal arms.", type:"scatter", color:"#ff4dc4",
    dials:[{id:"u", label:"Dissipation u", weak:0.6, strong:0.99, classic:0.9, fmt:u=>"u = "+u.toFixed(3),
      help:"u is the fraction of the field kept each pass. Lower u: the orbit settles toward a point or small cycle. Higher u: it fills out the spiral strange attractor."}],
    gen:()=>{ const u=dialParam("ikeda","u"); let x=0.1+0.1*attractorStart[0], y=0.1*attractorStart[1]; const pts=[];
@@ -977,14 +1117,14 @@ const MODELS=[
 
   // ---- Strange attractors (more 3-D flows plotted as 2-D projections, plus Tinkerbell) ----
   // Chen: x'=a(y-x), y'=(c-a)x - xz + cy, z'=xy - bz, a=35, b=3. Chaotic for c in [20, 28.4] (checked numerically).
-  {id:"chen", adv:true, cat:"att", name:"Chen Attractor (x–z)", type:"line", color:"#4dffe0", proj:["x","z"],
+  {id:"chen", adv:true, cat:"att", name:"Chen Attractor (x–z)", note:"A relative of the Lorenz butterfly with a tighter, more twisted double loop.", type:"line", color:"#4dffe0", proj:["x","z"],
    dials:[{id:"c", label:"Control parameter c", weak:20, strong:28.4, classic:28, fmt:c=>"c = "+c.toFixed(1),
      help:"A cousin of Lorenz found in 1999 by 'anti-controlling' chaos. The orbit is chaotic across c = 20 to 28.4; larger c gives a taller, wider double-scroll."}, SPAN_DIAL],
    gen3:()=>{ const c=dialParam("chen","c"), f=([x,y,z])=>[CHEN_A*(y-x),(c-CHEN_A)*x-x*z+c*y,x*y-CHEN_B*z];
       return integrateFlow(f,[-3+0.1*attractorStart[0],2,20+0.1*attractorStart[1]],CHEN_DT,spanSteps(CHEN_STEPS_PER_POINT,"chen"),CHEN_BURN_IN,NUM_POINTS); }},
   // Aizawa (also circulated as the Langford system): a sphere with a tube through it. Dial b shifts the
   // z-offset: below ~0.58 the orbit collapses to a point; above ~0.8 it relaxes to a regular torus.
-  {id:"aizawa", adv:true, cat:"att", name:"Aizawa Attractor (x–z)", type:"line", color:"#ffa64d", proj:["x","z"],
+  {id:"aizawa", adv:true, cat:"att", name:"Aizawa Attractor (x–z)", note:"An orbit that wraps around a ball shape and shoots through a tube along its axis.", type:"line", color:"#ffa64d", proj:["x","z"],
    dials:[{id:"b", label:"Offset b", weak:0.6, strong:0.9, classic:0.7, fmt:b=>"b = "+b.toFixed(2),
      help:"Chaotic near the classic b = 0.7. Raise b and the motion becomes a regular quasi-periodic ring; below about 0.58 it collapses to a point."}, SPAN_DIAL],
    gen3:()=>{ const b=dialParam("aizawa","b"), f=([x,y,z])=>[(z-b)*x-AIZAWA_D*y, AIZAWA_D*x+(z-b)*y,
@@ -992,7 +1132,7 @@ const MODELS=[
       return integrateFlow(f,[0.1+0.05*attractorStart[0],0,0],AIZAWA_DT,spanSteps(AIZAWA_STEPS_PER_POINT,"aizawa"),AIZAWA_BURN_IN,NUM_POINTS); }},
   // Chua's circuit (dimensionless): x'=α(y-x-g(x)), y'=x-y+z, z'=-βy, g piecewise linear. Dial α walks from a
   // fixed point, through limit cycles and single-scroll chaos, to the double scroll.
-  {id:"chua", adv:true, cat:"att", name:"Chua Double Scroll (x–z)", type:"line", color:"#7a9dff", proj:["x","z"],
+  {id:"chua", adv:true, cat:"att", name:"Chua Double Scroll (x–z)", note:"From a real electronic circuit: the path hops between two scrolls at unpredictable moments.", type:"line", color:"#7a9dff", proj:["x","z"],
    dials:[{id:"alpha", label:"Gain α", weak:9, strong:18, classic:15.6, fmt:a=>"α = "+a.toFixed(1),
      help:"Low α: the circuit settles to a point or a loop. Around 14 it makes chaos on ONE scroll; from about 15 the orbit hops between two scrolls (the double scroll). The first chaos found in an electronic circuit."},
     {id:"beta", label:"Coupling β", weak:24, strong:36, classic:28, fmt:b=>"β = "+b.toFixed(1),
@@ -1003,20 +1143,20 @@ const MODELS=[
   // Halvorsen: three-fold cyclic symmetry, x'=-ax-4y-4z-y² (and cyclic). Classic a = 1.4 is chaotic
   // (checked); a = 1.89, which some sources quote, is not. The orbit can run away at small a, so integrateFlow restarts it.
   // The start is fixed (limited basin); Re-roll picks a different stretch of the same orbit via a random burn-in.
-  {id:"halvorsen", adv:true, cat:"att", name:"Halvorsen Attractor (x–y)", type:"line", color:"#ff7ae0", proj:["x","y"],
+  {id:"halvorsen", adv:true, cat:"att", name:"Halvorsen Attractor (x–y)", note:"A three-fold symmetric swirl: the path cycles through three interlocking lobes.", type:"line", color:"#ff7ae0", proj:["x","y"],
    dials:[{id:"a", label:"Damping a", weak:1.3, strong:2.6, classic:1.4, fmt:a=>"a = "+a.toFixed(2),
      help:"Chaotic near a = 1.4. More damping makes the orbit regular; much less (below about 1.2) and it can run away to infinity, which is why the dial stops at 1.3."}, SPAN_DIAL],
    gen3:()=>{ const a=dialParam("halvorsen","a"), f=([x,y,z])=>[-a*x-4*y-4*z-y*y,-a*y-4*z-4*x-z*z,-a*z-4*x-4*y-x*x];
       const burn=HALVORSEN_BURN_IN+Math.floor(attractorStart[0]*HALVORSEN_BURN_JITTER);
       return integrateFlow(f,HALVORSEN_START,HALVORSEN_DT,spanSteps(HALVORSEN_STEPS_PER_POINT,"halvorsen"),burn,NUM_POINTS); }},
   // Lü: x'=a(y-x), y'=-xz+cy, z'=xy-bz, a=36, b=3. Sits between Lorenz and Chen. Chaotic for c about 14–28 (checked).
-  {id:"lu", adv:true, cat:"att", name:"Lü Attractor (x–z)", type:"line", color:"#b0ff4d", proj:["x","z"],
+  {id:"lu", adv:true, cat:"att", name:"Lü Attractor (x–z)", note:"Sits between the Lorenz and Chen systems: another two-lobed butterfly.", type:"line", color:"#b0ff4d", proj:["x","z"],
    dials:[{id:"c", label:"Control parameter c", weak:14, strong:28, classic:20, fmt:c=>"c = "+c.toFixed(1),
      help:"The system that bridges Lorenz and Chen. Chaotic across c = 14 to 28 (weakest near 18); larger c makes a taller, wider double wing. Much below 14 the orbit settles to a point."}, SPAN_DIAL],
    gen3:()=>{ const c=dialParam("lu","c"), f=([x,y,z])=>[LU_A*(y-x),-x*z+c*y,x*y-LU_B*z];
       return integrateFlow(f,[1+0.1*attractorStart[0],1,1+0.1*attractorStart[1]],LU_DT,spanSteps(LU_STEPS_PER_POINT,"lu"),LU_BURN_IN,NUM_POINTS); }},
   // Burke–Shaw: x'=-s(x+y), y'=-y-sxz, z'=sxy+V, s=10, V=4.272. A small, tightly folded double scroll.
-  {id:"burkeshaw", adv:true, cat:"att", name:"Burke–Shaw Attractor (x–z)", type:"line", color:"#ff9d7a", proj:["x","z"],
+  {id:"burkeshaw", adv:true, cat:"att", name:"Burke–Shaw Attractor (x–z)", note:"A two-lobed chaotic flow from a variant of the Lorenz equations.", type:"line", color:"#ff9d7a", proj:["x","z"],
    dials:[{id:"V", label:"Drive V", weak:3, strong:8, classic:4.272, fmt:v=>"V = "+v.toFixed(2),
      help:"A constant push on z. Below about 3 the orbit is regular; from about 4 (the classic 4.272) it is chaotic and the attractor widens as V grows."}, SPAN_DIAL],
    gen3:()=>{ const V=dialParam("burkeshaw","V"), f=([x,y,z])=>[-BURKE_S*(x+y),-y-BURKE_S*x*z,BURKE_S*x*y+V];
@@ -1024,7 +1164,7 @@ const MODELS=[
   // Rabinovich–Fabrikant: x'=y(z-1+x²)+γx, y'=x(3z+1-x²)+γy, z'=-2z(α+xy). Notoriously fragile: chaotic only in a narrow
   // band of (α, γ); outside it, or from many starting points, the orbit runs away to infinity. The start is fixed
   // (Re-roll picks a different stretch of the same orbit via a random burn-in) and integrateFlow restarts a runaway.
-  {id:"rabfab", adv:true, cat:"att", name:"Rabinovich–Fabrikant (x–y)", type:"line", color:"#4dffb0", proj:["x","y"],
+  {id:"rabfab", adv:true, cat:"att", name:"Rabinovich–Fabrikant (x–y)", note:"A fragile chaotic flow: small changes to its dial make the orbit regular or send it flying off.", type:"line", color:"#4dffb0", proj:["x","y"],
    dials:[{id:"gamma", label:"Gain γ", weak:0.7, strong:0.87, classic:0.87, fmt:g=>"γ = "+g.toFixed(3),
      help:"Chaotic from about γ = 0.8 up to the classic 0.87 (α = 1.1). Below about 0.75 the orbit is regular. Above about 0.9 it can run away to infinity, so the dial stops at 0.87."}, SPAN_DIAL],
    gen3:()=>{ const g=dialParam("rabfab","gamma"), f=([x,y,z])=>[y*(z-1+x*x)+g*x,x*(3*z+1-x*x)+g*y,-2*z*(RF_ALPHA+x*y)];
@@ -1032,7 +1172,7 @@ const MODELS=[
       return integrateFlow(f,RF_START,RF_DT,spanSteps(RF_STEPS_PER_POINT,"rabfab"),burn,NUM_POINTS); }},
   // Dadras: x'=y-ax+byz, y'=cy-xz+z, z'=dxy-ez, a=3, b=2.7, c=1.7, d=2, e=9 (the published chaotic set; checked).
   // Dials c and e: chaos needs c near 1.5–2.1 and e below about 11.
-  {id:"dadras", adv:true, cat:"att", name:"Dadras Attractor (x–y)", type:"line", color:"#ffb34d", proj:["x","y"],
+  {id:"dadras", adv:true, cat:"att", name:"Dadras Attractor (x–y)", note:"A chaotic flow whose path swings between several wings.", type:"line", color:"#ffb34d", proj:["x","y"],
    dials:[{id:"c", label:"Parameter c", weak:1.5, strong:2.1, classic:1.7, fmt:c=>"c = "+c.toFixed(2),
      help:"A narrow chaos window: weak near 1.5, strongest around 1.95, and regular again from about 2.2. Changes how the scrolls wind."},
     {id:"e", label:"Parameter e", weak:6, strong:11.5, classic:9, fmt:e=>"e = "+e.toFixed(1),
@@ -1041,7 +1181,7 @@ const MODELS=[
       return integrateFlow(f,[1+0.1*attractorStart[0],1,1+0.1*attractorStart[1]],DADRAS_DT,spanSteps(DADRAS_STEPS_PER_POINT,"dadras"),DADRAS_BURN_IN,NUM_POINTS); }},
   // Rikitake two-disk dynamo: x'=-μx+yz, y'=-μy+(z-a)x, z'=1-xy. The sign of x flips irregularly (polarity reversals).
   // Chaotic for μ about 0.7–2.8 and a about 2–8 (checked); regular at μ ≤ 0.5 and μ ≈ 3.
-  {id:"rikitake", adv:true, cat:"att", name:"Rikitake Dynamo (x–z)", type:"line", color:"#d2ff4d", proj:["x","z"],
+  {id:"rikitake", adv:true, cat:"att", name:"Rikitake Dynamo (x–z)", note:"Two coupled dynamos, a toy model of Earth's magnetic field: the path flips between two lobes the way the field reverses.", type:"line", color:"#d2ff4d", proj:["x","z"],
    dials:[{id:"mu", label:"Damping μ", weak:0.6, strong:2.8, classic:1, fmt:m=>"μ = "+m.toFixed(2),
      help:"Ohmic loss in the coupled disks. Near 0.5 the motion is regular; chaotic reversals from about 0.7 to 2.8, strongest near 1; about 3 and above it is regular again."},
     {id:"a", label:"Asymmetry a", weak:2, strong:8, classic:5, fmt:a=>"a = "+a.toFixed(1),
@@ -1051,21 +1191,21 @@ const MODELS=[
   // Sprott's "simplest" chaotic jerk flows (third derivative of x as a function of x, x', x''), written as x'=y, y'=z, z'=...
   // Quadratic: z' = -Az + y² - x, A = 2.017. The basin is tiny: the orbit stays bounded only from near (-1, 0, 0)
   // and only for A of about 2.017–2.07, so the start is fixed, the dial stops there and a runaway restarts. Chaos is weak.
-  {id:"sprottq", adv:true, cat:"att", name:"Sprott Jerk Flow, quadratic (x–y)", type:"line", color:"#9dffc8", proj:["x","y"],
+  {id:"sprottq", adv:true, cat:"att", name:"Sprott Jerk Flow, quadratic (x–y)", note:"One of the simplest equations known to produce chaos: a single folded band.", type:"line", color:"#9dffc8", proj:["x","y"],
    dials:[{id:"A", label:"Damping A", weak:2.017, strong:2.07, classic:2.017, fmt:A=>"A = "+A.toFixed(3),
      help:"One of the simplest chaotic flows known: a single quadratic term. Chaotic only in a thin band starting at the classic 2.017; it runs away to infinity below that, and is regular above about 2.07."}, SPAN_DIAL],
    gen3:()=>{ const A=dialParam("sprottq","A"), f=([x,y,z])=>[y,z,-A*z+y*y-x];
       const burn=SPROTTQ_BURN_IN+Math.floor(attractorStart[0]*SPROTTQ_BURN_JITTER);
       return integrateFlow(f,SPROTTQ_START,SPROTTQ_DT,spanSteps(SPROTTQ_STEPS_PER_POINT,"sprottq"),burn,NUM_POINTS); }},
   // Piecewise-linear: z' = -Az - y + |x| - 1, A = 0.6 (x''' + Ax'' + x' - |x| + 1 = 0). No product terms at all.
-  {id:"sprottpl", adv:true, cat:"att", name:"Sprott Jerk Flow, piecewise-linear (x–y)", type:"line", color:"#ffc89d", proj:["x","y"],
+  {id:"sprottpl", adv:true, cat:"att", name:"Sprott Jerk Flow, piecewise-linear (x–y)", note:"The same idea as the quadratic jerk flow, built from straight-line pieces instead of a curve.", type:"line", color:"#ffc89d", proj:["x","y"],
    dials:[{id:"A", label:"Damping A", weak:0.56, strong:0.66, classic:0.6, fmt:A=>"A = "+A.toFixed(3),
      help:"Chaotic in a narrow window around the classic 0.6 (strongest near 0.58 and 0.62); regular outside it, and below about 0.5 the orbit can run away."}, SPAN_DIAL],
    gen3:()=>{ const A=dialParam("sprottpl","A"), f=([x,y,z])=>[y,z,-A*z-y+Math.abs(x)-1];
       return integrateFlow(f,[0.05+0.05*attractorStart[0],0.05,0.05],SPROTTPL_DT,spanSteps(SPROTTPL_STEPS_PER_POINT,"sprottpl"),SPROTTPL_BURN_IN,NUM_POINTS); }},
   // Clifford attractor: x' = sin(ay) + c cos(ax), y' = sin(bx) + d cos(by). Classic (a,b,c,d) = (-1.4, 1.6, 1.0, 0.7).
   // Every parameter changes the filigree; chaos holds over the dial ranges except in narrow periodic windows.
-  {id:"clifford", adv:true, cat:"att", name:"Clifford Attractor", type:"scatter", color:"#c8b0ff",
+  {id:"clifford", adv:true, cat:"att", name:"Clifford Attractor", note:"A four-number recipe of sines and cosines that paints ribbon-like fractal curves. Move any dial for a new picture.", type:"scatter", color:"#c8b0ff",
    dials:[{id:"a", label:"Parameter a", weak:-1.85, strong:-1.3, classic:-1.4, fmt:v=>"a = "+v.toFixed(2),
      help:"Controls the folding in x. Chaotic across this range; toward −1.2 and beyond the attractor collapses to a thin curve."},
     {id:"b", label:"Parameter b", weak:1.55, strong:2.1, classic:1.6, fmt:v=>"b = "+v.toFixed(2),
@@ -1079,7 +1219,7 @@ const MODELS=[
       for(let i=-MAP_BURN_IN;i<NUM_POINTS;i++){ const nx=Math.sin(a*y)+c*Math.cos(a*x); y=Math.sin(b*x)+d*Math.cos(b*y); x=nx; if(i>=0) pts.push({x,y}); }
       return pts; }},
   // de Jong attractor (Peter de Jong): x' = sin(ay) - cos(bx), y' = sin(cx) - cos(dy). Classic (1.641, 1.902, 0.316, 1.525).
-  {id:"dejong", adv:true, cat:"att", name:"de Jong Attractor", type:"scatter", color:"#ffb0c8",
+  {id:"dejong", adv:true, cat:"att", name:"de Jong Attractor", note:"A sine-and-cosine map like Clifford's: small dial changes give completely different lace patterns.", type:"scatter", color:"#ffb0c8",
    dials:[{id:"a", label:"Parameter a", weak:1.2, strong:2, classic:1.641, fmt:v=>"a = "+v.toFixed(3),
      help:"Chaotic across the range; moves the main loops sideways."},
     {id:"b", label:"Parameter b", weak:1.5, strong:2.3, classic:1.902, fmt:v=>"b = "+v.toFixed(3),
@@ -1093,7 +1233,7 @@ const MODELS=[
       for(let i=-MAP_BURN_IN;i<NUM_POINTS;i++){ const nx=Math.sin(a*y)-Math.cos(b*x); y=Math.sin(c*x)-Math.cos(d*y); x=nx; if(i>=0) pts.push({x,y}); }
       return pts; }},
   // Lozi map: x' = 1 - a|x| + y, y' = bx. Hénon with the square replaced by an absolute value, so it is piecewise linear.
-  {id:"lozi", adv:true, cat:"att", name:"Lozi Map (piecewise-linear Hénon)", type:"scatter", color:"#80d0ff",
+  {id:"lozi", adv:true, cat:"att", name:"Lozi Map (piecewise-linear Hénon)", note:"The Hénon map with its curve replaced by a sharp corner, so the attractor is made of straight segments.", type:"scatter", color:"#80d0ff",
    dials:[{id:"a", label:"Parameter a", weak:1.1, strong:1.72, classic:1.7, fmt:v=>"a = "+v.toFixed(3),
      help:"Walk a up: a 2-point cycle (to about 1.45), a 4-point cycle near 1.5, then chaos from about 1.55. The orbit escapes beyond a diagonal boundary (a = 1.76 at b = 0.5), so the dial stops at 1.72."},
     {id:"b", label:"Parameter b", weak:0.2, strong:0.55, classic:0.5, fmt:v=>"b = "+v.toFixed(2),
@@ -1106,7 +1246,7 @@ const MODELS=[
   // Gingerbreadman map: x' = 1 - y + |x|, y' = x. Area-preserving (like Chirikov, no attractor): which invariant set you
   // land on depends on the start. From x0 between about -0.3 and -0.1 (y0 = 0) the orbit fills the gingerbread-man shaped
   // chaotic sea; from x0 between 0 and 1 it is trapped on a tiny periodic island.
-  {id:"ginger", adv:true, cat:"seq", name:"Gingerbreadman Map", type:"scatter", color:"#ffd27a",
+  {id:"ginger", adv:true, cat:"seq", name:"Gingerbreadman Map", note:"A map with no attractor: the starting point decides whether you get a few dots or the gingerbread-man-shaped chaotic region.", type:"scatter", color:"#ffd27a",
    dials:[{id:"x0", label:"Starting x", weak:-0.35, strong:1, classic:-0.1, fmt:v=>"x₀ = "+v.toFixed(2),
      help:"Nothing changes except where the orbit starts (y₀ = 0). Between about −0.3 and −0.1 it fills the gingerbread-man chaotic sea; from 0 to 1 it is stuck on a tiny periodic island. A map with no attractor: the start decides the picture."}],
    gen:()=>{ let x=dialParam("ginger","x0"), y=0; const pts=[];
@@ -1114,20 +1254,20 @@ const MODELS=[
       return pts; }},
   // Duffing oscillator, double-well form: x'' + δx' - x + x³ = γ cos(ωt), δ=0.3, ω=1.2. Plotted as a Poincaré section:
   // (x, x') sampled once per forcing period, which turns the chaotic flow into a folded, filamentary strange attractor.
-  {id:"duffing", adv:true, cat:"att", name:"Duffing Oscillator (Poincaré section)", type:"scatter", color:"#7affc8",
+  {id:"duffing", adv:true, cat:"att", name:"Duffing Oscillator (Poincaré section)", note:"A pushed, damped spring with two resting positions, photographed once per push: the snapshots trace a fractal.", type:"scatter", color:"#7affc8",
    dials:[{id:"gamma", label:"Forcing amplitude γ", weak:0.2, strong:0.7, classic:0.5, fmt:g=>"γ = "+g.toFixed(2),
      help:"How hard the oscillator is pushed. Small γ: a single periodic orbit (1–2 points); chaos from about 0.4 (a small window near 0.35 is periodic); larger γ stretches the attractor."}],
    gen:()=>duffingSection(dialParam("duffing","gamma"),NUM_POINTS,1+0.05*attractorStart[0],0.05*attractorStart[1])},
   // Double pendulum (equal masses and lengths): the path of the lower bob. Hamiltonian chaos (no attractor).
   // The dial is the release angle: regular for small angles, chaotic from about 90 degrees.
-  {id:"dpend", adv:true, cat:"seq", name:"Double Pendulum (lower-bob path)", type:"line", color:"#ff9d9d",
+  {id:"dpend", adv:true, cat:"seq", name:"Double Pendulum (lower-bob path)", note:"The path of the lower weight of a pendulum hanging from a pendulum. Small release angles give regular loops; large ones give chaos.", type:"line", color:"#ff9d9d",
    dials:[{id:"theta", label:"Release angle", weak:10, strong:170, classic:120, fmt:d=>d.toFixed(0)+"° (both arms)",
      help:"Both arms are released from rest at this angle. Small angles give a regular, repeating pattern; from about 90° the motion is chaotic, and a difference of one part in 100 million becomes a completely different path within seconds."}, SPAN_DIAL],
    gen:()=>doublePendulumPath(dialParam("dpend","theta"),spanSteps(PEND_STEPS_PER_POINT,"dpend"),PEND_JITTER*attractorStart[0])},
   // Tinkerbell map: x'=x²-y²+ax+by, y'=2xy+cx+dy. A tiny basin: most starting points and parameters escape to
   // infinity, so the start is fixed and the dials stop at the edge (a >= 0.91 or b <= -0.605 escapes). Re-roll
   // picks a different stretch of the SAME orbit (a random burn-in), since the orbit itself is deterministic.
-  {id:"tinkerbell", adv:true, cat:"att", name:"Tinkerbell Map", type:"scatter", color:"#ffd2f0",
+  {id:"tinkerbell", adv:true, cat:"att", name:"Tinkerbell Map", note:"A two-line map whose points trace a looping, wing-like fractal.", type:"scatter", color:"#ffd2f0",
    dials:[{id:"a", label:"Parameter a", weak:0.75, strong:0.9, classic:0.9, fmt:a=>"a = "+a.toFixed(3),
      help:"Chaotic over this whole range (a = 0.9 is the classic value, right at the edge: from about 0.91 orbits escape to infinity). Lower a gives a smaller, tighter attractor."},
     {id:"b", label:"Parameter b", weak:-0.45, strong:-0.6013, classic:-0.6013, fmt:b=>"b = "+b.toFixed(4),
@@ -1141,35 +1281,35 @@ const MODELS=[
 
   // ---- Copulas (uniform margins; "Normal margins" maps them for tail comparison) ----
   // Kendall's tau is the dial for Gumbel and survival Clayton so they compare directly with the Clayton above.
-  {id:"gumbel", adv:true, cat:"cop", name:"Gumbel Copula (upper tail)", type:"scatter", color:"#ff7ad9", copula:true, toNormal:probit,
+  {id:"gumbel", adv:true, cat:"cop", name:"Gumbel Copula (upper tail)", note:"Linked mostly on the high side: points bunch in the top-right corner.", type:"scatter", color:"#ff7ad9", copula:true, toNormal:probit,
    dials:[{id:"tau", label:"Rank correlation (Kendall's τ)", weak:0.1, strong:0.9, classic:0.5, fmt:t=>"τ = "+t.toFixed(2)+"  (θ = "+(1/(1-t)).toFixed(2)+")",
      help:"Joint BOOMS cluster in the top-right corner (upper-tail dependence 2 − 2^(1/θ)); joint busts do not. The mirror image of Clayton at the same τ."}],
    gen:()=>{ const th=1/(1-dialParam("gumbel","tau")), rng=makeRng(simSeed), pts=[];
       for(let i=0;i<NUM_POINTS;i++){ const p=gumbel2(th,rng); pts.push({x:p[0],y:p[1]}); } return pts; }},
-  {id:"frank", adv:true, cat:"cop", name:"Frank Copula (no tail dependence)", type:"scatter", color:"#7affd9", copula:true, toNormal:probit,
+  {id:"frank", adv:true, cat:"cop", name:"Frank Copula (no tail dependence)", note:"A symmetric link with no extra bunching in either corner: extremes are no more tied together than the middle.", type:"scatter", color:"#7affd9", copula:true, toNormal:probit,
    dials:[{id:"theta", label:"Dependence θ", weak:0.5, strong:20, classic:5, fmt:t=>"θ = "+t.toFixed(1)+"  (τ ≈ "+frankTau(t).toFixed(2)+")",
      help:"Symmetric, with no tail dependence: strong in the middle of the distribution, independent in the corners. The foil to Clayton, Gumbel and t at the same τ."}],
    gen:()=>{ const th=dialParam("frank","theta"), rng=makeRng(simSeed), pts=[];
       for(let i=0;i<NUM_POINTS;i++){ const p=frank2(th,rng); pts.push({x:p[0],y:p[1]}); } return pts; }},
-  {id:"joe", adv:true, cat:"cop", name:"Joe Copula (sharp upper tail)", type:"scatter", color:"#ffe07a", copula:true, toNormal:probit,
+  {id:"joe", adv:true, cat:"cop", name:"Joe Copula (sharp upper tail)", note:"Like Gumbel but sharper: a very tight top-right corner and a loose bottom left.", type:"scatter", color:"#ffe07a", copula:true, toNormal:probit,
    dials:[{id:"theta", label:"Dependence θ", weak:1.2, strong:8, classic:3, fmt:t=>"θ = "+t.toFixed(2),
      help:"Like Gumbel but with a sharper concentration in the upper-right corner (upper-tail dependence 2 − 2^(1/θ))."}],
    gen:()=>{ const th=dialParam("joe","theta"), rng=makeRng(simSeed), pts=[];
       for(let i=0;i<NUM_POINTS;i++){ const p=joe2(th,rng); pts.push({x:p[0],y:p[1]}); } return pts; }},
   // Survival (180° rotated) Clayton: (1-U, 1-V). Lower tail becomes the UPPER tail.
-  {id:"survclayton", adv:true, cat:"cop", name:"Survival Clayton (upper tail)", type:"scatter", color:"#7ab8ff", copula:true, toNormal:probit,
+  {id:"survclayton", adv:true, cat:"cop", name:"Survival Clayton (upper tail)", note:"The Clayton copula flipped: the tight bunching moves to the top-right corner.", type:"scatter", color:"#7ab8ff", copula:true, toNormal:probit,
    dials:[{id:"tau", label:"Rank correlation (Kendall's τ)", weak:0.1, strong:0.9, classic:0.5, fmt:t=>"τ = "+t.toFixed(2)+"  (θ = "+(2*t/(1-t)).toFixed(2)+")",
      help:"Clayton flipped end for end (1−U, 1−V): the corner of joint extremes moves to the top right."}],
    gen:()=>{ const t=dialParam("survclayton","tau"), th=2*t/(1-t), rng=makeRng(simSeed), pts=[];
       for(let i=0;i<NUM_POINTS;i++){ const p=clayton2(th,rng); pts.push({x:1-p[0],y:1-p[1]}); } return pts; }},
   // Marshall–Olkin: a common shock hits both names at once, so a fraction of the points sit exactly on U = V.
-  {id:"mo", adv:true, cat:"cop", name:"Marshall–Olkin (common-shock ridge)", type:"scatter", color:"#ff7a7a", copula:true, toNormal:probit,
+  {id:"mo", adv:true, cat:"cop", name:"Marshall–Olkin (common-shock ridge)", note:"Two things that can be hit by one shared shock: the shock shows up as a sharp ridge line through the cloud.", type:"scatter", color:"#ff7a7a", copula:true, toNormal:probit,
    dials:[{id:"a", label:"Common-shock share α", weak:0.05, strong:0.95, classic:0.5, fmt:a=>"α = "+a.toFixed(2)+"  (on the diagonal ≈ "+(100*a/(2-a)).toFixed(0)+"%)",
      help:"Each name has its own shock plus one shared shock. Whenever the shared shock strikes first, both fall together, so points pile up exactly on the diagonal (a singular component). Upper-tail dependence = α."}],
    gen:()=>{ const a=dialParam("mo","a"), rng=makeRng(simSeed), pts=[];
       for(let i=0;i<NUM_POINTS;i++){ const p=marshallOlkin2(a,rng); pts.push({x:p[0],y:p[1]}); } return pts; }},
   // Clayton + Gumbel mixture, both at τ = 0.5: lower AND upper tail dependence in one picture.
-  {id:"cgmix", adv:true, cat:"cop", name:"Clayton + Gumbel Mixture (both tails)", type:"scatter", color:"#c8ff7a", copula:true, toNormal:probit,
+  {id:"cgmix", adv:true, cat:"cop", name:"Clayton + Gumbel Mixture (both tails)", note:"A blend of Clayton and Gumbel, so points bunch in both the bottom-left and top-right corners.", type:"scatter", color:"#c8ff7a", copula:true, toNormal:probit,
    dials:[{id:"w", label:"Gumbel weight", weak:0, strong:1, classic:0.5, fmt:w=>Math.round(100*w)+"% Gumbel / "+Math.round(100*(1-w))+"% Clayton",
      help:"Each point is drawn from Gumbel with probability w, otherwise Clayton (both τ = 0.5). Gives tail dependence at both ends, as real equity crashes and melt-ups sometimes show."}],
    gen:()=>{ const w=dialParam("cgmix","w"), rng=makeRng(simSeed), pts=[];
@@ -1178,7 +1318,7 @@ const MODELS=[
   // ---- Financial stochastic processes ----
   // GJR-GARCH(1,1) daily returns (%): sigma²' = w + (a + g·1{e<0}) e² + b sigma². The dial is persistence
   // p = a + b + g/2, with the long-run variance held fixed (w = sigma²∞ (1-p)).
-  {id:"gjr", adv:true, cat:"fin", name:"GJR-GARCH Returns (vol clustering)", type:"line", color:"#ff5c8a",
+  {id:"gjr", adv:true, cat:"fin", name:"GJR-GARCH Returns (vol clustering)", note:"Simulated returns where big moves cluster together and drops raise volatility more than gains do. Hypothetical, not a forecast.", type:"line", color:"#ff5c8a",
    dials:[{id:"p", label:"Volatility persistence", weak:0.85, strong:0.995, classic:0.97, fmt:p=>"α+β+γ/2 = "+p.toFixed(3),
      help:"How long a volatility shock lingers. Near 1, calm and turbulent stretches last for months (volatility clustering); the leverage term makes down-moves raise volatility more than up-moves."}],
    gen:()=>{ const p=dialParam("gjr","p"), rng=makeRng(simSeed), a=GJR_ALPHA, g=GJR_GAMMA, b=p-a-g/2, s2inf=GJR_DAILY_VOL*GJR_DAILY_VOL, w=s2inf*(1-p);
@@ -1187,12 +1327,12 @@ const MODELS=[
       return pts; }},
   // Hawkes process with exponential kernel: lambda(t) = mu + Σ alpha e^{-beta (t - t_i)}. Plotted: the intensity.
   // The dial is the branching ratio n = alpha/beta (expected offspring per event); n -> 1 is critical.
-  {id:"hawkes", adv:true, cat:"fin", name:"Hawkes Process (self-exciting intensity)", type:"line", color:"#ffb84d",
+  {id:"hawkes", adv:true, cat:"fin", name:"Hawkes Process (self-exciting intensity)", note:"Events that trigger more events: the plotted intensity jumps at each event and then decays. Hypothetical, not a forecast.", type:"line", color:"#ffb84d",
    dials:[{id:"n", label:"Branching ratio n", weak:0.05, strong:0.95, classic:0.7, fmt:n=>"n = "+n.toFixed(2)+"  (avg rate "+(HAWKES_MU/(1-n)).toFixed(1)+"/unit)",
      help:"Each event raises the chance of more events. n is the average number of follow-on events per event: low n is near-Poisson, n near 1 gives bursts and long quiet gaps — a model of trade arrivals, defaults and contagion."}],
    gen:()=>hawkesIntensity(dialParam("hawkes","n"),makeRng(simSeed))},
   // Two-regime Markov switching (Hamilton-style): calm and stress states with different drift and volatility.
-  {id:"regime", adv:true, cat:"fin", name:"Regime Switching (calm / stress)", type:"line", color:"#4dffb8",
+  {id:"regime", adv:true, cat:"fin", name:"Regime Switching (calm / stress)", note:"A simulated path that switches between a calm state and a stress state at random times. Hypothetical, not a forecast.", type:"line", color:"#4dffb8",
    dials:[{id:"pss", label:"Stress persistence", weak:0.5, strong:0.99, classic:0.95, fmt:p=>"P(stay in stress) = "+p.toFixed(2)+"  (≈ "+(1/(1-p)).toFixed(0)+" steps)",
      help:"Chance of staying in the stress regime each step. Higher: crises last longer, producing the sustained drawdowns a single-regime model cannot."}],
    gen:()=>{ const pss=dialParam("regime","pss"), rng=makeRng(simSeed), dt=1/TRADING_DAYS; let S=100, stress=false; const pts=[{x:0,y:S}];
@@ -1201,14 +1341,14 @@ const MODELS=[
         S*=Math.exp((mu-0.5*sg*sg)*dt+sg*Math.sqrt(dt)*randn_bm(rng)); pts.push({x:i,y:S}); }
       return pts; }},
   // Fat-tailed random walk: i.i.d. Student-t returns scaled to a fixed daily volatility. nu is the tail index.
-  {id:"tret", adv:true, cat:"fin", name:"Fat-Tailed Returns (Student-t)", type:"line", color:"#b84dff",
+  {id:"tret", adv:true, cat:"fin", name:"Fat-Tailed Returns (Student-t)", note:"A simulated random walk whose steps have fat tails: mostly small moves with occasional very large ones. Hypothetical, not a forecast.", type:"line", color:"#b84dff",
    dials:[{id:"nu", label:"Tail index ν", weak:30, strong:2.5, classic:4, log:true, fmt:v=>"ν = "+v.toFixed(1),
      help:"Degrees of freedom of the return distribution at the same 1% daily volatility. Low ν = rare, huge moves (for ν ≤ 2 the variance is infinite); high ν approaches the normal distribution used in GBM."}],
    gen:()=>{ const nu=dialParam("tret","nu"), rng=makeRng(simSeed), sc=TRET_DAILY_VOL*Math.sqrt((nu-2)/nu); let S=100; const pts=[{x:0,y:S}];
       for(let i=1;i<NUM_POINTS;i++){ const chi2=2*gammaSample(nu/2,rng); S*=Math.exp(sc*randn_bm(rng)/Math.sqrt(chi2/nu)); pts.push({x:i,y:S}); }
       return pts; }},
   // Variance-gamma: Brownian motion with drift evaluated at gamma time. nu is the variance of the time change.
-  {id:"vg", adv:true, cat:"fin", name:"Variance Gamma (pure-jump Lévy)", type:"line", color:"#4d9dff",
+  {id:"vg", adv:true, cat:"fin", name:"Variance Gamma (pure-jump Lévy)", note:"A simulated path made entirely of jumps, most of them tiny, with no smooth part. Hypothetical, not a forecast.", type:"line", color:"#4d9dff",
    dials:[{id:"nu", label:"Time-change variance ν", weak:0.02, strong:1, classic:0.2, log:true, fmt:v=>"ν = "+v.toFixed(2),
      help:"Business time runs at a random pace. Small ν: close to Brownian motion. Large ν: many small moves and occasional large ones (fatter tails, a sharper peak)."}],
    gen:()=>{ const nu=dialParam("vg","nu"), rng=makeRng(simSeed), dt=1/TRADING_DAYS, th=VG_THETA, sg=VG_SIGMA,
@@ -1217,7 +1357,7 @@ const MODELS=[
         pts.push({x:i,y:100*Math.exp((VG_RATE+w)*i*dt+X)}); }
       return pts; }},
   // Kou double-exponential jump diffusion: Poisson jumps, up-jumps ~ Exp(eta1), down-jumps ~ Exp(eta2).
-  {id:"kou", adv:true, cat:"fin", name:"Kou Jump-Diffusion (asymmetric jumps)", type:"line", color:"#ff4d7a",
+  {id:"kou", adv:true, cat:"fin", name:"Kou Jump-Diffusion (asymmetric jumps)", note:"A simulated random walk with jumps, where down-jumps are larger on average than up-jumps. Hypothetical, not a forecast.", type:"line", color:"#ff4d7a",
    dials:[{id:"lam", label:"Jump intensity λ", weak:0.2, strong:10, classic:1, log:true, fmt:l=>"λ = "+l.toFixed(1)+"/yr",
      help:"Expected jumps per year. Down-jumps (mean −20%) are larger and more frequent than up-jumps (mean +10%), which gives the negative skew seen in equity returns."}],
    gen:()=>{ const lam=dialParam("kou","lam"), rng=makeRng(simSeed), dt=1/TRADING_DAYS, p=KOU_P, e1=KOU_ETA1, e2=KOU_ETA2,
@@ -1227,7 +1367,7 @@ const MODELS=[
         S*=Math.exp((KOU_MU-0.5*KOU_SIGMA*KOU_SIGMA-lam*kappa)*dt+KOU_SIGMA*Math.sqrt(dt)*randn_bm(rng)+j); pts.push({x:i,y:S}); }
       return pts; }},
   // Cox–Ingersoll–Ross short rate: dr = k(theta - r)dt + sigma sqrt(r) dW (Euler, full truncation).
-  {id:"cir", adv:true, cat:"fin", name:"CIR Short Rate (stays positive)", type:"line", color:"#4dd2b8",
+  {id:"cir", adv:true, cat:"fin", name:"CIR Short Rate (stays positive)", note:"A simulated interest rate that is pulled toward a long-run level and cannot go below zero. Hypothetical, not a forecast.", type:"line", color:"#4dd2b8",
    dials:[{id:"sig", label:"Volatility σ", weak:0.02, strong:0.5, classic:0.1, fmt:s=>"σ = "+s.toFixed(2)+(2*CIR_KAPPA*CIR_THETA>=s*s?"  (Feller met)":"  (Feller violated)"),
      help:"Mean-reverting rate whose volatility scales with √r. While 2κθ ≥ σ² (the Feller condition) the rate cannot touch zero; above it the path repeatedly hits the boundary."}],
    gen:()=>{ const sg=dialParam("cir","sig"), rng=makeRng(simSeed), dt=CIR_YEARS/NUM_POINTS; let r=CIR_THETA; const pts=[{x:0,y:100*r}];
@@ -1243,11 +1383,11 @@ const MODELS=[
      unit   text after the readout; "2^{v} Bits" style handled via `fmt`
      help   one-line explanation shown under the label                      */
 const FORGE_PARAMS=[
-  {id:"mem",   label:"Memory (state space)", min:5, max:32, step:1, value:16, fmt:v=>"2^"+v+" bits",
+  {id:"mem",   label:"Memory (state size)", min:5, max:32, step:1, value:16, fmt:v=>"2^"+v+" bits",
    help:"Fewer bits force tight periodic repetition (visual clumping). 32 bits gives ~4.29B states."},
-  {id:"comp",  label:"Statistical Randomness", min:0, max:10, step:1, value:2, fmt:v=>v+" shifts",
+  {id:"comp",  label:"Scrambling passes", min:0, max:10, step:1, value:2, fmt:v=>v+(v==1?" pass":" passes"),
    help:"Xorshift passes applied to each output. 0 shows the strict linear planes of a raw LCG; more passes spread them out."},
-  {id:"speed", label:"Compute Weight", min:1, max:1000, step:10, value:10, fmt:v=>v+"×",
+  {id:"speed", label:"Extra compute", min:1, max:1000, step:10, value:10, fmt:v=>v+"×",
    help:"Simulates a heavier algorithm. Below 100× it only slows the render timer (the image stays the same). Every 100× adds one real hash round that scrambles the pattern further."},
 ];
 
@@ -1260,13 +1400,13 @@ const FORGE_PARAMS=[
      help   one-line explanation shown under the label                          */
 const VIEW3D_PARAMS=[
   {id:"az",    label:"Azimuth (turn)",     min:0,  max:360, step:1,   value:0,   fmt:v=>v+"°",
-   help:"Turn the model around its vertical axis. While Auto-rotate is on this slider moves by itself."},
+   help:"Turn the model around its vertical axis. Dragging the picture sideways does the same. While Auto-rotate is on this slider moves by itself."},
   {id:"el",    label:"Elevation (tilt)",   min:-90,max:90,  step:1,   value:20,  fmt:v=>v+"°",
    help:"Look from above (+90°), level (0°) or from below (−90°)."},
   {id:"speed", label:"Rotation speed",     min:0,  max:90,  step:1,   value:12,  fmt:v=>v+"°/s",
    help:"How fast Auto-rotate turns the model. 0 holds it still even with Auto-rotate on."},
   {id:"zoom",  label:"Zoom",               min:40, max:250, step:5,   value:100, fmt:v=>v+"%",
-   help:"Scale the model up to inspect detail, or down to see all of it."},
+   help:"Scale the model up to inspect detail, or down to see all of it. Pinching the picture (or Ctrl + scroll) does the same."},
   {id:"persp", label:"Perspective",        min:0,  max:100, step:1,   value:40,  fmt:v=>v+"%",
    help:"0 % is flat (no depth effect). Higher exaggerates depth: parts nearer to you look bigger."},
   {id:"size",  label:"Line / point size",  min:1,  max:8,   step:0.5, value:2,   fmt:v=>v,
@@ -1301,6 +1441,8 @@ const ICON_PATHS={
   "play":         '<path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/>',
   "lock":         '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
   "lock-open":    '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>',
+  // Share-link button (icon chosen by Jon).
+  "origami":      '<path d="M12 12V4a1 1 0 0 1 1-1h6.297a1 1 0 0 1 .651 1.759l-4.696 4.025"/><path d="m12 21-7.414-7.414A2 2 0 0 1 4 12.172V6.415a1.002 1.002 0 0 1 1.707-.707L20 20.009"/><path d="m12.214 3.381 8.414 14.966a1 1 0 0 1-.167 1.199l-1.168 1.163a1 1 0 0 1-.706.291H6.351a1 1 0 0 1-.625-.219L3.25 18.8a1 1 0 0 1 .631-1.781l4.165.027"/>',
 };
 
 /* ==== MS_MODES REGISTRY — the Middle-Square collapse switch (Core 1). ========
@@ -1319,6 +1461,54 @@ const MS_MODES=[
    help:"Same as Reseed, and the terminal reports how many times it collapsed — the weakness stays visible."},
   {id:"pure", label:"Pure", icon:"power-off", def:false,
    help:"Textbook behavior: fixed seed 123456, no rescue. It collapses to the single point 625000 after 145 steps, so most of the plot is one dot."},
+];
+
+/* ==== CORES REGISTRY — the five panels. =====================================
+   Drives the jump links under the page title, the plain-English line under each panel title, and the
+   share button beside each plot. TO ADD A PANEL: add its <section> to the markup, then ONE entry here.
+
+     n      number used in the share link (c=3 opens the page scrolled to Core 3)
+     head   id of the panel's <h2>
+     short  label of its jump link
+     tint   color name of its share button (a .play-btn-<tint> CSS class; "" = the default cyan)
+     sub    one plain sentence under the title: what you can do here                */
+const CORES=[
+  {n:1, head:"h-core1", tint:"", short:"Models",     sub:"Tick generators in the list and compare the pictures they make. Good ones look like even static; weak ones show stripes, clumps or dead spots."},
+  {n:2, head:"h-core2", tint:"yellow", short:"Blender",    sub:"Morph one model's picture into another's. This is a visual crossfade for exploring shapes, not a new model."},
+  {n:3, head:"h-core3", tint:"green", short:"Forge",      sub:"Build a weak random-number generator on purpose and watch it fail: starve its memory and the dots line up into stripes."},
+  {n:4, head:"h-core4", tint:"pink", short:"3-D viewer", sub:"Turn a chaotic orbit around in 3-D. Drag the picture to rotate it."},
+  {n:5, head:"h-core5", tint:"orange", short:"π race",     sub:"Throw darts at a square to estimate π, and see how the kind of “random” you use changes how fast the answer closes in."},
+];
+
+/* ==== VIEW_MODES REGISTRY — the two Core 1 layouts. The FIRST entry is the default. ====
+     id     value stored in viewMode ("grid" and "overlay" are handled in renderStandard)
+     label  button text                                                              */
+const VIEW_MODES=[
+  {id:"grid",    label:"Side by side"},
+  {id:"overlay", label:"Overlay"},
+];
+
+/* ==== MARKERS REGISTRY — dot shapes for Overlay view. =========================
+   In Overlay each scatter model gets its own shape as well as its own color, so the layers can be told
+   apart without relying on color (CLAUDE.md: never color alone). A shape is handed out when a model is
+   ticked and kept while it stays ticked. TO ADD A SHAPE: add its name here and a case in drawMarker().  */
+const MARKERS=["circle","square","triangle","diamond","plus","bar"];
+
+/* ==== RACE_METHODS REGISTRY — the point sets that race in Core 5. =============
+   TO ADD A METHOD: add ONE entry. Its dart board, chart line, legend and table row are generated.
+   Colors were checked with the dataviz validator against the plot background (#0f0018), all pairs:
+   worst pair ΔE 16.9 under simulated color-blindness, 25.0 for normal vision, all >= 3:1 contrast.
+   Re-run that check if you change or add a color; each line also has its own dash pattern.
+
+     id     key              name   label
+     color  line and dot color
+     dash   line dash pattern in CSS px ([] = solid): the cue that does not depend on color
+     base   i -> {x,y}, point number i (from 0) of a FIXED sequence; null = fresh pseudo-random draws.
+            Fixed sequences are slid by a random offset on each run, so runs differ               */
+const RACE_METHODS=[
+  {id:"rand",   name:"Pseudo-random", color:"#00ffff", dash:[],     base:null},
+  {id:"halton", name:"Halton",        color:"#fcee0a", dash:[9,5],  base:i=>({x:halton(i+1,2),y:halton(i+1,3)})},
+  {id:"sobol",  name:"Sobol",         color:"#ff5cf0", dash:[2,4],  base:i=>sobolPoint(i)},
 ];
 
 /* ================== END OF DATA — everything below is logic ================== */
@@ -1409,6 +1599,22 @@ const DOT_R=1.5;                // scatter dot radius in canvas px
 const GLOW_BLUR=8;              // neon glow radius in canvas px
 const GRID_STEP=50;             // background grid spacing in canvas px
 const LOG_MAX_LINES=100;        // terminal history cap, keeps the DOM small on long sessions
+// Text drawn on a canvas is sized in CSS px and multiplied by cssPx(canvas), so it stays readable when the
+// 1200-px-wide canvas is shown small on a phone.
+const CANVAS_FONT='ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace';
+const INK="#e6fbff", INK_DIM="#8fd9e6", PLOT_BG="#0b0014";   // canvas text colors (same as --ink / --ink-dim) and the halo color behind text
+const LABEL_CSS=11, SMALL_CSS=10;   // canvas label sizes in CSS px (titles / axis ranges); below 10 gets hard to read
+const TITLE_CSS=20, FOOT_CSS=16;    // height in CSS px of a mini-plot's title strip and of the axis-range strip under a plot
+const GRID_GAP_CSS=5;               // gap between Side-by-side mini-plots, CSS px
+const MARKER_CSS=2.2;               // Overlay marker radius in CSS px: big enough to tell the shapes apart, small enough for 1,500 points
+const DIM_ALPHA=0.12;               // opacity of the other layers while one model is singled out in Overlay
+const C4_DRAG_DEG_PER_PX=0.4;       // Core 4: degrees turned per CSS px dragged
+const C4_WHEEL_ZOOM=0.01;           // Core 4: zoom change per wheel unit (Ctrl + scroll / trackpad pinch)
+const RACE_LOG2_MIN=3, RACE_LOG2_MAX=14, RACE_LOG2_STEP=0.25;   // Core 5 slider: darts thrown = 2^value, 8 to 16,384 (Sobol depth is 2^SOBOL_BITS)
+const RACE_RUNS=32;                 // runs averaged for the "typical error" lines; more = smoother lines, slower Re-roll
+const RACE_THEORY_K=4*Math.sqrt(Math.PI/4*(1-Math.PI/4));   // 1.642: the error of N truly random darts is this / sqrt(N) (binomial standard deviation x 4)
+const RACE_PLAY_MS=7000;            // how long "Run the race" takes to sweep from the fewest darts to the most
+const SHARE_HIDE_MS=9000;           // the "link copied" bar hides itself after this long
 
 /* ---------- runtime state ---------- */
 const $=id=>document.getElementById(id);
@@ -1428,13 +1634,23 @@ let forgeQueued=false;
 let stdCache={};                       // Core 1 points per model id; cleared by the Re-roll button
 // Start-point jitter for the two attractors. Fixed between redraws (so dragging an Attraction dial
 // morphs ONE picture smoothly instead of reshuffling it) and re-drawn only on Re-roll / Surprise.
-let attractorStart=[Math.random(),Math.random(),Math.random()];
-// Seed for the advanced models' seeded random stream; same lifetime as attractorStart.
-let simSeed=Math.floor(Math.random()*4294967296);
+// Seed for the advanced models' seeded random stream; same lifetime as attractorStart. The start point is
+// DERIVED from the seed, so a share link only has to carry the seed to reproduce the picture.
+const randSeed=()=>Math.floor(Math.random()*4294967296);
+const startFromSeed=seed=>{ const r=makeRng((seed^0x9E3779B9)>>>0); return [r(),r(),r()]; };
+let simSeed=randSeed();
+let attractorStart=startFromSeed(simSeed);
 function reseedAttractorStart(){
-  attractorStart=[Math.random(),Math.random(),Math.random()];
-  simSeed=Math.floor(Math.random()*4294967296);
+  simSeed=randSeed();
+  attractorStart=startFromSeed(simSeed);
 }
+// Core 1 view state.
+let viewMode=VIEW_MODES[0].id;         // "grid" (side by side) or "overlay"
+let focusId=null;                      // the model singled out by tapping its legend chip or its mini-plot (null = none)
+let lastTouched=null;                  // the model ticked or tapped most recently: its note is the one shown
+const shapeSlot=new Map();             // model id -> index into MARKERS, kept while the model stays ticked
+let stdCells=[];                       // Side-by-side mini-plot rectangles in canvas px, for click hit-testing
+let legendSig="", noteSig="";          // what the legend / note currently show, so they are only rebuilt when that changes
 
 // Real parameter value behind a model's 0–100% dial: from `weak` (0%) to `strong` (100%), linear or
 // (log:true) geometric. Falls back to `classic` if the slider isn't built yet.
@@ -1494,11 +1710,46 @@ function drawGrid(ctx,cv,color){
   ctx.stroke();
 }
 
+// Canvas px per CSS px for a canvas as currently displayed (1 if it is hidden).
+const cssPx=cv=>{ const w=cv.getBoundingClientRect().width; return w>0?cv.width/w:1; };
+// Shorten text with an ellipsis until it fits maxW (uses the font currently set on ctx).
+function fitText(ctx,txt,maxW){
+  if(ctx.measureText(txt).width<=maxW) return txt;
+  let t=txt; while(t.length>1&&ctx.measureText(t+"…").width>maxW) t=t.slice(0,-1);
+  return t+"…";
+}
+// Compact number for an axis range: decimals chosen from the size of the range (`span`), so 0.00025 on a
+// 0-to-1 axis prints as 0 and not as noise. A true minus sign.
+const fmtNum=(v,span)=>{ if(!isFinite(v)) return "?";
+  const d=Math.min(6,Math.max(0,2-Math.floor(Math.log10(span>0?span:1))));
+  return String(parseFloat(v.toFixed(d))).replace("-","−"); };
+// Text with a background-colored outline, so a line or dot behind it never strikes it through.
+function haloText(ctx,txt,x,y,color,u){
+  ctx.lineJoin="round"; ctx.lineWidth=4*u; ctx.strokeStyle=PLOT_BG; ctx.strokeText(txt,x,y);
+  ctx.fillStyle=color; ctx.fillText(txt,x,y);
+}
+// One scatter mark of radius r, in the shape named by a MARKERS entry.
+function drawMarker(ctx,shape,x,y,r){
+  ctx.beginPath();
+  switch(shape){
+    case "square":   ctx.rect(x-r*.85,y-r*.85,r*1.7,r*1.7); break;
+    case "triangle": ctx.moveTo(x,y-r*1.15); ctx.lineTo(x+r*1.1,y+r*.8); ctx.lineTo(x-r*1.1,y+r*.8); ctx.closePath(); break;
+    case "diamond":  ctx.moveTo(x,y-r*1.25); ctx.lineTo(x+r*1.25,y); ctx.lineTo(x,y+r*1.25); ctx.lineTo(x-r*1.25,y); ctx.closePath(); break;
+    case "plus":     ctx.rect(x-r*1.2,y-r*.38,r*2.4,r*.76); ctx.rect(x-r*.38,y-r*1.2,r*.76,r*2.4); break;
+    case "bar":      ctx.rect(x-r*1.4,y-r*.45,r*2.8,r*.9); break;
+    default:         ctx.arc(x,y,r,0,Math.PI*2);
+  }
+  ctx.fill();
+}
+
 // `shared` (optional {lo,hi}) forces one common axis range for both axes instead of
 // auto-fitting this layer, so several layers can be overlaid on the same scale.
 // `colors` (optional) is one CSS color per point; it overrides `col` (used by the Core 2 A -> B color blend).
-function plotData(ctx,cv,data,col,type,lineW,shared,colors){
-  if(!data.length) return;
+// `opt` (optional): rect {x,y,w,h} = draw inside this part of the canvas (default: all of it);
+//   shape / r = scatter mark and its radius; alpha = opacity. Returns the axis range it used.
+function plotData(ctx,cv,data,col,type,lineW,shared,colors,opt){
+  if(!data.length) return null;
+  const o=opt||{}, R=o.rect||{x:0,y:0,w:cv.width,h:cv.height}, shape=o.shape||"circle", r=o.r||DOT_R;
   let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
   if(shared){ minX=minY=shared.lo; maxX=maxY=shared.hi; }
   else for(const p of data){
@@ -1507,16 +1758,19 @@ function plotData(ctx,cv,data,col,type,lineW,shared,colors){
   }
   if(maxX===minX){maxX+=1;minX-=1;}
   if(maxY===minY){maxY+=1;minY-=1;}
-  const w=cv.width,h=cv.height, padX=w*PLOT_PAD_X, padY=h*PLOT_PAD_Y;
-  const sx=(w-2*padX)/(maxX-minX), sy=(h-2*padY)/(maxY-minY);
-  const X=p=>padX+(p.x-minX)*sx, Y=p=>h-padY-(p.y-minY)*sy;
+  const padX=R.w*PLOT_PAD_X, padY=R.h*PLOT_PAD_Y;
+  const sx=(R.w-2*padX)/(maxX-minX), sy=(R.h-2*padY)/(maxY-minY);
+  const X=p=>R.x+padX+(p.x-minX)*sx, Y=p=>R.y+R.h-padY-(p.y-minY)*sy;
 
+  ctx.save();
+  if(o.rect){ ctx.beginPath(); ctx.rect(R.x,R.y,R.w,R.h); ctx.clip(); }   // keep a mini-plot's glow inside its own box
+  if(o.alpha!==undefined) ctx.globalAlpha=o.alpha;
   ctx.shadowBlur=GLOW_BLUR; ctx.shadowColor=col;
   ctx.fillStyle=col; ctx.strokeStyle=col; ctx.lineWidth=lineW;
   if(type==="scatter"){
     data.forEach((p,i)=>{
       if(colors) ctx.fillStyle=ctx.shadowColor=colors[i];
-      ctx.beginPath(); ctx.arc(X(p),Y(p),DOT_R,0,Math.PI*2); ctx.fill(); });
+      drawMarker(ctx,shape,X(p),Y(p),r); });
   }else if(colors){
     for(let i=1;i<data.length;i++){
       ctx.strokeStyle=ctx.shadowColor=colors[i];
@@ -1526,21 +1780,28 @@ function plotData(ctx,cv,data,col,type,lineW,shared,colors){
     data.forEach((p,i)=>{ if(i===0) ctx.moveTo(X(p),Y(p)); else ctx.lineTo(X(p),Y(p)); });
     ctx.stroke();
   }
-  ctx.shadowBlur=0;
+  ctx.restore();
+  return {minX,maxX,minY,maxY};
 }
 
 /* ==== CORE 1 — STANDARD =================================================== */
 // Points are cached per model: toggling a checkbox or recoloring only redraws, so
 // the other layers hold still and you see exactly what the change did. Only the
 // Re-roll button (reroll=true) throws the cache away and draws fresh samples.
+//
+// Two layouts (VIEW_MODES): "grid" draws one labelled mini-plot per model (position tells them apart);
+// "overlay" stacks them in one frame, each scatter model with its own marker shape (MARKERS). Tapping a
+// legend chip or a mini-plot singles one model out: alone at full size in grid, the rest dimmed in overlay.
 function renderStandard(reroll,quiet){
   if(reroll){ stdCache={}; reseedAttractorStart(); }
-  drawGrid(ctxStd,cvStd,"rgba(0,255,255,.05)");
+  syncMsSwitch();
+  const cv=cvStd, ctx=ctxStd, W=cv.width, H=cv.height, u=cssPx(cv);
+  drawGrid(ctx,cv,"rgba(0,255,255,.05)");
   const layers=[];
   for(const m of MODELS){
     if(!$("chk-"+m.id).checked) continue;
     if(!stdCache[m.id]) stdCache[m.id]=m.gen();
-    layers.push({m,pts:viewPoints(m,stdCache[m.id])});
+    layers.push({m,pts:viewPoints(m,stdCache[m.id]),col:$("col-"+m.id).value});
   }
   // With normal margins ON, every active copula layer shares one axis range (their union),
   // so a heavier tail visibly reaches further instead of each layer being stretched to fill the box.
@@ -1551,18 +1812,108 @@ function renderStandard(reroll,quiet){
       lo=Math.min(lo,p.x,p.y); hi=Math.max(hi,p.x,p.y); }
     if(lo<hi) shared={lo,hi};
   }
-  for(const L of layers)
-    plotData(ctxStd,cvStd,L.pts,$("col-"+L.m.id).value,L.m.type,2,L.m.copula?shared:null);
+  // Marker shapes: free a shape when its model is unticked, give each new model the lowest unused one.
+  for(const id of [...shapeSlot.keys()]) if(!layers.some(L=>L.m.id===id)) shapeSlot.delete(id);
+  for(const L of layers) if(!shapeSlot.has(L.m.id)){
+    const used=new Set(shapeSlot.values()); let i=0; while(used.has(i)) i++;
+    shapeSlot.set(L.m.id,i<MARKERS.length?i:shapeSlot.size%MARKERS.length);   // more models than shapes: shapes repeat (color and legend still differ)
+  }
+  if(focusId&&!layers.some(L=>L.m.id===focusId)) focusId=null;
+  const multi=layers.length>1, grid=viewMode==="grid", cells=grid&&multi&&!focusId;
+  const shown=(grid&&focusId)?layers.filter(L=>L.m.id===focusId):layers;
+  const shapeOf=L=>(!grid&&multi&&L.m.type==="scatter")?MARKERS[shapeSlot.get(L.m.id)]:"circle";
+  const foot=FOOT_CSS*u, titleH=TITLE_CSS*u;
+  const rangeText=r=>r?"x "+fmtNum(r.minX,r.maxX-r.minX)+" to "+fmtNum(r.maxX,r.maxX-r.minX)+"  ·  y "+fmtNum(r.minY,r.maxY-r.minY)+" to "+fmtNum(r.maxY,r.maxY-r.minY):"";
+  stdCells=[];
+  ctx.textBaseline="middle"; ctx.textAlign="left";
+  if(!layers.length){
+    ctx.font=(LABEL_CSS*u)+"px "+CANVAS_FONT; ctx.fillStyle=INK; ctx.textAlign="center";
+    ctx.fillText("Tick a model in the list to plot it.",W/2,H/2);
+  }else if(cells){
+    const n=layers.length, cols=Math.ceil(Math.sqrt(n)), rows=Math.ceil(n/cols), gap=GRID_GAP_CSS*u,
+          cw=(W-gap*(cols+1))/cols, ch=(H-gap*(rows+1))/rows;
+    layers.forEach((L,i)=>{
+      const cx=gap+(i%cols)*(cw+gap), cy=gap+Math.floor(i/cols)*(ch+gap);
+      ctx.strokeStyle="rgba(0,255,255,.3)"; ctx.lineWidth=1; ctx.strokeRect(cx,cy,cw,ch);
+      const r=plotData(ctx,cv,L.pts,L.col,L.m.type,2,L.m.copula?shared:null,null,{rect:{x:cx,y:cy+titleH,w:cw,h:ch-titleH-foot}});
+      ctx.fillStyle=L.col; drawMarker(ctx,"circle",cx+9*u,cy+titleH/2,4*u);
+      ctx.font=(LABEL_CSS*u)+"px "+CANVAS_FONT; ctx.fillStyle=INK;                 // name in ink, not in the series color: the dot beside it carries the color
+      ctx.fillText(fitText(ctx,L.m.name,cw-22*u),cx+17*u,cy+titleH/2);
+      ctx.font=(SMALL_CSS*u)+"px "+CANVAS_FONT; ctx.fillStyle=INK_DIM;
+      ctx.fillText(fitText(ctx,rangeText(r),cw-10*u),cx+5*u,cy+ch-foot/2);
+      stdCells.push({id:L.m.id,x:cx,y:cy,w:cw,h:ch});
+    });
+  }else{
+    const rect={x:0,y:0,w:W,h:H-foot}, stacked=!grid&&multi; let r=null;
+    const order=focusId?[...shown.filter(L=>L.m.id!==focusId),...shown.filter(L=>L.m.id===focusId)]:shown;   // the singled-out layer is drawn last, on top
+    for(const L of order)
+      r=plotData(ctx,cv,L.pts,L.col,L.m.type,2,L.m.copula?shared:null,null,
+        {rect,shape:shapeOf(L),r:stacked?MARKER_CSS*u:DOT_R,alpha:(focusId&&L.m.id!==focusId)?DIM_ALPHA:1});
+    const txt=shown.length===1?rangeText(r)
+      :(shared&&shown.every(L=>L.m.copula))?"Shared scale: x and y both run from "+fmtNum(shared.lo,shared.hi-shared.lo)+" to "+fmtNum(shared.hi,shared.hi-shared.lo)
+      :"Each model is stretched to fill the frame, so positions are not on one common scale.";
+    ctx.font=(SMALL_CSS*u)+"px "+CANVAS_FONT; ctx.fillStyle=INK_DIM;
+    ctx.fillText(fitText(ctx,txt,W-16*u),8*u,H-foot/2);
+  }
+  cv.classList.toggle("clickable",grid&&multi);
+  renderLegend(layers,shapeOf);
+  updateNote(layers);
   if(!quiet)   // dial drags redraw every frame; keep them out of the terminal
     logTerminal((reroll?"CORE 1: RE-ROLLED. ":"CORE 1: REDRAWN. ")+"LAYERS ACTIVE: "+layers.length+(normalMargins()?" [NORMAL MARGINS]":""),
       layers.length>0?"#00ff88":"#ff0000");
+}
+
+// Legend chips above the plot: mark + name for every plotted model. Rebuilt only when what they show
+// changes (a dial drag redraws the plot every frame and must not rebuild buttons under the user's finger).
+function renderLegend(layers,shapeOf){
+  const box=$("legend-std"), sig=viewMode+"|"+focusId+"|"+layers.map(L=>L.m.id+L.col+shapeOf(L)).join(",");
+  if(sig===legendSig) return;
+  legendSig=sig;
+  const act=document.activeElement, hadId=act&&act.classList&&act.classList.contains("chip")?act.dataset.id:null;
+  box.innerHTML="";
+  for(const L of layers){
+    const b=document.createElement("button"); b.type="button"; b.className="chip"; b.dataset.id=L.m.id;
+    b.setAttribute("aria-pressed",String(focusId===L.m.id));
+    const c=document.createElement("canvas"); c.width=c.height=28; c.setAttribute("aria-hidden","true");
+    const x=c.getContext("2d"); x.fillStyle=x.strokeStyle=L.col;
+    if(L.m.type==="line"){ x.lineWidth=4; x.beginPath(); x.moveTo(2,14); x.lineTo(26,14); x.stroke(); }
+    else drawMarker(x,shapeOf(L),14,14,9);
+    const t=document.createElement("span"); t.textContent=L.m.name;
+    b.append(c,t);
+    b.addEventListener("click",()=>setFocus(focusId===L.m.id?null:L.m.id));
+    box.appendChild(b);
+  }
+  if(hadId){ const again=box.querySelector('.chip[data-id="'+hadId+'"]'); if(again) again.focus(); }   // keep keyboard focus across the rebuild
+}
+// The line under the plot: the note of the singled-out model, else of the one touched last, else of the first.
+function updateNote(layers){
+  const pick=layers.find(L=>L.m.id===focusId)||layers.find(L=>L.m.id===lastTouched)||layers[0];
+  const hint=layers.length<2?"":focusId?" Tap its name again to bring the others back.":" Tap a name above the plot to single it out.";
+  const sig=(pick?pick.m.id:"")+"|"+hint;
+  if(sig===noteSig) return;
+  noteSig=sig;
+  const el=$("note-std"); el.textContent="";
+  if(!pick){ el.textContent="Nothing is plotted yet."; return; }
+  const b=document.createElement("b"); b.textContent=pick.m.name+": ";
+  const h=document.createElement("span"); h.className="dim"; h.textContent=hint;
+  el.append(b,pick.m.note||"",h);
+}
+function setFocus(id){ focusId=id; if(id) lastTouched=id; renderStandard(false,true); }
+function setViewMode(id){
+  viewMode=id; focusId=null;
+  for(const b of $("view-seg").children) b.setAttribute("aria-pressed",String(b.dataset.mode===id));
+  renderStandard(false,true);
+}
+// The Middle-Square switch only matters while that model is in use, so it is hidden the rest of the time.
+function syncMsSwitch(){
+  $("ms-set").hidden=!($("chk-midsq").checked||$("blend-a").value==="midsq"||$("blend-b").value==="midsq");
 }
 
 /* ==== CORE 2 — BLENDER ==================================================== */
 // Each Core 2 slot keeps its OWN random seed and attractor start, so (a) the seeded models morph
 // smoothly when a dial moves, (b) slots A and B differ even when they hold the same model, and
 // (c) the Re-roll button can change them without disturbing Core 1.
-const newSeedPair=()=>({seed:Math.floor(Math.random()*4294967296), start:[Math.random(),Math.random(),Math.random()]});
+const newSeedPair=(seed=randSeed())=>({seed, start:startFromSeed(seed)});
 let blendSeeds={a:newSeedPair(), b:newSeedPair()};
 function genSeeded(m,pair,kind="gen"){
   const s0=simSeed, a0=attractorStart; simSeed=pair.seed; attractorStart=pair.start;
@@ -1585,6 +1936,7 @@ function rerollBlend(){
 }
 
 function renderBlender(){
+  syncMsSwitch();
   drawGrid(ctxBlend,cvBlend,"rgba(252,238,10,.05)");
   const A=modelById($("blend-a").value), B=modelById($("blend-b").value);
   if(!blendCache.a) rollBlendSlot("a");
@@ -1626,11 +1978,12 @@ function randomizeBlend(){
   syncBlendReadouts();
   rollBlendSlot("a"); rollBlendSlot("b");
   renderBlender();
-  logTerminal("CORE 2: RNG OVERRIDE  ["+a.name+"] -> ["+b.name+"]", $("blend-color-a").value);
+  logTerminal("CORE 2: RANDOM PAIR  ["+a.name+"] -> ["+b.name+"]", $("blend-color-a").value);
 }
 function syncBlendReadouts(){
-  $("pos-val").textContent=$("blend-pos").value;
-  $("smooth-val").textContent=$("blend-smooth").value;
+  const shareA=Math.round((parseFloat($("blend-pos").value)+100)/2);   // slider -100..100 -> % of the sequence taken from A
+  $("pos-val").textContent="A "+shareA+"% · B "+(100-shareA)+"%";
+  $("smooth-val").textContent=$("blend-smooth").value+"%";
 }
 
 /* ==== CORE 3 — ALGORITHMIC FORGE ========================================== */
@@ -1689,7 +2042,9 @@ function queueForge(){
    projection on a 2-D canvas, so it needs no library. Animation only runs while Auto-rotate is on,
    the canvas is on screen and the tab is visible; otherwise it redraws only when something changes. */
 let c4Model="lorenz", c4Pair=newSeedPair(), c4Pts=[], c4Dirty=true, c4Raf=0, c4Last=0, c4Visible=true;
-let c4Auto=!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches);   // reduced motion: start still
+const reducedMotion=()=>!!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches);
+let c4Auto=!reducedMotion();    // reduced motion: start still
+let c4Dragging=false;           // true while a pointer is turning the model: Auto-rotate waits
 let c4Az=0;                     // azimuth in degrees, kept as a float: the slider rounds to its 1-degree step, which would swallow the small per-frame turn
 const view3d=id=>parseFloat($("v3-"+id).value);
 const v3Readout=id=>{ $("v3-"+id+"-val").textContent=VIEW3D_PARAMS.find(p=>p.id===id).fmt($("v3-"+id).value); };
@@ -1729,12 +2084,12 @@ function render3D(){
   }
   ctx.globalAlpha=1; ctx.shadowBlur=0;
   // Axis key (x, y, z) so the viewer can tell which way is which.
-  const ox=48, oy=H-48, L=34;
-  ctx.font="14px monospace"; ctx.lineWidth=2; ctx.textAlign="center"; ctx.textBaseline="middle";
+  const u=cssPx(cv), ox=38*u, oy=H-38*u, L=24*u;
+  ctx.font=(12*u)+"px "+CANVAS_FONT; ctx.lineWidth=2*u; ctx.textAlign="center"; ctx.textBaseline="middle";
   for(const [name,v,c] of [["x",[1,0,0],"#ff6b6b"],["y",[0,1,0],"#6bff9d"],["z",[0,0,1],"#6bb8ff"]]){
     const x1=v[0]*ca-v[1]*sa, y1=v[0]*sa+v[1]*ca, up=y1*se+v[2]*ce, ex=ox+L*x1, ey=oy-L*up;
     ctx.strokeStyle=c; ctx.fillStyle=c; ctx.beginPath(); ctx.moveTo(ox,oy); ctx.lineTo(ex,ey); ctx.stroke();
-    ctx.fillText(name,ox+(L+12)*x1,oy-(L+12)*up);
+    ctx.fillText(name,ox+(L+9*u)*x1,oy-(L+9*u)*up);
   }
 }
 
@@ -1742,7 +2097,7 @@ function c4Frame(t){
   c4Raf=0;
   if(c4Dirty){ regenCore4(); c4Dirty=false; }
   const speed=view3d("speed");
-  if(c4Auto&&speed>0){
+  if(c4Auto&&speed>0&&!c4Dragging){
     const dt=Math.min(C4_MAX_FRAME_S,Math.max(0,(t-c4Last)/1000));
     c4Az=(c4Az+speed*dt)%360; $("v3-az").value=c4Az; v3Readout("az");
   }
@@ -1751,6 +2106,40 @@ function c4Frame(t){
   if(c4Auto&&speed>0&&c4Visible&&!document.hidden) c4Raf=requestAnimationFrame(c4Frame);
 }
 function queue3D(){ if(c4Raf) return; c4Last=performance.now(); c4Raf=requestAnimationFrame(c4Frame); }
+
+// Turn the model by dragging the picture. Mouse / pen: sideways = azimuth, up-down = elevation.
+// Touch: sideways = azimuth only, because an up/down swipe has to keep scrolling the page (CSS touch-action:pan-y);
+// two fingers pinch to zoom. Ctrl + scroll (which is also what a trackpad pinch sends) zooms; a plain scroll
+// is left alone so the page never gets stuck under the pointer. Every change goes through the sliders, so
+// the readouts, the keyboard path and share links all stay in step.
+function initCore4Drag(){
+  const ptrs=new Map(); let pinch0=0, zoom0=100;
+  const spread=()=>{ const [a,b]=[...ptrs.values()]; return Math.hypot(a.x-b.x,a.y-b.y); };
+  const setV=(id,v)=>{ $("v3-"+id).value=v; v3Readout(id); };
+  const end=e=>{ ptrs.delete(e.pointerId); if(!ptrs.size){ c4Dragging=false; cv3d.classList.remove("dragging"); queue3D(); } };
+  cv3d.addEventListener("pointerdown",e=>{
+    ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    try{ cv3d.setPointerCapture(e.pointerId); }catch(err){}
+    c4Dragging=true; cv3d.classList.add("dragging");
+    if(ptrs.size===2){ pinch0=spread(); zoom0=view3d("zoom"); }
+  });
+  cv3d.addEventListener("pointermove",e=>{
+    const p=ptrs.get(e.pointerId); if(!p) return;
+    const dx=e.clientX-p.x, dy=e.clientY-p.y; p.x=e.clientX; p.y=e.clientY;
+    if(ptrs.size===1){
+      c4Az=((c4Az+dx*C4_DRAG_DEG_PER_PX)%360+360)%360; setV("az",c4Az);
+      if(e.pointerType!=="touch") setV("el",view3d("el")+dy*C4_DRAG_DEG_PER_PX);
+    }else if(ptrs.size===2&&pinch0>0) setV("zoom",zoom0*spread()/pinch0);
+    queue3D();
+  });
+  cv3d.addEventListener("pointerup",end);
+  cv3d.addEventListener("pointercancel",end);
+  cv3d.addEventListener("wheel",e=>{
+    if(!e.ctrlKey) return;
+    e.preventDefault();
+    setV("zoom",view3d("zoom")*Math.exp(-e.deltaY*C4_WHEEL_ZOOM)); queue3D();
+  },{passive:false});
+}
 
 function syncAutoSwitch(){
   const b=$("c4-auto"); b.setAttribute("aria-checked",c4Auto?"true":"false");
@@ -1785,7 +2174,7 @@ function initCore4(){
   $("btn-run-3d").addEventListener("click",()=>{ c4Pair=newSeedPair(); c4Dirty=true; queue3D(); });
   $("c4-model").addEventListener("change",()=>{ c4Model=$("c4-model").value; c4Dirty=true; buildCore4Dials(); queue3D(); });
   $("c4-auto").addEventListener("click",()=>{ c4Auto=!c4Auto; syncAutoSwitch(); queue3D(); });
-  syncAutoSwitch(); buildCore4Dials();
+  syncAutoSwitch(); buildCore4Dials(); initCore4Drag();
   if("IntersectionObserver" in window) new IntersectionObserver(es=>{ c4Visible=es[0].isIntersecting; if(c4Visible) queue3D(); }).observe(cv3d);
   document.addEventListener("visibilitychange",()=>{ if(!document.hidden) queue3D(); });
   queue3D();
@@ -1953,12 +2342,311 @@ function buildDials(){
   syncDials();
 }
 
+/* ==== CORE 5 — CONVERGENCE RACE ============================================
+   Estimates π by throwing N points ("darts") at the unit square: the share that lands inside the quarter
+   circle, times 4. Each RACE_METHODS entry does this RACE_RUNS times; the chart shows the root-mean-square
+   error of those runs against N on log-log axes, and the boards show run 1. Pseudo-random runs use fresh
+   draws; the fixed sequences (Halton, Sobol) are slid by a random offset per run (a Cranley–Patterson
+   shift), which keeps their even spacing but lets runs differ so an average means something.          */
+const cvDarts=$("cv-darts"), ctxDarts=cvDarts.getContext("2d"), cvRace=$("cv-race"), ctxRace=cvRace.getContext("2d");
+let raceSeed=randSeed();        // seed of the current set of runs (changed by Re-roll, carried by share links)
+let race=null;                  // {cps:[N at each slider stop], by:{methodId:{x,y,cum,rms}}}
+let racePlay=0;                 // requestAnimationFrame id while "Run the race" is sweeping (0 = idle)
+let raceGeom=null;              // plot-area edges of the chart in canvas px, for dragging across it
+const raceBase={};              // the fixed sequences' points, computed once
+const raceStop=()=>Math.round((parseFloat($("race-n").value)-RACE_LOG2_MIN)/RACE_LOG2_STEP);   // slider position -> index into race.cps
+const fmtErr=v=>v.toPrecision(2);
+
+function computeRace(){
+  const NMAX=Math.pow(2,RACE_LOG2_MAX), cps=[], by={}, rng=makeRng(raceSeed);
+  for(let v=RACE_LOG2_MIN;v<=RACE_LOG2_MAX+1e-9;v+=RACE_LOG2_STEP) cps.push(Math.round(Math.pow(2,v)));
+  for(const M of RACE_METHODS){
+    if(M.base&&!raceBase[M.id]){
+      const bx=new Float64Array(NMAX), bY=new Float64Array(NMAX);
+      for(let i=0;i<NMAX;i++){ const p=M.base(i); bx[i]=p.x; bY[i]=p.y; }
+      raceBase[M.id]={x:bx,y:bY};
+    }
+    const B=raceBase[M.id], sq=new Float64Array(cps.length),
+          x0=new Float32Array(NMAX), y0=new Float32Array(NMAX), cum=new Uint16Array(NMAX);   // run 1: its points and running hit count
+    for(let r=0;r<RACE_RUNS;r++){
+      const sx=rng(), sy=rng(); let hits=0, k=0;
+      for(let i=0;i<NMAX;i++){
+        let x,y;
+        if(B){ x=B.x[i]+sx; if(x>=1) x-=1; y=B.y[i]+sy; if(y>=1) y-=1; }
+        else { x=rng(); y=rng(); }
+        if(x*x+y*y<=1) hits++;
+        if(r===0){ x0[i]=x; y0[i]=y; cum[i]=hits; }
+        if(i+1===cps[k]){ const e=4*hits/(i+1)-Math.PI; sq[k]+=e*e; k++; }
+      }
+    }
+    by[M.id]={x:x0,y:y0,cum,rms:Array.from(sq,v=>Math.sqrt(v/RACE_RUNS))};
+  }
+  race={cps,by};
+}
+
+// The dart boards: one square per method with run 1's first N darts and the quarter-circle line.
+// Hits are drawn solid and misses faint; the curve (position) is what separates them, not the shade.
+function drawRaceBoards(N){
+  const cv=cvDarts, ctx=ctxDarts, W=cv.width, H=cv.height, u=cssPx(cv), n=RACE_METHODS.length;
+  ctx.clearRect(0,0,W,H);
+  const gap=8*u, titleH=TITLE_CSS*u, S=Math.min((W-gap*(n+1))/n,H-titleH-gap), left=(W-(n*S+(n-1)*gap))/2;
+  const d=Math.max(1,(N>2048?1:N>256?1.5:2.2)*u);      // dart size shrinks as the board fills up
+  ctx.textBaseline="middle"; ctx.textAlign="left";
+  RACE_METHODS.forEach((M,i)=>{
+    const bx=left+i*(S+gap), by=titleH, D=race.by[M.id];
+    ctx.fillStyle="rgba(0,0,0,.4)"; ctx.fillRect(bx,by,S,S);
+    ctx.fillStyle=M.color;
+    for(const inside of [false,true]){
+      ctx.globalAlpha=inside?1:0.4;
+      for(let j=0;j<N;j++){ const x=D.x[j], y=D.y[j]; if((x*x+y*y<=1)===inside) ctx.fillRect(bx+x*S-d/2,by+S-y*S-d/2,d,d); }
+    }
+    ctx.globalAlpha=1;
+    ctx.strokeStyle="rgba(230,251,255,.35)"; ctx.lineWidth=1; ctx.strokeRect(bx,by,S,S);
+    ctx.strokeStyle=INK; ctx.lineWidth=1.5*u; ctx.beginPath(); ctx.arc(bx,by+S,S,-Math.PI/2,0); ctx.stroke();
+    ctx.fillStyle=M.color; drawMarker(ctx,"circle",bx+5*u,titleH/2,4*u);
+    ctx.font=(LABEL_CSS*u)+"px "+CANVAS_FONT; ctx.fillStyle=INK;
+    ctx.fillText(fitText(ctx,M.name,S-14*u),bx+13*u,titleH/2);
+  });
+}
+
+// The error chart. Both axes are logarithmic, so "error falls like 1/sqrt(N)" is a straight line.
+function drawRaceChart(k){
+  const cv=cvRace, ctx=ctxRace, W=cv.width, H=cv.height, u=cssPx(cv), cps=race.cps, N=cps[k];
+  const wide=W/u>=520;                                   // room for labels at the line ends; on a phone the table below is the legend
+  const mL=50*u, mR=(wide?118:14)*u, mT=30*u, mB=40*u, theory=n=>RACE_THEORY_K/Math.sqrt(n);
+  let lo=Infinity, hi=theory(cps[0]);
+  for(const M of RACE_METHODS) for(const e of race.by[M.id].rms){ if(e<lo) lo=e; if(e>hi) hi=e; }
+  const yLo=Math.floor(Math.log10(lo)), yHi=Math.ceil(Math.log10(hi)), x0=RACE_LOG2_MIN, x1=RACE_LOG2_MAX;
+  const X=n=>mL+(Math.log2(n)-x0)/(x1-x0)*(W-mL-mR), Y=e=>mT+(yHi-Math.log10(e))/(yHi-yLo)*(H-mT-mB);
+  raceGeom={mL,mR};
+  ctx.clearRect(0,0,W,H); ctx.setLineDash([]);
+  ctx.font=(SMALL_CSS*u)+"px "+CANVAS_FONT; ctx.textBaseline="middle";
+  // grid and tick labels: one line per factor of ten in error, one per factor of four in darts
+  ctx.strokeStyle="rgba(230,251,255,.13)"; ctx.lineWidth=1; ctx.fillStyle=INK_DIM;
+  ctx.textAlign="right";
+  for(let p=yLo;p<=yHi;p++){ const y=Y(Math.pow(10,p));
+    ctx.beginPath(); ctx.moveTo(mL,y); ctx.lineTo(W-mR,y); ctx.stroke();
+    ctx.fillText(p>=0?String(Math.pow(10,p)):Math.pow(10,p).toFixed(-p),mL-6*u,y); }
+  ctx.textAlign="center";
+  for(let v=x0;v<=x1;v+=2){ const n=Math.pow(2,v), x=X(n);
+    ctx.beginPath(); ctx.moveTo(x,mT); ctx.lineTo(x,H-mB); ctx.stroke();
+    ctx.fillText(n.toLocaleString(),x,H-mB+11*u); }
+  ctx.fillText("darts thrown (each line = 4× more)",mL+(W-mL-mR)/2,H-10*u);
+  ctx.textAlign="left";
+  ctx.fillText(fitText(ctx,"typical error (each line = 10× smaller)",W-12*u),6*u,12*u);
+  // the textbook line for truly random darts
+  ctx.strokeStyle="#b9b9c9"; ctx.lineWidth=1*u; ctx.setLineDash([4*u,4*u]);
+  ctx.beginPath(); ctx.moveTo(X(cps[0]),Y(theory(cps[0]))); ctx.lineTo(X(cps[cps.length-1]),Y(theory(cps[cps.length-1]))); ctx.stroke();
+  ctx.setLineDash([]);
+  haloText(ctx,"random, in theory",X(cps[0])+8*u,Y(theory(cps[0]))-9*u,"#b9b9c9",u);
+  // one line per method: faint for the whole race, solid up to the darts thrown so far
+  const path=M=>{ const e=race.by[M.id].rms; ctx.beginPath(); cps.forEach((n,i)=>{ if(i) ctx.lineTo(X(n),Y(e[i])); else ctx.moveTo(X(n),Y(e[i])); }); ctx.stroke(); };
+  for(const M of RACE_METHODS){
+    ctx.strokeStyle=M.color; ctx.lineWidth=2*u; ctx.setLineDash(M.dash.map(v=>v*u));
+    ctx.globalAlpha=0.3; path(M); ctx.globalAlpha=1;
+    ctx.save(); ctx.beginPath(); ctx.rect(0,0,X(N),H); ctx.clip(); path(M); ctx.restore();
+  }
+  ctx.setLineDash([]);
+  // cursor at the current dart count, with a ringed dot on each line
+  ctx.strokeStyle="rgba(230,251,255,.55)"; ctx.lineWidth=1*u;
+  ctx.beginPath(); ctx.moveTo(X(N),mT); ctx.lineTo(X(N),H-mB); ctx.stroke();
+  for(const M of RACE_METHODS){ const y=Y(race.by[M.id].rms[k]);
+    ctx.fillStyle=PLOT_BG; ctx.beginPath(); ctx.arc(X(N),y,6.5*u,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=M.color; ctx.beginPath(); ctx.arc(X(N),y,4.5*u,0,Math.PI*2); ctx.fill(); }
+  // labels at the line ends (wide screens), nudged apart so they never overlap
+  if(wide){
+    const last=cps.length-1, ends=RACE_METHODS.map(M=>({M,y:Y(race.by[M.id].rms[last])})).sort((a,b)=>a.y-b.y);
+    for(let i=1;i<ends.length;i++) if(ends[i].y-ends[i-1].y<14*u) ends[i].y=ends[i-1].y+14*u;
+    ctx.font=(LABEL_CSS*u)+"px "+CANVAS_FONT;
+    for(const E of ends){ const x=W-mR+8*u;
+      ctx.strokeStyle=E.M.color; ctx.lineWidth=2*u; ctx.setLineDash(E.M.dash.map(v=>v*u));
+      ctx.beginPath(); ctx.moveTo(x,E.y); ctx.lineTo(x+16*u,E.y); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle=INK; ctx.fillText(E.M.name,x+21*u,E.y); }
+  }
+}
+
+function fillRaceTable(k,N){
+  const ref=RACE_METHODS.find(M=>!M.base)||RACE_METHODS[0]; let best=RACE_METHODS[0];
+  for(const M of RACE_METHODS){
+    const D=race.by[M.id], est=4*D.cum[N-1]/N;
+    $("race-est-"+M.id).textContent=est.toFixed(4);
+    $("race-off-"+M.id).textContent=fmtErr(Math.abs(est-Math.PI));
+    $("race-typ-"+M.id).textContent=fmtErr(D.rms[k]);
+    if(D.rms[k]<race.by[best.id].rms[k]) best=M;
+  }
+  $("race-cap").textContent="After "+N.toLocaleString()+" darts. “π estimate” and “Off by” are for the one run drawn on the boards; π is 3.1416.";
+  $("race-take").textContent=best===ref
+    ? "At "+N.toLocaleString()+" darts, "+ref.name.toLowerCase()+" has the smallest typical error of the "+RACE_METHODS.length+"."
+    : "At "+N.toLocaleString()+" darts, "+best.name+"'s typical error is "+(race.by[ref.id].rms[k]/race.by[best.id].rms[k]).toFixed(1)+"× smaller than "+ref.name.toLowerCase()+"'s.";
+}
+
+function renderRace(){
+  if(!race) computeRace();
+  const k=raceStop(), N=race.cps[k];
+  $("race-n-val").textContent=N.toLocaleString();
+  drawRaceBoards(N); drawRaceChart(k); fillRaceTable(k,N);
+}
+function stopRace(){ if(racePlay){ cancelAnimationFrame(racePlay); racePlay=0; } }
+// Sweep the slider from the fewest darts to the most. With "reduce motion" on it jumps straight to the end.
+function runRace(){
+  stopRace();
+  if(reducedMotion()){ $("race-n").value=RACE_LOG2_MAX; renderRace(); return; }
+  const t0=performance.now();
+  const tick=t=>{
+    const f=Math.min(1,Math.max(0,(t-t0)/RACE_PLAY_MS));
+    $("race-n").value=RACE_LOG2_MIN+f*(RACE_LOG2_MAX-RACE_LOG2_MIN);    // the slider snaps this to its own step
+    renderRace();
+    racePlay=f<1?requestAnimationFrame(tick):0;
+  };
+  racePlay=requestAnimationFrame(tick);
+}
+function initRace(){
+  const sl=$("race-n"); sl.min=RACE_LOG2_MIN; sl.max=RACE_LOG2_MAX; sl.step=RACE_LOG2_STEP;
+  $("race-runs").textContent=RACE_RUNS;
+  for(const M of RACE_METHODS){              // one table row per method; its line sample repeats the chart's color and dash
+    const tr=document.createElement("tr"), th=document.createElement("th"); th.scope="row";
+    const c=document.createElement("canvas"); c.width=60; c.height=20; c.setAttribute("aria-hidden","true");
+    const x=c.getContext("2d"); x.strokeStyle=M.color; x.lineWidth=4; x.setLineDash(M.dash.map(v=>v*2));
+    x.beginPath(); x.moveTo(0,10); x.lineTo(60,10); x.stroke();
+    th.append(c,M.name); tr.appendChild(th);
+    for(const col of ["est","off","typ"]){ const td=document.createElement("td"); td.id="race-"+col+"-"+M.id; tr.appendChild(td); }
+    $("race-rows").appendChild(tr);
+  }
+  sl.addEventListener("input",()=>{ stopRace(); renderRace(); });
+  $("btn-race-play").innerHTML=lucide("play");
+  $("btn-race-play").addEventListener("click",runRace);
+  $("btn-race-run").addEventListener("click",runRace);
+  $("btn-race-reroll").addEventListener("click",()=>{ stopRace(); raceSeed=randSeed(); race=null; renderRace(); });
+  // Drag (or click) across the chart to move the dart count.
+  let down=false;
+  const seek=e=>{ if(!raceGeom) return;
+    const r=cvRace.getBoundingClientRect(), x=(e.clientX-r.left)*cvRace.width/r.width,
+          f=Math.min(1,Math.max(0,(x-raceGeom.mL)/(cvRace.width-raceGeom.mL-raceGeom.mR)));
+    stopRace(); sl.value=RACE_LOG2_MIN+f*(RACE_LOG2_MAX-RACE_LOG2_MIN); renderRace(); };
+  cvRace.addEventListener("pointerdown",e=>{ down=true; try{ cvRace.setPointerCapture(e.pointerId); }catch(err){} seek(e); });
+  cvRace.addEventListener("pointermove",e=>{ if(down) seek(e); });
+  for(const ev of ["pointerup","pointercancel"]) cvRace.addEventListener(ev,()=>{ down=false; });
+}
+
+/* ==== SHARE LINKS ==========================================================
+   The whole setup travels in the URL after the "#", so a link reopens the page as it was: ticked models,
+   layout, colors, dials, every slider, the 3-D view and the random seeds. Nothing is stored anywhere.
+   Two deliberate limits:
+     · FINANCIAL MODELS ARE NEVER WRITTEN TO OR READ FROM A LINK. They sit behind the disclaimer dialog,
+       and a link must not be a way around it (or a way to pass a financial plot around without it).
+     · Seeds reproduce the seeded models exactly. Generators that keep running state or use the browser's
+       own Math.random (LCG, xorshift, middle-square, logistic, Math.random) redraw fresh dots.
+   Keys: m models · adv advanced switches · v layout · nm normal margins · ms middle-square mode · col colors
+   · d dials · s seed · ba/bb bp bm bca bcb bsa bsb Core 2 · f<id> Core 3 · c4 c4s au v<id> Core 4
+   · rn rs Core 5 · c panel to scroll to.  Only values that differ from the defaults are written.        */
+const shareable=m=>!!m&&m.cat!=="fin";
+function buildShareURL(core){
+  const q=[], put=(k,v)=>q.push(k+"="+v), hex=id=>$(id).value.slice(1).toLowerCase();
+  const ticked=MODELS.filter(m=>$("chk-"+m.id).checked);
+  const leftOut=ticked.some(m=>!shareable(m))||[...advancedOn].some(id=>!shareable(modelById(id)))
+    ||["a","b"].some(sl=>!shareable(modelById($("blend-"+sl).value)));
+  put("m",ticked.filter(shareable).map(m=>m.id).join("."));
+  const adv=[...advancedOn].filter(id=>shareable(modelById(id))); if(adv.length) put("adv",adv.join("."));
+  if(viewMode!==VIEW_MODES[0].id) put("v",viewMode);
+  if(normalMargins()) put("nm",1);
+  if(msMode!==(MS_MODES.find(x=>x.def)||MS_MODES[0]).id) put("ms",msMode);
+  const cols=MODELS.filter(m=>shareable(m)&&hex("col-"+m.id)!==m.color.slice(1).toLowerCase()).map(m=>m.id+"-"+hex("col-"+m.id));
+  if(cols.length) put("col",cols.join("."));
+  const dials=Object.keys(dialPct).filter(key=>shareable(modelById(key.split(".")[0])))
+    .map(key=>key.replace(".","-")+"-"+(Math.round(dialPct[key]*100)/100));
+  if(dials.length) put("d",dials.join("~"));
+  put("s",simSeed);
+  for(const sl of ["a","b"]) if(shareable(modelById($("blend-"+sl).value))){ put("b"+sl,$("blend-"+sl).value); put("bs"+sl,blendSeeds[sl].seed); }
+  if($("blend-pos").value!=="0") put("bp",$("blend-pos").value);
+  if($("blend-smooth").value!=="30") put("bm",$("blend-smooth").value);
+  put("bca",hex("blend-color-a")); put("bcb",hex("blend-color-b"));
+  for(const p of FORGE_PARAMS) if(forgeVal(p.id)!==p.value) put("f"+p.id,forgeVal(p.id));
+  put("c4",c4Model); put("c4s",c4Pair.seed); put("au",c4Auto?1:0);
+  for(const p of VIEW3D_PARAMS){ const v=Math.round(view3d(p.id)*10)/10; if(v!==p.value) put("v"+p.id,v); }
+  put("rn",$("race-n").value); put("rs",raceSeed);
+  if(core) put("c",core);
+  return {url:location.href.split("#")[0]+"#"+q.join("&"), leftOut};
+}
+// The share state in the address bar, or null when the "#…" part is not one of our links (e.g. "#legal").
+function readShareState(){
+  const h=location.hash.slice(1);
+  if(h.indexOf("m=")<0) return null;
+  try{ const q=new URLSearchParams(h); return q.has("m")?q:null; }catch(e){ return null; }
+}
+// Apply a link's state to the controls. Runs once, after the UI is built and before the first draw.
+// Everything is validated: unknown ids are skipped, sliders clamp to their own range, colors must be 6 hex digits.
+function applyShareState(q){
+  const ok=id=>{ const m=modelById(id); return shareable(m)?m:null; };
+  const list=(key,sep)=>(q.get(key)||"").split(sep||".").filter(Boolean);
+  const seed=key=>(parseInt(q.get(key),10)||0)>>>0;
+  const range=(id,v)=>{ const n=parseFloat(v); if(v!==null&&isFinite(n)) $(id).value=n; };
+  const color=(id,v)=>{ if(/^[0-9a-f]{6}$/i.test(v||"")) $(id).value="#"+v.toLowerCase(); };
+  // Core 1
+  const on=new Set(list("m").filter(ok));
+  for(const id of list("adv")) if(ok(id)&&ok(id).adv) advancedOn.add(id);
+  for(const m of MODELS){ if(!shareable(m)) continue;
+    $("chk-"+m.id).checked=on.has(m.id); if(on.has(m.id)&&m.adv) advancedOn.add(m.id); }
+  for(const item of list("col")){ const [id,v]=item.split("-"); if(ok(id)) color("col-"+id,v); }
+  for(const item of list("d","~")){ const [mid,did,pct]=item.split("-"), m=ok(mid), d=m&&(m.dials||[]).find(x=>x.id===did), v=parseFloat(pct);
+    if(!d||!isFinite(v)) continue;
+    dialPct[mid+"."+did]=Math.min(100,Math.max(0,v));
+    const el=$("dial-"+mid+"-"+did); if(el) el.value=dialPct[mid+"."+did];
+    dialReadout(m,d); }
+  if(VIEW_MODES.some(v=>v.id===q.get("v"))) viewMode=q.get("v");
+  for(const b of $("view-seg").children) b.setAttribute("aria-pressed",String(b.dataset.mode===viewMode));
+  $("opt-normal-margins").checked=q.get("nm")==="1";
+  if(MS_MODES.some(x=>x.id===q.get("ms"))){ msMode=q.get("ms");
+    const r=document.querySelector('input[name="ms-mode"][value="'+msMode+'"]'); if(r) r.checked=true;
+    $("ms-help").textContent=MS_MODES.find(x=>x.id===msMode).help; }
+  if(q.has("s")){ simSeed=seed("s"); attractorStart=startFromSeed(simSeed); }
+  syncAdvancedUI(); rebuildBlendOptions(); syncDials();
+  // Core 2
+  for(const sl of ["a","b"]){
+    const m=ok(q.get("b"+sl)); if(m&&isVisible(m)) $("blend-"+sl).value=m.id;
+    if(q.has("bs"+sl)) blendSeeds[sl]=newSeedPair(seed("bs"+sl));
+    blendCache[sl]=null; }
+  range("blend-pos",q.get("bp")); range("blend-smooth",q.get("bm"));
+  color("blend-color-a",q.get("bca")); color("blend-color-b",q.get("bcb"));
+  syncBlendReadouts();
+  // Core 3
+  for(const p of FORGE_PARAMS) range("forge-"+p.id,q.get("f"+p.id));
+  // Core 4
+  const m4=modelById(q.get("c4")); if(m4&&m4.gen3){ c4Model=m4.id; $("c4-model").value=m4.id; }
+  if(q.has("c4s")) c4Pair=newSeedPair(seed("c4s"));
+  for(const p of VIEW3D_PARAMS){ range("v3-"+p.id,q.get("v"+p.id)); v3Readout(p.id); }
+  c4Az=view3d("az");
+  if(q.has("au")&&!reducedMotion()) c4Auto=q.get("au")==="1";
+  syncAutoSwitch(); buildCore4Dials(); c4Dirty=true;
+  // Core 5
+  range("race-n",q.get("rn")); if(q.has("rs")) raceSeed=seed("rs");
+}
+// Share button: put the link in the address bar and on the clipboard, and always show it so it can be
+// copied by hand where the clipboard is blocked (some embedded frames, older browsers).
+let shareTimer=0;
+async function shareSetup(core){
+  const {url,leftOut}=buildShareURL(core);
+  try{ history.replaceState(null,"",url); }catch(e){}
+  let copied=false;
+  try{ await navigator.clipboard.writeText(url); copied=true; }catch(e){}
+  $("share-msg").textContent=(copied?"Link copied. It reopens this page with your current setup.":"Copy this link. It reopens this page with your current setup.")
+    +(leftOut?" Financial models are left out of shared links.":"");
+  $("share-url").value=url;
+  $("share-status").hidden=false;
+  if(!copied){ $("share-url").focus(); $("share-url").select(); }
+  clearTimeout(shareTimer);
+  if(copied) shareTimer=setTimeout(()=>{ $("share-status").hidden=true; },SHARE_HIDE_MS);
+  logTerminal(copied?"SHARE LINK COPIED":"SHARE LINK READY","#00ffff");
+}
+
+// Redraw everything whose labels depend on the canvas' displayed size (after a resize or un-collapsing a panel).
+function redrawAll(){ renderStandard(false,true); renderBlender(); queue3D(); renderRace(); }
+
 /* ==== INIT ================================================================ */
 function init(){
   $("pts-tag").textContent=NUM_POINTS+" PT/SEQ";
 
   // Collapse toggles for Cores 2-4: a button at the end of each panel header hides everything below it.
-  for(const sec of document.querySelectorAll(".panel-2, .panel-3, .panel-4")){
+  for(const sec of document.querySelectorAll(".panel-2, .panel-3, .panel-4, .panel-5")){
     const head=sec.querySelector(".panel-head"), title=head.querySelector("h2").textContent;
     const b=document.createElement("button"); b.type="button"; b.className="collapse-btn";
     b.setAttribute("aria-expanded","true"); b.setAttribute("aria-label","Collapse "+title); b.title="Collapse / expand";
@@ -1967,9 +2655,40 @@ function init(){
       const shut=sec.classList.toggle("collapsed");
       b.setAttribute("aria-expanded",String(!shut));
       b.setAttribute("aria-label",(shut?"Expand ":"Collapse ")+title);
+      if(!shut) redrawAll();               // a hidden canvas has no size, so its labels are re-measured on reopening
     });
     head.appendChild(b);
   }
+
+  // Per panel, from CORES: a jump link under the page title, the plain-English line under the panel
+  // title, and a share button beside the plot (after the play button where there is one).
+  for(const c of CORES){
+    const h2=$(c.head), sec=h2.closest("section");
+    const a=document.createElement("a"); a.href="#"+c.head; a.textContent=c.n+" · "+c.short; $("jump").appendChild(a);
+    const p=document.createElement("p"); p.className="core-sub"; p.textContent=c.sub; h2.closest(".panel-head").after(p);
+    const sh=sec.querySelector(".stage-head"), b=document.createElement("button");
+    b.type="button"; b.className="play-btn"+(c.tint?" play-btn-"+c.tint:""); b.innerHTML=lucide("origami");
+    b.setAttribute("aria-label","Copy a link to this setup"); b.title="Copy a link to this setup";
+    b.addEventListener("click",()=>shareSetup(c.n));
+    (sh.querySelector(".play-btn")||sh.querySelector(".badge")).after(b);
+  }
+  $("share-close").addEventListener("click",()=>{ $("share-status").hidden=true; });
+
+  // Core 1 layout switch, from VIEW_MODES.
+  for(const v of VIEW_MODES){
+    const b=document.createElement("button"); b.type="button"; b.dataset.mode=v.id; b.textContent=v.label;
+    b.setAttribute("aria-pressed",String(v.id===viewMode));
+    b.addEventListener("click",()=>setViewMode(v.id));
+    $("view-seg").appendChild(b);
+  }
+  // Side by side: click a mini-plot to see it alone at full size; click again to return.
+  cvStd.addEventListener("click",e=>{
+    if(viewMode!=="grid") return;
+    if(focusId){ setFocus(null); return; }
+    const r=cvStd.getBoundingClientRect(), x=(e.clientX-r.left)*cvStd.width/r.width, y=(e.clientY-r.top)*cvStd.height/r.height;
+    const hit=stdCells.find(c=>x>=c.x&&x<=c.x+c.w&&y>=c.y&&y<=c.y+c.h);
+    if(hit) setFocus(hit.id);
+  });
 
   // One group per CATEGORIES entry: a heading + rows in Core 1. Advanced models get a row too, but it
   // stays hidden until the model is switched on in the Advanced menu (Core 2's dropdowns are built
@@ -2015,7 +2734,7 @@ function init(){
   $("btn-reroll-blend").addEventListener("click",rerollBlend);
   $("btn-reroll-blend").insertAdjacentHTML("afterbegin",lucide("play"));
   for(const m of MODELS){
-    $("chk-"+m.id).addEventListener("change",()=>{ syncDials(); renderStandard(); });
+    $("chk-"+m.id).addEventListener("change",()=>{ focusId=null; if($("chk-"+m.id).checked) lastTouched=m.id; syncDials(); renderStandard(); });
     $("col-"+m.id).addEventListener("input",()=>{ syncDials(); renderStandard(); if(m.id===c4Model) queue3D(); });   // "input" so color drags preview live
   }
   for(const slot of ["a","b"]) $("blend-"+slot).addEventListener("change",()=>{ rollBlendSlot(slot); renderBlender(); });
@@ -2037,8 +2756,25 @@ function init(){
 
   buildDials();
   initCore4();
+  initRace();
+  syncBlendReadouts();
   logTerminal("SYS_INIT: "+MODELS.length+" models loaded.","#ff00ff");
-  renderStandard(); renderBlender(); queueForge();
+
+  // A share link: restore its setup before the first draw, then scroll to the panel it was shared from.
+  const linked=readShareState();
+  if(linked){
+    try{ applyShareState(linked); logTerminal("SHARE LINK LOADED","#00ffff"); }
+    catch(e){ logTerminal("SHARE LINK COULD NOT BE READ; DEFAULTS LOADED","#ff5c8a"); }
+  }
+  renderStandard(); renderBlender(); queueForge(); renderRace();
+  if(linked){ const c=CORES.find(x=>String(x.n)===linked.get("c")); if(c&&c.n>1) $(c.head).scrollIntoView(); }
+  // A share link pasted into a tab that already has the page open only changes the "#…" part, which does
+  // not reload by itself.
+  window.addEventListener("hashchange",()=>{ if(readShareState()) location.reload(); });
+  // Canvas labels are sized from the canvas' displayed width, so redraw when that changes.
+  let resizeQueued=false;
+  window.addEventListener("resize",()=>{ if(resizeQueued) return; resizeQueued=true;
+    requestAnimationFrame(()=>{ resizeQueued=false; redrawAll(); }); });
 }
 init();
 </script>

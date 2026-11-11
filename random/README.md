@@ -26,6 +26,8 @@ A line with no tag has not been checked at all.
 4. [Core 2 — the Formula Blender](#core-2--the-formula-blender)
 5. [Core 3 — the Algorithmic Forge](#core-3--the-algorithmic-forge)
 6. [Core 4 — the 3-D viewer](#core-4--the-3-d-viewer)
+   - [Core 5 — the Convergence Race](#core-5--the-convergence-race)
+   - [Share links](#share-links)
 7. [Copulas](#copulas)
 8. [Financial stochastic processes](#financial-stochastic-processes)
 9. [Related resources](#related-resources)
@@ -51,8 +53,13 @@ A line with no tag has not been checked at all.
 - Every strange-attractor model has at least one dial. Most 3-D flows also have an **Orbit length** dial (0.25×–4×), which scales how much of the trajectory the 1,500 points cover.
 - **Re-roll** picks a new random start. For the two models whose orbit is deterministic from a fixed start (Halvorsen, Tinkerbell) it instead picks a different stretch of the same orbit, so the picture still changes.
 - **Core 2** (blender), **Core 3** (forge) and **Core 4** (3-D viewer) are described below.
-- **On by default in Core 1:** Logistic Map, Halton Sequence, and the three core copulas (Gaussian, Student-t, Clayton). Core 2 starts with Logistic (A) and Lorenz (B).
-- **Collapsible panels:** Cores 2, 3 and 4 each have a chevron button in the header that folds the panel down to its title bar. Panels start open every visit; the state is not remembered.
+- **On by default in Core 1:** Math.random and the Halton Sequence (random next to evenly spread). It was five models; a busy first view was hard to read. Core 2 starts with Logistic (A) and Lorenz (B).
+- **Core 1 layouts:** *Side by side* (the default) draws one labelled mini-plot per ticked model, each with its own axis range printed underneath. *Overlay* stacks them in one frame; each scatter model then gets its own dot shape as well as its color (circle, square, triangle, diamond, plus, bar), so layers can be told apart without relying on color. In Overlay every model is stretched to fill the frame, so positions are not on a common scale (the plot says so), except copulas under "Normal margins", which share one range.
+- **Legend and single-out:** a chip per plotted model sits above the plot. Tap a chip (or a mini-plot) to single that model out: alone at full size in Side by side, with the others dimmed in Overlay. Tap again to return.
+- **Plain-English note:** every model has a one-sentence `note` in the `MODELS` registry, shown under the Core 1 plot for the model ticked or tapped last. The notes are summaries of the entries below; this file stays the reference.
+- **Middle-Square switch:** shown only while Middle-Square is ticked in Core 1 or selected in Core 2.
+- **Jump links and subtitles:** the links under the page title, the sentence under each panel title and the share buttons come from the `CORES` registry.
+- **Collapsible panels:** Cores 2 to 5 each have a chevron button in the header that folds the panel down to its title bar. Panels start open every visit; the state is not remembered.
 - **Page layout:** the *Add financial stochastic models…* button sits at the bottom of the page, just above the legal disclaimer.
 
 ---
@@ -273,10 +280,10 @@ Systems whose long-run behavior settles onto a bounded set with fractal structur
 
 Crossfades two models into one picture. Pick **Formula A** (left base) and **Formula B** (right target) from the dropdowns; the plot shows A's points on the left, B's on the right, and a blended band between them. Every point is a weighted average of the matching A and B points, so the picture is a literal interpolation, not a statistical mixture.
 
-- **Fade bar** (−100 to +100): where the middle of the transition sits along the 1,500 points. −100 is all B, +100 is all A, 0 is the centre.
+- **Handover point** (formerly "Fade bar"): where the middle of the transition sits along the 1,500 points. Fully left is all B, fully right is all A. The readout shows the split, for example "A 50% · B 50%".
 - **Blend smoothness** (0–100): width of the transition band. 0 is a hard cut; higher values use a smoothstep over a wider band.
 - **Color A / Color B:** one color per formula. Both start as the same yellow, so the default looks like a single color. If they differ, each point's color is the same A→B blend as its position. For line plots the color changes segment by segment.
-- **Re-roll A & B** draws fresh samples for both selected models. **Surprise Me! [ RNG Overload ]** also picks two new models, a new fade position and smoothness, and random colors for A and B.
+- **Re-roll A & B** draws fresh samples for both selected models. **Surprise me: random pair** (formerly "Surprise Me! [ RNG Overload ]") also picks two new models, a new fade position and smoothness, and random colors for A and B.
 - **Seeds:** each slot keeps its own seed and attractor start, so slot A and slot B differ even when they hold the same model, and moving a model dial morphs the picture instead of re-drawing it.
 - **Line vs. dots:** the result is drawn as a connected line only when both models are line models; otherwise as dots.
 - **Normalization:** each sequence is normalized to a common range before blending. The Core 1 "Normal margins" switch also applies here.
@@ -288,12 +295,12 @@ Crossfades two models into one picture. Pick **Formula A** (left base) and **For
 A deliberately breakable random-number generator, drawn as a scatter of consecutive pairs. It shows why small or weak generators produce visible geometric patterns.
 
 - **Generator:** an LCG, `X' = (a·X + c) mod 2ᵇ`, with the Numerical Recipes constants (`a = 1664525`, `c = 1013904223`) and a fixed seed (8675309), so the picture is reproducible between slider moves. Each plotted point `(x, y)` uses two successive states, each divided by `2ᵇ`. It draws 2,250 points (1.5 × 1,500) to fill the plane.
-- **Memory (state space), 5–32 bits:** the value of *b*. Fewer bits means the sequence repeats sooner, so points land on a few lattice positions and clump. A warning is logged to the terminal at 8 bits or fewer. At 32 bits the state space is about 4.29 billion values.
-- **Statistical Randomness, 0–10 shifts:** how many xorshift passes (`X ^= X<<13; X ^= X>>>17; X ^= X<<5`, the Marsaglia triplet) are applied to each output before plotting. 0 shows the raw LCG's straight-line lattice; more passes spread the points out.
-- **Compute Weight, 1×–1000×:** simulates a heavier algorithm.
-  - **Timing part:** every point runs `weight × 20` throwaway `Math.sqrt()` calls whose result is discarded. This changes only the **RENDER** timer (it turns red above 50 ms). The 20 per notch was cut from an earlier 200, which froze the page for seconds at the top of the slider.
+- **Memory (state size), 5–32 bits:** the value of *b*. Fewer bits means the sequence repeats sooner, so points land on a few lattice positions and clump. A warning is logged to the terminal at 8 bits or fewer. At 32 bits the state space is about 4.29 billion values.
+- **Scrambling passes** (formerly "Statistical Randomness"), 0–10: how many xorshift passes (`X ^= X<<13; X ^= X>>>17; X ^= X<<5`, the Marsaglia triplet) are applied to each output before plotting. 0 shows the raw LCG's straight-line lattice; more passes spread the points out.
+- **Extra compute** (formerly "Compute Weight"), 1×–1000×: simulates a heavier algorithm.
+  - **Timing part:** every point runs `weight × 20` throwaway `Math.sqrt()` calls whose result is discarded. This changes only the **Draw time** readout (it turns red above 50 ms). The 20 per notch was cut from an earlier 200, which froze the page for seconds at the top of the slider.
   - **Real part:** every full 100 notches adds one extra hash round to each output (`v = imul(v, 0x45d9f3b) & mask; v ^= v >>> ⌊b/2⌋`). So 1–99× changes only the timer, 101× adds one round, and 1000× adds ten. The constant is a widely used integer-hash multiplier; it has not been tested here for quality.
-- **Readouts:** **RENDER** is the time to generate the points in milliseconds. **WORK** shows the sqrt calls per point and the hash rounds currently applied.
+- **Readouts:** **Draw time** is the time to generate the points in milliseconds. **Busywork** shows the throwaway sqrt loops per point and the extra scramble (hash) rounds currently applied.
 - **Status:** this section was written from the code in `index.html`. Nothing here is tagged **[N]**: no numeric test of the generator quality was run.
 
 ---
@@ -304,9 +311,38 @@ A fourth panel that draws the real 3-D orbit of a model and lets you turn it. It
 
 - **How it draws:** there is no 3-D library. Each point is rotated about the vertical axis by *azimuth*, tilted by *elevation*, optionally shrunk with distance (*perspective*), and drawn on an ordinary 2-D canvas. The orbit is first centered on its bounding box and scaled to unit radius so every model fills the view the same way. Near parts are drawn brighter and thicker than far parts (six depth layers). A small x/y/z key in the corner shows the orientation.
 - **Controls:** *Auto-rotate* switch (Lucide `toggle-left` / `toggle-right`), *rotation speed* (0–90°/s), *azimuth*, *elevation*, *zoom*, *perspective* and *line / point size*, all generated from the `VIEW3D_PARAMS` list. The model's own dials (attraction, orbit length and so on) are mirrored below the view and stay in step with the same dials in Core 1.
+- **Dragging:** drag the picture to turn it. With a mouse or pen, sideways changes azimuth and up/down changes elevation. On a touch screen only sideways drags turn the model, because an up/down swipe has to keep scrolling the page; two fingers pinch to zoom. Ctrl + scroll (also what a trackpad pinch sends) zooms; a plain scroll is left to the page. Auto-rotate waits while a drag is in progress. Every drag moves the matching slider, so the readouts stay in step.
 - **Animation:** it runs only while Auto-rotate is on with a speed above zero, the plot is on screen and the tab is visible; otherwise it redraws only when a control changes. With the system "reduce motion" setting on, it starts with Auto-rotate off.
 - **Why it matters:** a 2-D projection can hide structure. RANDU's planes only show from a particular angle; the Lorenz and Rössler folds are flattened in any single projection.
 - **Check:** all 15 models in the viewer (14 flows plus RANDU) were checked for 1,500 finite 3-D points (the first 8 originally, the rest as they were added), normalized to a maximum radius of exactly 1; auto-rotation advanced 18° in 1.5 s at 12°/s and 60° in 1 s at 60°/s; it paused when the plot was off screen or Auto-rotate was off. **[N]**
+
+---
+
+## Core 5 — the Convergence Race
+
+Estimates π by throwing *N* points ("darts") at the unit square: the share landing inside the quarter circle, times 4. Three point sets race: pseudo-random, Halton and Sobol (the `RACE_METHODS` registry; adding one is one line).
+
+- **Boards:** one square per method showing the first *N* darts of one run, with the quarter-circle line. Hits are solid, misses faint.
+- **Chart:** root-mean-square error of the π estimate over 32 runs against *N*, 8 to 16,384, on log-log axes. A grey dashed line shows the textbook error for independent uniform darts, `4·√(p(1−p)/N)` with `p = π/4`, which is `1.642/√N` (binomial standard deviation times 4).
+- **Runs:** the pseudo-random method uses the seeded mulberry32 stream (`makeRng`), not `Math.random`, so a share link reproduces it. Halton and Sobol are fixed sequences, so each run adds a random offset modulo 1 to every point (a Cranley–Patterson shift: R. Cranley & T. N. L. Patterson, *SIAM J. Numer. Anal.* 13(6) (1976) 904–914 **[R]**). The shift keeps the even spacing and makes an average over runs meaningful.
+- **Table:** the same numbers as text: this run's estimate and miss, and the typical (RMS) error. The sentence under it is computed live from those numbers.
+- **Controls:** a "Darts thrown" slider (powers of 2 in quarter steps), *Run the race* (sweeps the slider over 7 s; jumps to the end under "reduce motion"), *Re-roll darts*, and dragging across the chart.
+- **Sobol depth:** `SOBOL_BITS` was raised from 12 to 14 so the sequence reaches 16,384 points. The first five points are unchanged (`(0,0) (0.5,0.5) (0.75,0.25) (0.25,0.75) (0.375,0.375)`). **[N]**
+- **Check:** averaged over 40 seeds (1,280 runs), the pseudo-random RMS error stayed within 0.977× to 1.026× of `1.642/√N` at all 45 slider stops (0.102 against 0.103 at N = 256; 0.0128 against 0.0128 at N = 16,384). **[N]** In the same test Halton and Sobol gave 0.030 and 0.029 at N = 256, and 0.0014 and 0.0012 at N = 16,384. **[N]**
+- **Limits:** these figures are for this one test (a quarter circle in 2-D). The size of the advantage depends on the problem and its dimension, and no convergence rate is claimed for Halton or Sobol here. One run can beat or miss the typical figure by luck.
+- **Colors:** cyan `#00ffff`, yellow `#fcee0a`, pink `#ff5cf0` and the grey guide `#b9b9c9`, checked against the plot background with the dataviz palette validator, all pairs: worst pair ΔE 9.7 under simulated color-blindness (grey against pink; 16.9 among the three methods) and 19.4 for normal vision, all at least 3:1 contrast. Each line also has its own dash pattern, and on wide screens a label at its end.
+
+---
+
+## Share links
+
+Every plot has a share button (Lucide `origami`). It copies a link that reopens the page with the current setup; the state is carried after the `#` in the URL and nothing is stored on a server.
+
+- **Carried:** ticked models, Advanced switches, layout, changed colors and dials, Normal margins, Middle-Square mode, every Core 2 to 5 control, the 3-D view, the random seeds, and which panel the link was shared from (the page opens scrolled to it).
+- **Financial models are never written to or read from a link.** They stay behind the disclaimer dialog, so a link cannot bypass it or pass a financial plot around without it. If any are in use, the confirmation says they were left out.
+- **Reproducibility:** seeds reproduce the seeded models exactly (the attractor start point is now derived from the seed). Generators that keep running state or use the browser's own `Math.random` (Math.random, LCG, xorshift, Middle-Square, logistic) redraw fresh dots.
+- **Validation:** unknown ids are skipped, sliders clamp to their own range, colors must be six hex digits.
+- **Check:** a setup touching every panel was written to a link and reloaded in a new tab; all compared values matched, including the first seeded points and the Core 5 RMS values. A hand-made link naming financial models loaded none of them. **[N]**
 
 ---
 
@@ -474,7 +510,7 @@ Candidates from the research pass that are **not** implemented (3-D views for th
 ## Adding a model
 
 1. Write a generator returning 1,500 `{x, y}` points (use `makeRng(simSeed)` for anything random).
-2. Add one entry to `MODELS` in `index.html`. Set `adv: true` to put it in the Advanced menu. Add `dials` for a parameter slider.
+2. Add one entry to `MODELS` in `index.html`. Set `adv: true` to put it in the Advanced menu. Add `dials` for a parameter slider, and a one-sentence plain-English `note` (shown under the Core 1 plot).
 3. Add its published constants (with a comment pointing here) to the tuning-constants block.
 4. Add an entry to this file with the formula, origin, and a confidence tag. Run a numeric check before tagging anything **[N]**.
 
