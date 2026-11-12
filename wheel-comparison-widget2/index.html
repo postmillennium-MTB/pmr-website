@@ -46,24 +46,39 @@
     // js/my-wheel.js). The Wheel Strength Lab runs on this site's origin and
     // keeps it in this origin's localStorage; the widget, framed from
     // github.io, cannot see that storage, so it asks this page to read and
-    // write it. The page only stores the text; both tools validate it when
-    // they read it. Only the widget frame on its own origin is answered, the
-    // text is size-capped, and nothing leaves the browser.
+    // write it. Only the widget frame on its own origin is answered, and only
+    // a well-formed build is stored: the five build fields, each checked
+    // against the values the tools offer, rewritten into a fresh record (any
+    // other field is dropped). Both tools validate it again when they read
+    // it. Nothing leaves the browser.
     const MY_WHEEL_KEY = 'pmr-my-wheel';
+    function cleanMyWheel(text) {
+      if (typeof text !== 'string' || text.length > 400) return null;
+      let b;
+      try { const r = JSON.parse(text); b = r && r.v === 1 ? r.build : null; } catch (err) { return null; }
+      if (!b || typeof b !== 'object') return null;
+      const t = Number(b.tension);
+      if (!/^h\d{1,3}$/.test(b.hub) || ['148', '157'].indexOf(b.std) < 0 ||
+          ['26', '27.5', '29', '32'].indexOf(b.wheel) < 0 || ['28', '32', '36'].indexOf(b.spokes) < 0 ||
+          !isFinite(t) || t < 80 || t > 125) return null;
+      return JSON.stringify({ v: 1, build: { hub: b.hub, std: b.std, wheel: b.wheel, tension: t, spokes: b.spokes } });
+    }
     window.addEventListener('message', e => {
-      if (e.origin !== 'https://postmillennium-mtb.github.io' || !e.source) return;
+      const frame = document.querySelector('iframe');
+      if (e.origin !== 'https://postmillennium-mtb.github.io' || !frame || e.source !== frame.contentWindow) return;
       const d = e.data;
       if (!d || typeof d.type !== 'string' || d.type.indexOf('pmr-my-wheel-') !== 0) return;
       let value = null;
       try {
-        if (d.type === 'pmr-my-wheel-set' && typeof d.value === 'string' && d.value.length <= 400) {
-          localStorage.setItem(MY_WHEEL_KEY, d.value);
+        if (d.type === 'pmr-my-wheel-set') {
+          const clean = cleanMyWheel(d.value);
+          if (clean) localStorage.setItem(MY_WHEEL_KEY, clean);
         } else if (d.type === 'pmr-my-wheel-clear') {
           localStorage.removeItem(MY_WHEEL_KEY);
         }
-        value = localStorage.getItem(MY_WHEEL_KEY);
+        value = cleanMyWheel(localStorage.getItem(MY_WHEEL_KEY));
       } catch (err) {}
-      e.source.postMessage({ type: 'pmr-my-wheel', value: value }, e.origin);
+      frame.contentWindow.postMessage({ type: 'pmr-my-wheel', value: value }, e.origin);
     });
   </script>
 </body>
