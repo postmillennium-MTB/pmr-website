@@ -508,6 +508,9 @@
   }
   .detent:hover { border-color: var(--accent); color: var(--accent); }
   .detent[aria-pressed="true"] { border-color: var(--accent); background: var(--accent); color: var(--bg); }
+  .wheel-cta-note {
+    font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem; max-width: 36ch;
+  }
   .wheel-hint {
     font-family: var(--ff-mono); font-size: 0.58rem; letter-spacing: 0.1em;
     color: var(--text-muted); margin-top: 1rem; text-transform: uppercase;
@@ -1360,9 +1363,10 @@
 
       <p class="wheel-hint">Drag the wheel sideways to spread the hub &middot; scroll to orbit it</p>
 
-      <a class="plate-cta" id="w-cta" href="/wheel-lab/?spacing=148">
+      <a class="plate-cta" id="w-cta" href="/wheel-comparison-widget2/#sm=148">
         Interactive MTB wheel strength comparison <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </a>
+      <p class="wheel-cta-note" id="w-cta-note" hidden>The comparison covers 148&times;12 and 157&times;12 hubs only, so 142 opens on the 148&times;12 wheel.</p>
     </div>
 
     <div class="wheel-stage">
@@ -1473,7 +1477,7 @@
     { path: "/wheel-lab/",
       tag:  "Wheel mechanics",
       name: "Wheel Strength Lab",
-      desc: "148mm vs. 157mm hub comparison using Ford’s Mode Matrix." },
+      desc: "The workshop: why one wheel is stronger, what gives first, and what-if builds. Ford’s Mode Matrix." },
     { path: "/atlas/",
       tag:  "IP research",
       name: "MTB Patent Atlas",
@@ -1527,7 +1531,7 @@
     { path: "/wheel-comparison-widget2/",
       tag:  "Wheel mechanics",
       name: "Wheel Strength Comparison Tool",
-      desc: "Compares 148×12 to 157×12 wheels / hubs using Matt Ford’s academic research." },
+      desc: "The quick answer: which hub builds the stronger rear wheel, 148×12 or 157×12, and by how much. Matt Ford’s research." },
     { path: "/MTB-inflation/",
       tag:  "Economics",
       name: "MTB Inflation Dashboard",
@@ -1949,6 +1953,7 @@
       elS = document.getElementById('w-stiff'),
       elM = document.getElementById('w-mm'),
       elC = document.getElementById('w-cta'),
+      elN = document.getElementById('w-cta-note'),
       dets = document.getElementById('w-detents');
 
   function offsetFor(v) { return OFF148 + (v - 148) * 0.5; }
@@ -2050,9 +2055,15 @@
     elT.innerHTML = th.toFixed(2) + '<span class="u">deg</span>';
     elS.textContent = Math.round(Math.sin(th * Math.PI / 180) / BASE_SIN * 100);
     elM.innerHTML = mm + '<span class="u">mm</span>';
-    // The call to action carries the visitor's own number into the
-    // real tool, so /wheel-lab/ opens already set to what they dialled.
-    elC.setAttribute('href', '/wheel-lab/?spacing=' + mm);
+    // The call to action carries the visitor's choice into the quick
+    // comparison (the verdict), opened in its one-wheel view on the
+    // nearer of the two standards it covers: #sm=148 or #sm=157 is the
+    // widget's own hash format, which its page forwards into the tool.
+    // Below 145 mm (142 QR and narrower) there is no matching hub, so a
+    // one-line note says the link opens on 148x12.
+    var std = mm >= 152.5 ? 157 : 148;
+    elC.setAttribute('href', '/wheel-comparison-widget2/#sm=' + std);
+    elN.hidden = mm >= 145;
     var bs = dets.querySelectorAll('.detent');
     for (var i = 0; i < bs.length; i++) {
       bs[i].setAttribute('aria-pressed', (+bs[i].dataset.v === mm) ? 'true' : 'false');
