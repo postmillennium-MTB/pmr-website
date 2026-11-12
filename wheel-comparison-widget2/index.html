@@ -26,7 +26,7 @@
   </style>
 </head>
 <body>
-  <iframe src="https://postmillennium-mtb.github.io/wheel-comparison-widget2/" title="Wheel Strength Comparison Tool" allowfullscreen></iframe>
+  <iframe src="https://postmillennium-mtb.github.io/wheel-comparison-widget2/" title="Wheel Strength Comparison Tool" allow="clipboard-write; web-share" allowfullscreen></iframe>
   <script>
     document.querySelectorAll('iframe[src*="postmillennium-mtb.github.io"]').forEach(f => {
       if (window.location.hash) f.src += window.location.hash;
@@ -41,6 +41,29 @@
       if (!d || d.type !== 'pmr-build-hash' || typeof d.hash !== 'string') return;
       if (!/^#[\w.=&%-]{0,600}$/.test(d.hash)) return;
       try { history.replaceState(null, '', d.hash); } catch (err) {}
+    });
+    // "My wheel": the widget's one saved build (wheel-physics-core's
+    // js/my-wheel.js). The Wheel Strength Lab runs on this site's origin and
+    // keeps it in this origin's localStorage; the widget, framed from
+    // github.io, cannot see that storage, so it asks this page to read and
+    // write it. The page only stores the text; both tools validate it when
+    // they read it. Only the widget frame on its own origin is answered, the
+    // text is size-capped, and nothing leaves the browser.
+    const MY_WHEEL_KEY = 'pmr-my-wheel';
+    window.addEventListener('message', e => {
+      if (e.origin !== 'https://postmillennium-mtb.github.io' || !e.source) return;
+      const d = e.data;
+      if (!d || typeof d.type !== 'string' || d.type.indexOf('pmr-my-wheel-') !== 0) return;
+      let value = null;
+      try {
+        if (d.type === 'pmr-my-wheel-set' && typeof d.value === 'string' && d.value.length <= 400) {
+          localStorage.setItem(MY_WHEEL_KEY, d.value);
+        } else if (d.type === 'pmr-my-wheel-clear') {
+          localStorage.removeItem(MY_WHEEL_KEY);
+        }
+        value = localStorage.getItem(MY_WHEEL_KEY);
+      } catch (err) {}
+      e.source.postMessage({ type: 'pmr-my-wheel', value: value }, e.origin);
     });
   </script>
 </body>
