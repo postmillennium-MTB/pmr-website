@@ -28,7 +28,11 @@ const lab = readFileSync(src, 'utf8');
 function appScript(html, label) {
   const root = html.indexOf('<div id="root"></div>');
   const start = html.indexOf('<script>', root);
-  const end = html.lastIndexOf('</script>');
+  // First </script> after the app's opening tag, not the last one in the
+  // file: the site page has other scripts after the app (e.g. the Cloudflare
+  // Web Analytics beacon before </body>). esbuild escapes any "</script>"
+  // inside the bundle, so the first closing tag is the app's own.
+  const end = html.indexOf('</script>', start);
   if (root < 0 || start < 0 || end < start) {
     throw new Error(label + ': could not find <div id="root"> followed by the app <script>');
   }
