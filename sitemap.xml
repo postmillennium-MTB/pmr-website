@@ -102,6 +102,10 @@
     <loc>https://www.postmillenniumrenaissance.com/random/</loc>
     <priority>0.8</priority>
   </url>
+  <url>
+    <loc>https://www.postmillenniumrenaissance.com/tiny-lab/</loc>
+    <priority>0.8</priority>
+  </url>
 
   <url>
     <loc>https://www.postmillenniumrenaissance.com/studies/</loc>

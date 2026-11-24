@@ -25,7 +25,7 @@ confidence-tiered sourcing for anything factual.
   `trail-advocacy-atlas/`, `trail-partnership-atlas/`, `viscosity-ledger/`,
   `headwaters-ledger/`, `weagle/`, `pump-track/`, `metric-clock/`,
   `sports-popularity/`, `singletrack-density/`, `mtb-weight-price/`,
-  `MTB-inflation/`, `wheel-comparison-widget2/`, `maintenance/`, `bmx/`,
+  `MTB-inflation/`, `wheel-comparison-widget2/`, `maintenance/`, `bmx/`, `tiny-lab/`,
   `dst/`, `1977/`, `autonomy-paradox/`, `studies/`, `stickers/`, `privacy/`),
   each with its own `index.html`.
 - `images/` — shared site assets, including the carpet texture (below).
